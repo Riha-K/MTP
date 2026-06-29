@@ -1,10 +1,7 @@
 # BareSoil-S1 VLM: Dataset Strategy & Conversion Guide
 
-> **Workspace:** `e:\MTP\earth2\` only — all code and docs live here.  
 > **Goal:** Build a **Sentinel-1 SAR-only** VLM for **general LULC bare-soil classification + dialogue**, extending EarthDial as the base.  
 > **Base model repo:** `EarthDial-main/` (upstream EarthDial — CVPR 2025)  
-> **Your extension (to build):** `EarthDial-main/baresoil/` — does **not exist yet**; create from scratch in this workspace.
-
 ---
 
 ## 0. Earth2 Workspace Layout (current & planned)
