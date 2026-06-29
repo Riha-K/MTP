@@ -1,12 +1,4 @@
 # BareSoil-S1 MTech: 3-Stage Roadmap
-
-> **Workspace:** `e:\MTP\earth2\` only — starting from scratch.  
-> **Base:** `EarthDial-main/` (upstream EarthDial)  
-> **Extension to build:** `EarthDial-main/baresoil/` (does not exist yet)  
-> **Companion doc:** [`BareSoil_S1_VLM_Dataset_Guide.md`](BareSoil_S1_VLM_Dataset_Guide.md)
-
----
-
 ## Earth2 Project Scope
 
 Everything for this thesis lives under:
