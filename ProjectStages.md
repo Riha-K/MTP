@@ -1,302 +1,292 @@
-# Senior RE Assessment: Your 3-Stage MTech Plan
+# BareSoil-S1 MTech: 3-Stage Roadmap
 
-The attached plan is **directionally strong** — one thread (EarthDial → bare soil → agent) beats three disconnected projects. As written, it mixes sensors, underestimates dataset work, and leaves Stage 1 too vague. Below is an honest review and a tighter roadmap aligned with EarthDial, your S1 requirement, and what is actually publishable.
+> **Workspace:** `e:\MTP\earth2\` only — starting from scratch.  
+> **Base:** `EarthDial-main/` (upstream EarthDial)  
+> **Extension to build:** `EarthDial-main/baresoil/` (does not exist yet)  
+> **Companion doc:** [`BareSoil_S1_VLM_Dataset_Guide.md`](BareSoil_S1_VLM_Dataset_Guide.md)
 
 ---
 
-## Verdict on the Attached Plan
+## Earth2 Project Scope
+
+Everything for this thesis lives under:
+
+```
+e:\MTP\earth2\
+├── BareSoil_S1_MTech_3Stage_Roadmap.md     ← this file
+├── BareSoil_S1_VLM_Dataset_Guide.md
+├── EarthDial_Complete_Analysis.md
+└── EarthDial-main\
+    ├── src\earthdial\          ← EarthDial core (train, eval, model)
+    ├── baresoil\               ← YOUR CODE (create in Stage 1)
+    └── data\baresoil_s1\       ← YOUR DATA (download in Stage 1)
+```
+
+**Not used:** any folder outside `earth2`. No copying from other local clones — build fresh here.
+
+---
+
+## Verdict on the Original LLM Plan
 
 | Aspect | Rating | Comment |
 |---|---|---|
-| **Single-thread narrative** | ✅ Excellent | Intern → paper → agent is the right MTech structure |
-| **“Improve EarthDial, don’t invent a transformer”** | ✅ Correct | Dataset + task + benchmark + eval = real contributions |
-| **Option 1 theme (SAR bare soil VLM)** | ✅ Best choice | Clear gap vs EarthDial (ships/quakes, not LULC bare soil) |
-| **Stage 3 agentic vision** | ✅ Strong differentiator | Monitoring + explanation + report >> plain classifier |
-| **OpenEarthMap-SAR for summer** | ⚠️ Risky | **Umbra SAR, not Sentinel-1** — fine for a quick demo, wrong foundation if thesis is S1-specific |
-| **“Nobody evaluates bare-soil reasoning”** | ✅ Mostly true | No standard **S1 bare-soil VLM benchmark** exists — that can be your paper |
-| **Stage 1 scope** | ❌ Too vague | “Better encoder / better tuning” without a metric will not satisfy an intern eval |
-| **Multi-agent count (4 agents)** | ⚠️ Over-scoped | One orchestrator + tools is enough for Sem 4; don’t over-engineer agents |
+| Single-thread narrative (intern → paper → agent) | ✅ Excellent | Right MTech structure |
+| Improve EarthDial, don't invent a transformer | ✅ Correct | Dataset + bench + eval = publishable |
+| SAR bare soil VLM theme | ✅ Best choice | EarthDial S1 = ships/quakes, not LULC bare soil |
+| OpenEarthMap-SAR for summer | ⚠️ Risky | Umbra SAR, not Sentinel-1 — appendix only |
+| Stage 1 "improve something" without metrics | ❌ Too vague | Need BareSoil-Bench-S1 v0.1 + +5 F1 target |
+| Four separate agents in Sem 4 | ⚠️ Over-scoped | One orchestrator + tools is enough |
 
-**Bottom line:** Keep Option 1 and the 3-stage arc. Replace OpenEarthMap-SAR as the **primary** summer path with **Sentinel-1**. Make Stage 1 a **closed benchmark + baseline**, not open-ended “improvement.”
+**Bottom line:** Keep Option 1 (SAR bare soil VLM). Execute entirely inside `earth2`. Start on **Sentinel-1** from day one.
 
 ---
 
-## What I Would Change vs the LLM Plan
+## Product Names (use consistently)
 
-### 1. Sensor consistency (critical)
-
-Your thesis thread should be:
-
-**Sentinel-1 GRD → Bare-soil LULC dialogue → Agentic monitoring**
-
-| Dataset | Role |
-|---|---|
-| **SEN12MS, AI4LCC, Dynamic World+, BigEarthNet-S1** | Train + eval (S1) |
-| **OpenEarthMap-SAR** | Optional **cross-sensor** ablation only (Sem 3 appendix) |
-
-Using OpenEarthMap-SAR in summer then pivoting to S1 in Sem 3 = **rework**. Intern on S1 from day one.
-
-### 2. Name the product once
-
-Pick one name and use it everywhere:
-
-**BareSoilDial-S1** (or BareSoilDial)
-
-- Stage 1: baseline + first fine-tune
-- Stage 2: **BareSoil-Bench-S1** + reasoning paper
-- Stage 3: **BareSoil-Agent** (STAC + VLM + report)
-
-You already have a draft in `papers/EarthDial-main/baresoil/` — extend it for **S1**, not duplicate RGB work.
-
-### 3. Paper novelty (precise wording)
-
-Do **not** claim “first SAR VLM.” Claim:
-
-> **First Sentinel-1 instruction-tuning benchmark and evaluation protocol for interactive bare-soil / barren-land understanding**, built on EarthDial, with a multi-task reasoning suite and an agentic monitoring extension.
-
-That is defensible. “Better reasoning” alone is weak unless you define tasks and metrics.
+| Name | What it is | Location in earth2 |
+|---|---|---|
+| **BareSoilDial-S1** | Fine-tuned VLM checkpoint | `EarthDial-main/checkpoints/BareSoilDial_S1/` |
+| **BareSoil-Instruct-S1** | Training instruction dataset | `EarthDial-main/baresoil/data/instruct/` |
+| **BareSoil-Bench-S1** | Evaluation benchmark | `EarthDial-main/baresoil/data/bench/` |
+| **BareSoil-Agent** | Sem 4 agentic system | `EarthDial-main/baresoil/agent/` (build in Stage 3) |
 
 ---
 
-## Revised Roadmap (Better Than the Attached Plan)
+## Revised 3-Stage Roadmap
 
 ```mermaid
 flowchart TB
-    subgraph S1["Stage 1 · Summer Intern (8–10 weeks)"]
-        A1[Reproduce EarthDial_4B_MS on 2 SAR tasks]
-        A2[Build BareSoil-Bench-S1 v0.1 ~2K test]
-        A3[Fine-tune Stage 4 on SEN12MS + AI4LCC subset]
-        A4[Beat EarthDial baseline on binary bare F1]
+    subgraph ST1["Stage 1 · Summer Intern (8–10 weeks)"]
+        A1[Setup earth2 + EarthDial_4B_MS baseline]
+        A2[Create baresoil/ package from scratch]
+        A3[BareSoil-Bench-S1 v0.1 ~2K test]
+        A4[BareSoil-Instruct-S1 v0.1 ~30–50K QA]
+        A5[Stage 4 fine-tune + beat EarthDial F1]
     end
 
-    subgraph S2["Stage 2 · Sem 3 Paper (4–5 months)"]
-        B1[Scale instruct to 150–300K S1 QA pairs]
-        B2[BareSoil-Bench-S1 v1.0: 5 reasoning tasks]
-        B3[Zero-shot: Dynamic World+ + MultiSenNA]
-        B4[Ablation: S1-only vs S1+template vs +temporal]
-        B5[Submit IGARSS / JSTARS / GRSL]
+    subgraph ST2["Stage 2 · Sem 3 Paper"]
+        B1[Scale instruct 150–300K QA]
+        B2[BareSoil-Bench-S1 v1.0 · 5 reasoning tasks]
+        B3[Zero-shot DW+ + MultiSenNA]
+        B4[Ablations + paper submission]
     end
 
-    subgraph S3["Stage 3 · Sem 4 Agent (4–5 months)"]
-        C1[Tool-using agent: STAC + patch infer + compare]
-        C2[Temporal bare-fraction trend per AOI]
-        C3[Markdown + GeoJSON + chat over report]
-        C4[Thesis chapter + demo video]
+    subgraph ST3["Stage 3 · Sem 4 Agent + Thesis"]
+        C1[baresoil/agent/ STAC + S1 infer]
+        C2[Temporal bare-fraction trends]
+        C3[Report + GeoJSON + chat]
+        C4[Thesis + demo video]
     end
 
-    S1 --> S2 --> S3
+    ST1 --> ST2 --> ST3
 ```
 
-Each stage **extends** the previous one; nothing is thrown away.
+Each stage **extends** the previous — no restart, no sensor switch.
 
 ---
 
-## Stage 1 — Summer Intern (Now)
+## Stage 1 — Summer Intern
 
-**Goal (one sentence):**  
-*Demonstrate measurable improvement over EarthDial on Sentinel-1 bare-soil classification and binary presence QA.*
+**Goal:** Measurable improvement over EarthDial on Sentinel-1 bare-soil binary QA and classification.
 
-### Scope (strict — fits 8–10 weeks)
+### Week-by-week (earth2)
 
-| Week | Deliverable |
-|---|---|
-| 1–2 | Environment + run EarthDial_4B_MS inference on ship/SAR sample; document S1 path in codebase |
-| 2–3 | **BareSoil-Bench-S1 v0.1**: 500–2K test items from SEN12MS (Barren) + AI4LCC (Arable/fallow) |
-| 3–5 | **BareSoil-Instruct-S1 v0.1**: ~30–50K QA (classification + binary VQA) |
-| 5–7 | Stage 4 fine-tune from `EarthDial_4B_MS`, freeze ViT |
-| 7–8 | Eval: **+5% absolute** on bare binary F1 vs EarthDial (minimum bar) |
-| 8–10 | Intern report + demo notebook + checkpoint on HF |
+| Week | Task | Output path |
+|---|---|---|
+| 1–2 | `pip install -e EarthDial-main`; download `EarthDial_4B_MS` | `EarthDial-main/checkpoints/` |
+| 2 | Scaffold `baresoil/` package | `EarthDial-main/baresoil/taxonomy.py`, `instruct_templates.py` |
+| 2–3 | Download SEN12MS + AI4LCC subset | `EarthDial-main/data/baresoil_s1/` |
+| 3 | Build bench v0.1 | `baresoil/data/bench/v0.1/` |
+| 3–5 | `build_instruct_s1.py` → 30–50K QA | `baresoil/data/instruct/v0.1/` |
+| 5 | Create `Stage4_BareSoil_S1.json` | `src/shell/data/` |
+| 5–7 | Stage 4 fine-tune, freeze ViT | `checkpoints/BareSoilDial_S1_v0.1/` |
+| 7–8 | `eval_bench.py` vs EarthDial baseline | `baresoil/data/metrics/` |
+| 8–10 | Intern report + demo notebook | `earth2/docs/` (optional) |
 
-### One improvement only (pick this, not three)
+### One improvement only
 
-**Recommended:** Instruction tuning + **BareSoil-Bench-S1** (dataset + eval protocol).
+**Instruction tuning + BareSoil-Bench-S1** (dataset + eval protocol).  
+Do **not** build a new SAR encoder in summer.
 
-Avoid a new SAR encoder in summer — high risk, low intern time.
-
-### Intern success metrics
+### Success metrics
 
 | Metric | Target |
 |---|---|
-| Bare vs non-bare **binary F1** | EarthDial + **≥5 pts** |
-| 7-class unified **macro-F1** (bare classes) | Beat EarthDial |
+| Bare vs non-bare binary F1 | EarthDial + **≥5 pts** |
+| 7-class macro-F1 (bare-related) | Beat EarthDial |
 | Qualitative | 10 SAR patches with sensible dialogue |
 
-### Intern report title (example)
+### Intern report title
 
-*“BareSoilDial-S1: Adapting EarthDial for Sentinel-1 Bare Land Classification and Dialogue”*
+*BareSoilDial-S1: Adapting EarthDial for Sentinel-1 Bare Land Classification and Dialogue*
 
 ---
 
 ## Stage 2 — Sem 3 + Paper
 
-**Goal:** Novelty + publication — **benchmark + reasoning tasks**, not a new backbone.
+**Goal:** Publication via **benchmark + reasoning tasks**, not a new backbone.
 
-### Paper title (working)
+### Paper titles (working)
 
-**“BareSoil-Bench: Reasoning-Centric Evaluation of Vision-Language Models for Sentinel-1 Bare Land Understanding”**
+- *BareSoil-Bench: Reasoning-Centric Evaluation of VLMs for Sentinel-1 Bare Land Understanding*
+- *Improving Bare Soil Reasoning in SAR Vision-Language Models via Instruction Tuning*
 
-or
-
-**“Improving Bare Soil Reasoning in SAR Vision-Language Models via Instruction Tuning and Multi-Task Evaluation”**
-
-### Five reasoning tasks (your “nobody evaluates this” — make it concrete)
+### Five reasoning tasks (BareSoil-Bench-S1 v1.0)
 
 | Task | Example question | Metric |
 |---|---|---|
 | **T1 Presence** | Is bare soil present? | Binary F1 |
 | **T2 Dominance** | How much bare soil? (none/low/med/high) | Ordinal accuracy |
-| **T3 Fine class** | Agricultural fallow vs desert sand vs bare rock? | 7-class macro-F1 |
-| **T4 Context** | What land covers surround bare patches? | Set F1 / ROUGE |
-| **T5 Temporal** | Did bare area increase since last acquisition? | Binary + caption ROUGE |
+| **T3 Fine class** | Fallow vs desert sand vs bare rock? | 7-class macro-F1 |
+| **T4 Context** | What surrounds bare patches? | Set F1 / ROUGE |
+| **T5 Temporal** | Did bare area increase? | Binary + ROUGE |
 
-Tasks T1–T3 in Sem 3 core; T4–T5 if time (or Sem 4 agent preview).
+Implement task generators in `EarthDial-main/baresoil/build_bench.py`.
 
-### Data scale (Sem 3)
+### Data scale
 
-| Component | Size |
+| Component | Size | Path |
+|---|---|---|
+| BareSoil-Instruct-S1 train | 150–300K QA | `baresoil/data/instruct/v1.0/` |
+| BareSoil-Bench-S1 test | 5–15K | `baresoil/data/bench/v1.0/` |
+| Zero-shot eval | DW+ 299 + MultiSenNA 12K | external data in `data/baresoil_s1/` |
+
+### Required experiments
+
+1. EarthDial_4B_MS vs BareSoilDial-S1 (same bench, greedy decode)  
+2. S1-only vs S1 + multi-temporal (AI4LCC)  
+3. Class imbalance / oversampling ablation  
+4. Failure cases: water vs bare, urban roof vs bare, speckle  
+5. Optional: GPT-4o / GeoChat on same bench (weak SAR baselines)
+
+### Publication targets
+
+| Venue | Notes |
 |---|---|
-| BareSoil-Instruct-S1 train | **150–300K** QA |
-| BareSoil-Bench-S1 test | **~5–15K** (held-out) |
-| Zero-shot eval | **Dynamic World+ (299)** + **AI4LCC MultiSenNA (12K)** |
+| IGARSS 2026 | ~Jan deadline |
+| IEEE GRSL | Short letter |
+| JSTARS | Fuller paper + agent preview |
 
-### Required experiments (reviewers will ask)
+### Paper novelty (precise claim)
 
-1. EarthDial_4B_MS (zero-shot) vs BareSoilDial-S1 (fine-tuned)
-2. S1-only vs S1+multi-temporal (AI4LCC)
-3. Class imbalance handling (oversampling bare / fallow)
-4. Failure analysis: water vs bare, urban roof vs bare, speckle
-5. Optional: GPT-4o / GeoChat on same bench (weak baselines on SAR)
+> First Sentinel-1 instruction-tuning **benchmark and evaluation protocol** for interactive bare-soil / barren-land understanding, built on EarthDial in `earth2`, with multi-task reasoning and (later) an agentic monitoring extension.
 
-### Publication targets (realistic)
-
-| Venue | Fit |
-|---|---|
-| **IGARSS 2026** | Fast, EO audience (deadline ~Jan) |
-| **IEEE GRSL** | Short letter, benchmark + results |
-| **JSTARS** | Fuller paper if agent preview included |
-| **ISPRS Journal / RS Letters** | If segmentation + dialogue combined |
-
-**Sem 3 milestone:** Submitted manuscript + public benchmark card (HF dataset + eval script).
+Do **not** claim "first SAR VLM."
 
 ---
 
-## Stage 3 — Sem 4 Major Project (Agentic AI)
+## Stage 3 — Sem 4 Agent + Thesis
 
-**Goal:** System, not another model — **orchestrated tools** around BareSoilDial-S1.
+**Goal:** Tool-using system around BareSoilDial-S1 — not a new model.
 
-### Do NOT build “4 separate agents”
-
-Use **one planner** + **tool library** (standard agent pattern):
+### Architecture (one orchestrator + tools)
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant O as Orchestrator LLM
+    participant O as Orchestrator
     participant STAC as STAC / Planetary Computer
     participant VLM as BareSoilDial-S1
-    participant AN as Analytics (area, delta)
-    participant R as Report Generator
+    participant AN as Analytics
+    participant R as Report
 
-    U->>O: Which regions had increasing bare soil last 3 months?
-    O->>STAC: search Sentinel-1 scenes (AOI, date range)
-    STAC-->>O: scene list
+    U->>O: Regions with increasing bare soil last 3 months?
+    O->>STAC: search Sentinel-1 (AOI, dates)
+    STAC-->>O: scenes
     O->>VLM: classify / VQA per patch
-    VLM-->>O: bare labels + explanations
-    O->>AN: compute area fractions + month-over-month delta
+    VLM-->>O: labels + explanations
+    O->>AN: area fractions + month-over-month delta
     AN-->>O: stats + GeoJSON
-    O->>R: compile PDF/MD report
+    O->>R: MD/PDF report
     R-->>U: report + chat context
 ```
 
-You already have stubs in `baresoil/agent/` (STAC, spectral, report) — **wire them to S1 + your VLM**, not S2-only.
+### Build in earth2 (Sem 4)
+
+| Module | Path |
+|---|---|
+| Agent entry | `EarthDial-main/baresoil/agent/baresoil_agent.py` |
+| STAC search (S1) | `baresoil/agent/tools/stac_search.py` |
+| VLM inference | `baresoil/agent/tools/vlm_inference.py` |
+| Area / trend analytics | `baresoil/agent/tools/analytics.py` |
+| Report generator | `baresoil/agent/tools/report.py` |
+| Demo UI (optional) | extend `EarthDial-main/demo/` or Streamlit in `baresoil/` |
+
+**Do not** build four separate agents — one planner calling tools.
 
 ### Sem 4 deliverables
 
 | Deliverable | Description |
 |---|---|
-| **BareSoil-Agent v1** | CLI or Streamlit: AOI + date range → report |
-| **Monitoring mode** | Batch over grid tiles, trend chart |
-| **Chat-over-report** | RAG on generated report + patch summaries |
-| **Thesis** | 4 chapters: Background → Bench+Model → Agent → Conclusion |
-| **Demo video** | 3 min: query → download → analyze → explain |
+| BareSoil-Agent v1 | AOI + date range → automated report |
+| Monitoring mode | Grid tiles + trend chart |
+| Chat-over-report | RAG on generated report |
+| MTech thesis | 4 chapters: Background → Bench+Model → Agent → Conclusion |
+| Demo video | 3 min end-to-end |
 
 ### Agent success metrics
 
 | Metric | Target |
 |---|---|
-| End-to-end latency | < 5 min for medium AOI |
-| Trend detection vs pixel baseline | ≥80% agreement on synthetic AOIs |
-| User study (optional) | 5 domain experts prefer agent report vs raw VLM |
+| End-to-end latency | < 5 min medium AOI |
+| Trend vs pixel baseline | ≥80% agreement |
+| User study (optional) | 5 experts prefer agent report |
 
 ---
 
-## Comparison: Attached Plan vs My Plan
-
-| Topic | LLM plan | My adjustment |
-|---|---|---|
-| Summer dataset | OpenEarthMap-SAR | **SEN12MS + AI4LCC (S1)** |
-| Summer goal | “Improve something” | **+5 F1 + v0.1 benchmark** |
-| Paper | “Better reasoning” | **BareSoil-Bench-S1 + 5 tasks + zero-shot** |
-| Agent | 4 agents | **1 orchestrator + tools** |
-| Option 2–4 | Listed | **Drop** — stay on Option 1 |
-| Architecture | “Better encoder” optional | **Defer to PhD** — instruct + bench only |
-
----
-
-## What I Would NOT Do (agree + add)
-
-| Avoid | Why |
-|---|---|
-| New transformer / SAR encoder | Fails in intern timeline; hard to publish without huge compute |
-| RGB bare soil as main thread | `baresoil/` draft exists but **not your S1 story** |
-| OpenEarthMap-SAR as primary train set | Wrong sensor for Sentinel-1 thesis |
-| Agriculture-only (Option 4) | Crowded; less novel |
-| Illegal mining (Option 2) | Dataset + labeling pain; regulatory noise |
-| Three unrelated milestones | You already fixed this — keep one thread |
-
----
-
-## 12-Month Calendar (MTech-shaped)
+## 12-Month Calendar
 
 | Period | Focus | Exit criterion |
 |---|---|---|
-| **May–Jul (Intern)** | Bench v0.1 + fine-tune v0.1 | Intern report + baseline beat |
-| **Aug–Oct (Sem 3 start)** | Scale data + Bench v1.0 + experiments | All tables for paper draft |
-| **Nov–Jan** | Write + submit IGARSS/GRSL | **Submission** |
-| **Feb–Apr (Sem 4)** | Agent v1 + thesis Ch 1–3 | Working demo |
-| **May–Jul (Sem 4)** | Agent polish + thesis + defense | **Thesis submission** |
+| May–Jul (Intern) | `baresoil/` v0.1 + fine-tune | Intern report; +5 F1 |
+| Aug–Oct (Sem 3) | Bench v1.0 + full experiments | Paper draft tables complete |
+| Nov–Jan | Write + submit | Manuscript submitted |
+| Feb–Apr (Sem 4) | Agent v1 + thesis Ch 1–3 | Working demo |
+| May–Jul (Sem 4) | Polish + defense | Thesis submitted |
 
 ---
 
-## Coherent Elevator Pitch (for guide + company)
+## What NOT to Do
 
-> *We adapt EarthDial into **BareSoilDial-S1**, the first instruction-tuned VLM for **Sentinel-1 bare-land dialogue**, with **BareSoil-Bench-S1** for reasoning-centric evaluation. In the final stage, **BareSoil-Agent** autonomously retrieves SAR scenes, estimates bare-soil trends, explains changes in natural language, and supports interactive monitoring — turning a chat model into an **operational EO assistant**.*
-
----
-
-## Immediate Next Steps (this week)
-
-1. Copy/adapt `papers/EarthDial-main/baresoil/` into `EarthDial-main/baresoil/` and add **`[s1_vh_10]`** templates.
-2. Register for **AI4LCC** + start **SEN12MS** download.
-3. Define **BareSoil-Bench v0.1** schema (500 samples) before any training.
-4. Set intern success = **EarthDial vs BareSoilDial-S1 on that bench**.
-5. Defer OpenEarthMap-SAR to Sem 3 **cross-sensor** ablation only.
+| Avoid | Why |
+|---|---|
+| Work outside `earth2` | Single source of truth for thesis |
+| New transformer / SAR encoder | Intern timeline + compute |
+| OpenEarthMap-SAR as primary S1 train | Wrong sensor |
+| RGB/S2 bare soil as main thread | Not your S1 thesis story |
+| Four disconnected milestones | One narrative only |
+| Agriculture-only focus | Crowded field |
 
 ---
 
-## Final recommendation
+## Elevator Pitch
 
-**Follow Option 1** from the attached plan, but execute it as:
-
-1. **Summer:** S1 fine-tune + **measurable** bench beat (not Umbra-first).
-2. **Sem 3:** **BareSoil-Bench-S1 + reasoning tasks + paper** (novelty = benchmark + tasks + zero-shot on Dynamic World+ / MultiSenNA).
-3. **Sem 4:** **Tool-based agent** on the same model (not a new VLM).
-
-That gives one thesis story, one codebase, and three milestones that reviewers and industry both understand.
+> We adapt EarthDial (in `earth2`) into **BareSoilDial-S1** — instruction-tuned for **Sentinel-1 bare-land dialogue** — with **BareSoil-Bench-S1** for reasoning-centric evaluation. **BareSoil-Agent** (Sem 4) retrieves SAR scenes, estimates bare-soil trends, explains changes, and supports interactive monitoring.
 
 ---
 
-## Related documents in this repo
+## Immediate Next Steps (this week, earth2 only)
 
-- [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md) — EarthDial codebase & paper deep dive
-- [`BareSoil_S1_VLM_Dataset_Guide.md`](BareSoil_S1_VLM_Dataset_Guide.md) — S1 datasets, conversion pipeline, eval strategy
+1. **Create** `EarthDial-main/baresoil/` with `taxonomy.py` and `instruct_templates.py` (see Dataset Guide §5–§7).  
+2. **Add** `BARESOIL = "[baresoil]"` to `src/earthdial/train/constants.py` and register in `finetune.py`.  
+3. **Create** `EarthDial-main/data/baresoil_s1/` directory structure.  
+4. **Register** for AI4LCC; start SEN12MS download.  
+5. **Define** BareSoil-Bench-S1 v0.1 schema (500 samples) **before** any training.  
+6. **Baseline** EarthDial_4B_MS on that bench — record numbers in `baresoil/data/metrics/earthdial_baseline.json`.
+
+---
+
+## Final Recommendation
+
+1. **Summer:** Scaffold `baresoil/` in earth2 + S1 fine-tune + measurable bench beat.  
+2. **Sem 3:** BareSoil-Bench-S1 v1.0 + paper (DW+ / MultiSenNA zero-shot).  
+3. **Sem 4:** BareSoil-Agent on the same checkpoint + thesis.
+
+One workspace (`earth2`), one codebase (`EarthDial-main` + `baresoil/`), three milestones.
+
+---
+
+## Related documents (all in earth2)
+
+- [`BareSoil_S1_VLM_Dataset_Guide.md`](BareSoil_S1_VLM_Dataset_Guide.md) — datasets, taxonomy, conversion pipeline  
+- [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md) — EarthDial architecture & training reference
