@@ -1,7 +1,52 @@
 # BareSoil-S1 VLM: Dataset Strategy & Conversion Guide
 
-> **Goal:** Build a **Sentinel-1 SAR-only** Vision-Language Model for **general LULC bare-soil classification + dialogue**, extending EarthDial as the base.  
-> **Repo base:** `EarthDial-main/` (+ existing draft in `papers/EarthDial-main/baresoil/` — currently **RGB/S2**, not S1)
+> **Workspace:** `e:\MTP\earth2\` only — all code and docs live here.  
+> **Goal:** Build a **Sentinel-1 SAR-only** VLM for **general LULC bare-soil classification + dialogue**, extending EarthDial as the base.  
+> **Base model repo:** `EarthDial-main/` (upstream EarthDial — CVPR 2025)  
+> **Your extension (to build):** `EarthDial-main/baresoil/` — does **not exist yet**; create from scratch in this workspace.
+
+---
+
+## 0. Earth2 Workspace Layout (current & planned)
+
+```
+e:\MTP\earth2\
+├── BareSoil_S1_VLM_Dataset_Guide.md      ← this file
+├── BareSoil_S1_MTech_3Stage_Roadmap.md   ← 3-stage thesis plan
+├── EarthDial_Complete_Analysis.md        ← EarthDial codebase reference
+│
+└── EarthDial-main\                       ← cloned EarthDial (unchanged upstream)
+    ├── README.md
+    ├── demo\
+    ├── src\
+    │   ├── earthdial\                     ← model, train, eval (EarthDial core)
+    │   │   └── train\constants.py        ← S1 tokens already exist here
+    │   └── shell\data\
+    │       ├── Stage1_Pretraining.json
+    │       ├── Stage2_RGB_Temporal_Finetunning.json
+    │       ├── Stage3_MS_SAR_finetunning.json
+    │       └── Stage4_BareSoil_S1.json   ← YOU CREATE (Stage 4 fine-tune config)
+    │
+    ├── baresoil\                           ← YOU CREATE (BareSoilDial-S1 extension)
+    │   ├── taxonomy.py                     ← unified 7-class label mappings
+    │   ├── instruct_templates.py           ← S1 QA templates
+    │   ├── build_instruct_s1.py            ← instruction dataset builder
+    │   ├── build_bench.py                  ← BareSoil-Bench-S1 builder
+    │   ├── eval_bench.py
+    │   ├── docs\TAXONOMY.md
+    │   └── data\
+    │       ├── instruct\                   ← generated JSONL / HF shards
+    │       └── bench\                      ← held-out test sets
+    │
+    └── data\                               ← YOU CREATE (downloaded EO data)
+        └── baresoil_s1\
+            ├── sen12ms\
+            ├── ai4lcc\
+            ├── dynamic_world_plus\
+            └── shards\                     ← HF save_to_disk training shards
+```
+
+**Important:** There is **no** `baresoil/` folder in `EarthDial-main` today. Taxonomy, templates, and bench builders are **first deliverables** of your project inside `earth2`.
 
 ---
 
@@ -10,11 +55,11 @@
 | What exists | Gap |
 |---|---|
 | EarthDial Stage-3 SAR (ships, QuakeSet, Satlas S1 captions) | **No LULC / bare-soil focus** |
-| `baresoil/` extension (AID, LCZ, BigEarthNet-S2) | **No Sentinel-1 modality** |
-| SARLANG-1M (2025) | ~1M SAR VLM pairs, 16 land-cover types — **mixed SAR sensors, not S1-only**, bare soil not primary |
-| OpenEarthMap-SAR (DFC 2025) | Has **bareland** class — but **Umbra SAR**, not Sentinel-1 |
+| EarthDial RGB/MS tasks (BigEarthNet, LCZ, AID, etc.) | **Not Sentinel-1 bare-soil dialogue** |
+| SARLANG-1M (2025) | ~1M SAR VLM pairs — **mixed SAR sensors, not S1-only** |
+| OpenEarthMap-SAR (DFC 2025) | Has **bareland** — but **Umbra SAR**, not Sentinel-1 |
 
-**Conclusion:** You must **convert** segmentation / scene-classification / pixel-label datasets into EarthDial-style instruction shards. This is normal and matches how EarthDial built 11M pairs from labels + templates.
+**Conclusion:** You must **convert** segmentation / scene-classification datasets into EarthDial-style instruction shards inside `earth2`. This matches how EarthDial built 11M pairs from labels + templates.
 
 ---
 
@@ -31,7 +76,13 @@
 | **SEN12MS** | ✅ VV+VH | IGBP scene + seg labels | ❌ **Not used** |
 | **OpenEarthMap-SAR** | ❌ (Umbra) | 8-class LULC + bareland | ❌ **Not used** |
 
-Use **AI4LCC**, **Dynamic World+**, and **SEN12MS held-out ROIs** as your **primary eval benchmarks** to prove generalization beyond EarthDial training.
+Use **AI4LCC**, **Dynamic World+**, and **SEN12MS held-out ROIs** as **primary eval benchmarks**.
+
+Config reference (EarthDial SAR training):  
+`EarthDial-main/src/shell/data/Stage3_MS_SAR_finetunning.json`
+
+S1 constants already in:  
+`EarthDial-main/src/earthdial/train/constants.py`
 
 ---
 
@@ -67,74 +118,54 @@ flowchart TB
 
 | Field | Detail |
 |---|---|
-| **Link** | [GitHub schmitt-muc/SEN12MS](https://github.com/schmitt-muc/SEN12MS) · [DOI 10.14459/2019mp1474000](https://doi.org/10.14459/2019mp1474000) |
+| **Link** | [GitHub schmitt-muc/SEN12MS](https://github.com/schmitt-muc/SEN12MS) |
 | **Size** | **180,662** patch triplets (S1 + S2 + LC labels) |
 | **S1 bands** | VV + VH, σ° dB, 10 m, 256×256 px |
-| **Bare-soil class** | IGBP **Barren** (class 16) → simplified **Barren** (class 9): *exposed soil, sand, rocks* |
-| **Also useful** | Croplands (post-harvest bare), Grassland, Open Shrubland |
-| **Why good** | Global ROIs, seasonal diversity, **not in EarthDial**, native S1 |
-| **Limitation** | Scene-level + pixel LC; Barren is **minority class** (~few %) — need balanced sampling |
+| **Bare-soil class** | IGBP **Barren** → simplified class 9: *exposed soil, sand, rocks* |
+| **Local path** | `EarthDial-main/data/baresoil_s1/sen12ms/` |
 
 #### 3.2 BigEarthNet-S1 ⭐ Largest S1 patch archive
 
 | Field | Detail |
 |---|---|
-| **Link** | [bigearth.net](https://bigearth.net/) · v2.0: **549,488** S1+S2 pairs |
-| **S1** | Dual-pol GRD, 120×120 px @ 10 m |
-| **Labels** | CORINE Level-3 → 19-class nomenclature |
-| **Bare-related CORINE** | Beaches/dunes/sands, natural grassland & sparsely vegetated, **arable land** (fallow) |
-| **Why good** | Massive scale for instruction generation |
-| **Caution** | EarthDial **already trained** on BigEarthNet (RGB/MS). Use **S1-only**, **bare-class filter**, and **official test split only for eval** — or exclude overlapping patches entirely and eval on AI4LCC/DW+ |
+| **Link** | [bigearth.net](https://bigearth.net/) — **549,488** S1+S2 pairs |
+| **Bare-related CORINE** | Beaches/dunes/sands, sparsely vegetated, **arable land** (fallow) |
+| **Caution** | EarthDial trained on BigEarthNet RGB/MS — use **S1-only + bare filter + held-out test** |
+| **Local path** | `EarthDial-main/data/baresoil_s1/bigearthnet_s1/` |
 
-#### 3.3 AI4LCC (MultiSenGE + MultiSenNA) ⭐ Best recent S1 LULC benchmark
+#### 3.3 AI4LCC ⭐ Best recent S1 LULC benchmark
 
 | Field | Detail |
 |---|---|
-| **Link** | [doi.theia.data-terra.org/ai4lcc](https://doi.theia.data-terra.org/ai4lcc/?lang=en) · [DOI 10.25577/563q-qd29](https://doi.org/10.25577/563q-qd29) |
-| **Size** | MultiSenGE **8,157** + MultiSenNA **12,258** = **20,415** multi-temporal patches |
-| **S1** | Sentinel-1 GRD time series per patch, 256×256 @ 10 m |
-| **Labels** | 14-class LULC (OCSGE2 France); bare proxy: **Open Spaces, Mineral (12)** — rare (0.01%); **Arable Lands (6)** ~39% (fallow/bare cycles) |
-| **License** | CC-BY-NC 4.0 |
-| **HF mirror** | [wtr001/S1_AI4LCC](https://huggingface.co/datasets/wtr001/S1_AI4LCC) (S1-only Zarr, 5-class simplification) |
-| **Strategy** | Train on **MultiSenGE** → eval **zero-shot on MultiSenNA** (different French region) |
+| **Link** | [doi.theia.data-terra.org/ai4lcc](https://doi.theia.data-terra.org/ai4lcc/?lang=en) |
+| **Size** | MultiSenGE **8,157** + MultiSenNA **12,258** patches |
+| **HF mirror** | [wtr001/S1_AI4LCC](https://huggingface.co/datasets/wtr001/S1_AI4LCC) |
+| **Strategy** | Train **MultiSenGE** → eval zero-shot **MultiSenNA** |
+| **Local path** | `EarthDial-main/data/baresoil_s1/ai4lcc/` |
 
----
-
-### Tier B — Primary Eval (Recent, not in EarthDial)
+### Tier B — Primary Eval (recent, not in EarthDial)
 
 #### 3.4 Dynamic World+ ⭐ 2025 global S1+LULC benchmark
 
 | Field | Detail |
 |---|---|
-| **Paper** | JSTARS 2025 · [LULCFormer GitHub](https://github.com/uoe-haoyu/LULCFormer) |
-| **Size** | **16,893 train** + **299 test/val** patches (510×510 px @ 10 m) |
-| **S1** | Sentinel-1 aligned with Google Dynamic World |
-| **Bare class** | Dynamic World label **`Bare ground`** (class index 7 in DW v1) |
-| **Why good** | Very recent, global, authoritative DW labels, **pure held-out test** |
-| **Use** | **Primary zero-shot benchmark** for bare-soil dialogue accuracy |
+| **Paper** | JSTARS 2025 · [LULCFormer](https://github.com/uoe-haoyu/LULCFormer) |
+| **Size** | **299 test** patches; label **`Bare ground`** |
+| **Local path** | `EarthDial-main/data/baresoil_s1/dynamic_world_plus/` |
 
-#### 3.5 OpenEarthMap-SAR (DFC 2025) — Cross-sensor eval only
+#### 3.5 OpenEarthMap-SAR — Cross-sensor eval only (not S1)
 
 | Field | Detail |
 |---|---|
-| **Link** | [Zenodo](https://zenodo.org/records/14950559) · [GitHub cliffbb/OpenEarthMap-SAR](https://github.com/cliffbb/OpenEarthMap-SAR) |
-| **Size** | 5,033 images (1024×1024), 1.5M segments; **490 manually labeled** for seg eval |
-| **SAR** | **Umbra** (0.15–0.5 m), **NOT Sentinel-1** |
-| **Bare class** | **`bareland`** (8-class LULC) |
-| **Use** | Stress-test **SAR generalization** across sensors; **do not train** if claiming S1-specific model |
+| **Link** | [Zenodo DFC 2025](https://zenodo.org/records/14950559) |
+| **SAR** | Umbra — **not Sentinel-1** |
+| **Use** | Sem 3 appendix only; **do not use as primary S1 train set** |
 
----
+### Tier C — Optional
 
-### Tier C — Optional VLM-style enrichment (not S1-only)
+#### 3.6 SARLANG-1M
 
-#### 3.6 SARLANG-1M (Apr 2025)
-
-| Field | Detail |
-|---|---|
-| **Link** | [arXiv:2504.03254](https://arxiv.org/abs/2504.03254) · [GitHub Jimmyxichen/SARLANG-1M](https://github.com/Jimmyxichen/SARLANG-1M) |
-| **Size** | **1,126,277** image-text pairs; land-cover QA ~80 templates × 16 LC classes |
-| **S1?** | Mixed SAR (Sentinel-1 + airborne + other) |
-| **Use** | Borrow **dialogue templates** and augment phrasing; filter land-cover + bare/open-field; **do not use as sole S1 training source** |
+[arXiv:2504.03254](https://arxiv.org/abs/2504.03254) — borrow dialogue templates only.
 
 ---
 
@@ -142,47 +173,91 @@ flowchart TB
 
 | Split | Dataset | Patches (approx) | Role |
 |---|---|---:|---|
-| **Train** | SEN12MS S1 (Barren + balanced negatives) | 50K–120K sampled | Core S1 bare-soil diversity |
-| **Train** | BigEarthNet-S1 (bare CORINE classes only) | 80K–200K | Scale + multi-label dialogue |
-| **Train** | AI4LCC MultiSenGE (S1 only) | 8,157 × ~5 QA each ≈ 40K | Multi-temporal LULC dialogue |
-| **Val** | SEN12MS held-out ROIs | ~5K | Hyperparam / early stop |
-| **Test-1** | **Dynamic World+** official test | **299** | Primary zero-shot (2025) |
-| **Test-2** | **AI4LCC MultiSenNA** | **12,258** | Regional zero-shot (France) |
-| **Test-3** | BigEarthNet-S1 official test (bare filter) | ~5K | Same sensor, different split |
-| **Test-4** | OpenEarthMap-SAR manual 490 | 490 | Cross-sensor generalization |
+| **Train** | SEN12MS S1 (Barren + balanced negatives) | 50K–120K | Core diversity |
+| **Train** | BigEarthNet-S1 (bare CORINE filter) | 80K–200K | Scale |
+| **Train** | AI4LCC MultiSenGE | ~40K QA | Multi-temporal S1 |
+| **Val** | SEN12MS held-out ROIs | ~5K | Early stopping |
+| **Test-1** | Dynamic World+ | **299** | Primary zero-shot |
+| **Test-2** | AI4LCC MultiSenNA | **12,258** | Regional zero-shot |
+| **Test-3** | BigEarthNet-S1 test (bare filter) | ~5K | Same sensor, new split |
+| **Test-4** | OpenEarthMap-SAR manual | 490 | Cross-sensor |
 
-**Target instruction volume:** 150K–300K S1 QA pairs (compare: EarthDial Stage 3 SAR = 1.68M but for ships/captions, not LULC).
+**Target:** 150K–300K S1 instruction pairs for Stage 4 fine-tune.
 
 ---
 
-## 5. Unified Bare-Soil Taxonomy (reuse from `baresoil/taxonomy.py`)
+## 5. Unified Bare-Soil Taxonomy
 
-Map all source labels → 7 unified classes:
+**Planned file:** `EarthDial-main/baresoil/taxonomy.py`  
+**Documentation:** `EarthDial-main/baresoil/docs/TAXONOMY.md`
 
-| Unified | Bare-positive? | S1-relevant sources |
-|---|---|---|
-| `bare_soil` | ✅ | DW Bare ground, OEM bareland, IGBP Barren, LCZ bare soil |
-| `sparse_vegetation` | ✅ | CORINE sparsely vegetated, DW Shrub/scrub |
-| `desert_sand` | ✅ | CORINE beaches/dunes, IGBP barren sand |
-| `bare_rock_paved` | ✅ | LCZ bare rock/paved, OEM developed/road |
-| `agricultural_fallow` | ✅ | CORINE arable, AI4LCC Arable Lands, DW Cropland (bare period) |
-| `burnt_barren` | ✅ | (add fire scars from xBD if temporal) |
-| `non_bare` | ❌ | All other classes |
+Map all source labels → **7 unified classes**:
 
-Add SAR-specific hard negatives: **smooth bare radar backscatter** confused with **water**, **wet soil**, **urban flat roofs**.
+| Unified class | Bare-positive? | Display name | S1-relevant sources |
+|---|---|---|---|
+| `bare_soil` | ✅ | bare soil | DW Bare ground, IGBP Barren, OEM bareland |
+| `sparse_vegetation` | ✅ | sparse vegetation | CORINE sparsely vegetated, DW Shrub/scrub |
+| `desert_sand` | ✅ | desert sand | CORINE beaches/dunes/sands |
+| `bare_rock_paved` | ✅ | bare rock or paved | OEM developed/road |
+| `agricultural_fallow` | ✅ | agricultural fallow | CORINE arable, AI4LCC Arable Lands |
+| `burnt_barren` | ✅ | burnt barren | post-fire scars (optional temporal) |
+| `non_bare` | ❌ | non bare | forest, urban, water, dense vegetation |
+
+### Source label mappings (implement in `taxonomy.py`)
+
+**IGBP simplified (SEN12MS):**
+
+| IGBP class | Unified |
+|---|---|
+| Barren (9) | `bare_soil` |
+| Croplands (6) | `agricultural_fallow` |
+| Grasslands (4) | `sparse_vegetation` |
+| All others | `non_bare` |
+
+**Dynamic World:**
+
+| DW label | Unified |
+|---|---|
+| Bare ground | `bare_soil` |
+| Crops | `agricultural_fallow` |
+| Shrub & scrub | `sparse_vegetation` |
+| Built / bare rock | `bare_rock_paved` |
+
+**AI4LCC (14-class):**
+
+| AI4LCC class | Unified |
+|---|---|
+| Open Spaces, Mineral (12) | `bare_soil` |
+| Arable Lands (6) | `agricultural_fallow` |
+| Grasslands (9) | `sparse_vegetation` |
+| Urban / built classes | `non_bare` or `bare_rock_paved` |
+
+**CORINE (BigEarthNet 19-class) — bare-related only:**
+
+| CORINE label | Unified |
+|---|---|
+| Beaches, dunes, sands | `desert_sand` |
+| Natural grassland & sparsely vegetated | `sparse_vegetation` |
+| Arable land | `agricultural_fallow` |
+
+### SAR hard negatives (add to bench)
+
+- smooth dark backscatter ↔ water  
+- urban flat roofs ↔ bare soil  
+- wet soil ↔ bare soil  
+- speckle noise ↔ false bare patches  
 
 ---
 
 ## 6. EarthDial-Compatible Data Format
 
-### 6.1 Training shard schema (`load_from_disk`)
+### 6.1 Training shard schema
 
-Each sample in the HuggingFace `Dataset` folder:
+Each HuggingFace `Dataset` sample (`load_from_disk`):
 
 ```python
 {
-  "jpg": PIL.Image or numpy,      # single-channel SAR rendered as grayscale PNG/JPG
-  # OR for dual-pol: stack VV as jpg, pass VH as second key — EarthDial S1 ship uses bands=1
+  "jpg": "<SAR grayscale PNG path or PIL image>",
   "conversations": json.dumps([
     {"from": "human", "value": "<prompt with tokens>"},
     {"from": "gpt",  "value": "<answer>"}
@@ -190,12 +265,14 @@ Each sample in the HuggingFace `Dataset` folder:
 }
 ```
 
-### 6.2 Stage config entry (`shell/data/Stage4_BareSoil_S1.json`)
+### 6.2 Stage config — create this file
+
+**Path:** `EarthDial-main/src/shell/data/Stage4_BareSoil_S1.json`
 
 ```json
 {
   "BareSoil_SEN12MS_train": {
-    "annotation": "/data/baresoil_s1/sen12ms_train_shard",
+    "annotation": "EarthDial-main/data/baresoil_s1/shards/sen12ms_train",
     "image_key": "jpg",
     "conversation": "conversations",
     "bands": 1,
@@ -204,7 +281,7 @@ Each sample in the HuggingFace `Dataset` folder:
     "repeat_time": 1
   },
   "BareSoil_AI4LCC_GE_train": {
-    "annotation": "/data/baresoil_s1/ai4lcc_ge_shard",
+    "annotation": "EarthDial-main/data/baresoil_s1/shards/ai4lcc_ge_train",
     "image_key": "jpg",
     "conversation": "conversations",
     "bands": 1,
@@ -214,34 +291,45 @@ Each sample in the HuggingFace `Dataset` folder:
 }
 ```
 
-### 6.3 S1 modality & task tokens (extend `constants.py`)
+Use **absolute paths** on your machine when training (EarthDial configs in repo use `/cos/...` placeholders).
+
+### 6.3 Tokens — extend EarthDial `constants.py`
+
+**Already present** in `EarthDial-main/src/earthdial/train/constants.py`:
 
 ```python
-# Already in EarthDial:
-S1_VH_10_TOKEN = "[s1_vh_10]"   # 10 m GRD — use this for your project
-S1_VH_1_TOKEN  = "[s1_vh_1]"    # Satlas high-res — do NOT use for SEN12MS
-
-# Add (from baresoil extension):
-BARESOIL = "[baresoil]"
+S1_VH_10_TOKEN = "[s1_vh_10]"    # use for SEN12MS, AI4LCC, DW+ (10 m GRD)
+S1_VH_TEMP_10  = "[s1_vh_temp_10]"
 CLASSIFY = "[classify]"
+CHANGEDET = "[changedet]"
+CAPTION = "[caption]"
+```
+
+**You add** (in `constants.py` + register in `finetune.py`):
+
+```python
+BARESOIL = "[baresoil]"
 ```
 
 **Example instruction:**
 
 ```
 [baresoil] [s1_vh_10] [classify] <image>
-Classify dominant surface from SAR backscatter.
+Classify dominant surface from Sentinel-1 SAR backscatter.
 Options: bare soil, sparse vegetation, desert sand, bare rock or paved,
 agricultural fallow, burnt barren, non bare.
 ```
 
-### 6.4 S1 preprocessing (match EarthDial)
+### 6.4 S1 preprocessing
 
-From `constants.py` + `dataset.py`:
+From `constants.py` + `dataloader.py`:
 
-- Use **`normalization: "s1"`** → mean **-20.26**, std **5.91** (dB scale)
-- **`bands: 1`** → single VH channel (or average VV+VH to 1 ch for simplicity)
-- Token: **`[s1_vh_10]`** for 10 m Sentinel-1 GRD
+| Setting | Value |
+|---|---|
+| `normalization` | `"s1"` |
+| S1 mean / std | **-20.26** / **5.91** (dB) |
+| `bands` | **1** (VH channel, or mean VV+VH) |
+| Modality token | `[s1_vh_10]` |
 
 ---
 
@@ -249,120 +337,89 @@ From `constants.py` + `dataset.py`:
 
 ```mermaid
 flowchart LR
-    A[Raw GeoTIFF / Zarr] --> B[Extract patches 256×256]
-    B --> C[Label mapping to unified taxonomy]
-    C --> D[Generate QA templates]
-    D --> E[Render SAR as grayscale PNG]
-    E --> F[Build JSONL]
-    F --> G[HF Dataset save_to_disk shard]
-    G --> H[Register in Stage4 JSON]
+    A[Download to earth2/data] --> B[Extract 256×256 S1 patches]
+    B --> C[taxonomy.py label map]
+    C --> D[instruct_templates.py QA]
+    D --> E[Grayscale PNG]
+    E --> F[build_instruct_s1.py]
+    F --> G[HF shard in data/baresoil_s1/shards]
+    G --> H[Stage4_BareSoil_S1.json]
 ```
 
-### Step 1 — Download raw data
+### Step 1 — Download into earth2
 
-```bash
-# SEN12MS: request download from TUM / follow GitHub instructions
-# AI4LCC: register at https://doi.theia.data-terra.org/ai4lcc/
-# Dynamic World+: clone https://github.com/uoe-haoyu/LULCFormer (check data README)
-# BigEarthNet-S1: https://bigearth.net/
+```text
+EarthDial-main/data/baresoil_s1/sen12ms/
+EarthDial-main/data/baresoil_s1/ai4lcc/
+EarthDial-main/data/baresoil_s1/dynamic_world_plus/
+EarthDial-main/data/baresoil_s1/bigearthnet_s1/
 ```
 
-### Step 2 — Extract S1 patches
+### Step 2 — SAR patch → PNG
 
 ```python
-import rasterio
 import numpy as np
 from PIL import Image
 
 def s1_patch_to_png(vh_db: np.ndarray, out_path: str):
-    """VH in dB → uint8 grayscale for EarthDial jpg key."""
     vh = np.clip(vh_db, -35, 5)
     vh_norm = ((vh + 35) / 40 * 255).astype(np.uint8)
     Image.fromarray(vh_norm, mode="L").convert("RGB").save(out_path)
 ```
 
-For dual-pol: EarthDial `sequential_vit_features` expects `[B, C, H, W]` — with `bands=1` use **VH only** (standard for land applications) or **mean(VV, VH)**.
+### Step 3 — Label mapping
 
-### Step 3 — Map labels to unified taxonomy
+Implement in `EarthDial-main/baresoil/taxonomy.py`:
 
 ```python
-from baresoil.taxonomy import map_label, unified_display_name
+def map_label(raw_label: str, scheme: str) -> str:
+    """scheme: igbp | dynamic_world | ai4lcc | corine"""
+    ...
 
-IGBP_TO_UNIFIED = {
-    9: "bare_soil",      # simplified Barren
-    6: "agricultural_fallow",  # Croplands
-    4: "sparse_vegetation",    # Grasslands
-    # ...
-}
-DW_TO_UNIFIED = {
-    "Bare ground": "bare_soil",
-    "Crops": "agricultural_fallow",
-    # ...
-}
+def unified_display_name(unified: str) -> str:
+    ...
+
+def is_bare_positive(unified: str) -> bool:
+    return unified != "non_bare"
 ```
 
-For **pixel-level segmentation** (AI4LCC, Dynamic World+): compute **dominant class** per patch, or sample **multiple QA types**:
-- Scene classification (dominant class)
-- Binary VQA: "Is bare soil visible? yes/no"
-- Percentage bucket: none / low / medium / high bare fraction
-- Region QA (if you crop bare-dominated sub-patches)
+### Step 4 — QA templates
 
-### Step 4 — Generate instruction pairs
-
-Reuse templates from `baresoil/instruct_templates.py` — add S1 variants:
+Create `EarthDial-main/baresoil/instruct_templates.py`:
 
 ```python
 CLASSIFY_S1 = [
     "[baresoil] [s1_vh_10] [classify] <image>\n"
     "From Sentinel-1 SAR, classify surface: {options}.",
-    "[s1_vh_10] <image>\n[baresoil] Is exposed bare soil dominant? Options: {options}.",
 ]
 
 VQA_S1 = [
     "[baresoil] [s1_vh_10] <image>\n"
-    "In this SAR image, is bare or barren land present? Answer yes or no.",
-    "[s1_vh_10] <image>\n[baresoil] "
-    "Could smooth dark backscatter be confused with water rather than bare soil? Explain briefly.",
+    "Is bare or barren land present in this SAR image? Answer yes or no.",
+]
+
+TEMPORAL_S1 = [
+    "[baresoil] [changedet] [s1_vh_temp_10] <image>\n"
+    "Did bare exposed area increase between the two SAR acquisitions?",
 ]
 ```
 
-**Multi-temporal (AI4LCC):** use EarthDial pattern `image_key: "jpg_A,jpg_B"` + token `[s1_vh_temp_10]`:
-
-```
-[baresoil] [changedet] [s1_vh_temp_10] <image>
-Did bare exposed area increase between the two SAR acquisitions?
-```
-
-### Step 5 — Build HuggingFace shard
+### Step 5 — Build shards
 
 ```python
-from datasets import Dataset, Features, Image as HFImage, Value
-import json
-
-rows = []
-for sample in samples:
-    rows.append({
-        "jpg": sample["png_path"],  # path or PIL
-        "conversations": json.dumps([
-            {"from": "human", "value": sample["prompt"]},
-            {"from": "gpt",  "value": sample["answer"]},
-        ]),
-    })
-
-ds = Dataset.from_list(rows)
-ds.save_to_disk("baresoil_s1/sen12ms_train_shard")
+# EarthDial-main/baresoil/build_instruct_s1.py
+ds.save_to_disk("EarthDial-main/data/baresoil_s1/shards/sen12ms_train")
 ```
 
-### Step 6 — Register & fine-tune (Stage 4)
+### Step 6 — Fine-tune (Stage 4)
 
 ```bash
-# Base checkpoint: EarthDial_4B_MS (already has S1 fusion path)
+cd EarthDial-main
 torchrun ... src/earthdial/train/finetune.py \
   --model_name_or_path checkpoints/EarthDial_4B_MS \
-  --meta_path shell/data/Stage4_BareSoil_S1.json \
+  --meta_path src/shell/data/Stage4_BareSoil_S1.json \
   --freeze_backbone True \
-  --conv_style phi3-chat \
-  ...
+  --conv_style phi3-chat
 ```
 
 ---
@@ -371,30 +428,26 @@ torchrun ... src/earthdial/train/finetune.py \
 
 | Metric | Task | Benchmark |
 |---|---|---|
-| **Accuracy** | 7-class unified classification | Dynamic World+ test |
-| **Binary F1** | bare-positive vs non-bare | All test sets |
-| **Macro-F1** | rare class (bare_soil) | AI4LCC MultiSenNA |
-| **ROUGE-L** | SAR image caption (bare focus) | Generated from DW+ labels |
-| **Cohen's κ** | vs pixel dominant class | Segmentation-derived tests |
-| **Zero-shot Δ** | vs EarthDial_4B_MS baseline | Same prompts, greedy decode |
+| Binary F1 | bare vs non-bare | All test sets |
+| Macro-F1 | 7-class unified | Dynamic World+ |
+| Ordinal accuracy | bare fraction bucket | Bench T2 |
+| ROUGE-L | caption / explanation | Bench T4–T5 |
+| Zero-shot Δ | vs EarthDial_4B_MS | Same prompts, greedy decode |
 
-Run like existing EarthDial eval:
+**Create eval module:** `EarthDial-main/src/earthdial/eval/rs_baresoil_s1/`  
+(mirror pattern from `rs_classification/`)
 
-```bash
-GPUS=4 ./src/earthdial/eval/eval.sh ./checkpoints/BareSoilDial_S1 rs_classification --dynamic
-```
-
-(You'll need a custom `rs_baresoil_s1/` eval module mirroring `rs_classification/`.)
+**Bench outputs:** `EarthDial-main/baresoil/data/bench/v0.1/` and `v1.0/`
 
 ---
 
-## 9. Novelty Claims You Can Make
+## 9. Novelty Claims (defensible)
 
-1. **First S1-only bare-soil conversational VLM** (EarthDial = ships/quakes; baresoil draft = RGB/S2)
-2. **Held-out eval on 2025 benchmarks** (Dynamic World+, DFC OpenEarthMap-SAR) not seen by EarthDial
-3. **Regional zero-shot** MultiSenGE → MultiSenNA (France cross-region)
-4. **SAR-specific dialogue**: moisture confusion, speckle, fallow vs bare rock disambiguation
-5. **Unified 7-class bare taxonomy** across IGBP, CORINE, Dynamic World, OEM
+1. **First Sentinel-1 instruction benchmark** for interactive bare-soil / barren-land dialogue on top of EarthDial  
+2. **Held-out 2025 eval** on Dynamic World+ and AI4LCC MultiSenNA (not in EarthDial training)  
+3. **7-class unified bare taxonomy** across IGBP, CORINE, Dynamic World  
+4. **Multi-task reasoning suite** (presence, dominance, fine class, temporal)  
+5. Optional: cross-sensor stress test on OpenEarthMap-SAR (Umbra)
 
 ---
 
@@ -402,33 +455,27 @@ GPUS=4 ./src/earthdial/eval/eval.sh ./checkpoints/BareSoilDial_S1 rs_classificat
 
 | Issue | Mitigation |
 |---|---|
-| Bare soil is **rare** in AI4LCC (0.01% mineral) | Oversample; use **arable/fallow** + **IGBP Barren**; synthetic hard negatives |
-| BigEarthNet overlap with EarthDial | S1-only channel + held-out test + eval on AI4LCC/DW+ |
-| SEN12MS labels are MODIS 500 m upsampled | Prefer **scene labels** or **dominant pixel**; note label noise in paper |
-| No native VLM text for S1 bare soil | Template + optional LLM paraphrase (like EarthDial used InternLM-XComposer2) |
-| AI4LCC license NC | Academic use OK; check commercial restrictions |
-| OpenEarthMap-SAR ≠ S1 | Use only for **cross-sensor** eval, not training |
+| Bare soil rare in AI4LCC | Oversample IGBP Barren + arable/fallow |
+| BigEarthNet overlap with EarthDial | S1-only + eval on AI4LCC/DW+ |
+| SEN12MS labels coarse (MODIS 500 m) | Document label noise; use dominant-class QA |
+| No `baresoil/` code yet | Build taxonomy + templates **before** training |
+| AI4LCC CC-BY-NC | Academic use OK |
 
 ---
 
-## 11. Quick Start Checklist
+## 11. Quick Start Checklist (earth2 only)
 
-- [ ] Copy `papers/EarthDial-main/baresoil/` into `EarthDial-main/baresoil/`
-- [ ] Add `[baresoil]` token + `CLASSIFY_TEMPLATES_S1` in `instruct_templates.py`
-- [ ] Download **SEN12MS** + **Dynamic World+** + **AI4LCC MultiSenGE/NA**
-- [ ] Implement `build_instruct_s1.py` (mirror `build_instruct_v01.py`)
-- [ ] Create `Stage4_BareSoil_S1.json`
-- [ ] Fine-tune from **`EarthDial_4B_MS`** (not RGB checkpoint)
-- [ ] Eval on **Dynamic World+ 299 test** + **MultiSenNA zero-shot**
+- [ ] Create `EarthDial-main/baresoil/` package (`taxonomy.py`, `instruct_templates.py`, `build_instruct_s1.py`, `build_bench.py`)
+- [ ] Add `BARESOIL = "[baresoil]"` to `src/earthdial/train/constants.py` and `finetune.py`
+- [ ] Create `src/shell/data/Stage4_BareSoil_S1.json`
+- [ ] Create `EarthDial-main/data/baresoil_s1/` and download SEN12MS + AI4LCC
+- [ ] Build **BareSoil-Bench-S1 v0.1** (500–2K samples) before any fine-tuning
+- [ ] Fine-tune from **EarthDial_4B_MS** checkpoint
+- [ ] Eval: beat EarthDial baseline on bare binary F1 by **≥5 points**
 
 ---
 
 ## References
 
-- EarthDial: [arXiv:2412.15190](https://arxiv.org/abs/2412.15190)
-- SEN12MS: Schmitt et al., ISPRS 2020
-- AI4LCC: Wenger et al., ISPRS/Remote Sensing 2022–2025
-- Dynamic World+: JSTARS 2025, [github.com/uoe-haoyu/LULCFormer](https://github.com/uoe-haoyu/LULCFormer)
-- OpenEarthMap-SAR: Xia et al., IEEE GRSM 2025, [Zenodo](https://zenodo.org/records/14950559)
-- SARLANG-1M: [arXiv:2504.03254](https://arxiv.org/abs/2504.03254)
-- BigEarthNet-S1: [bigearth.net](https://bigearth.net/)
+- EarthDial: [arXiv:2412.15190](https://arxiv.org/abs/2412.15190) · code in `EarthDial-main/`
+- SEN12MS · AI4LCC · Dynamic World+ · BigEarthNet-S1 · SARLANG-1M · OpenEarthMap-SAR (links in sections above)
