@@ -12,7 +12,7 @@ Here’s a **reading order for right now** — shortest path to knowing what to 
 | # | File | Why |
 |---|------|-----|
 | **1** | [`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md) | **Main plan** — 3 stages, novelty, metrics, what NOT to do, immediate P0 tasks |
-| **2** | [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | **How to run the pipeline** — download → parse JSON → VH tif → shards → train |
+| **2** | [`Bench2.0/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](Bench2.0/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | **How to run the pipeline** — download → parse JSON → VH tif → shards → train |
 | **3** | [`EarthDial-main/baresoil/README.md`](EarthDial-main/baresoil/README.md) | **Commands** to build shards and bench after `s1.tgz` is on disk |
 
 After these three, you know: *what the thesis is*, *how data flows*, and *what to run*.
