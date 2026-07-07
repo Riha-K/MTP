@@ -2,7 +2,7 @@
 
 > **Purpose:** Explain **every step** of the Section 11 workflow (MultiSenGE → EarthDial training → evaluation) so you can present it to supervisors / PI.  
 > **Audience:** Technical committee + non-specialist reviewers.  
-> **Code location:** `EarthDial-main/baresoil/`  
+> **Code location:** `LULCDial-s1/baresoil/`  
 > **Dataset reference:** [`paperRelatedToDataset/MultiSenGE_AI4LCC_Complete_Analysis.md`](paperRelatedToDataset/MultiSenGE_AI4LCC_Complete_Analysis.md)
 
 ---
@@ -50,7 +50,7 @@ flowchart LR
 ### 3.2 Folder layout after extract
 
 ```text
-EarthDial-main/data/baresoil_s1/ai4lcc/multisenge/
+LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/
 ├── labels/                    ← 8,157 files  e.g. 31TFN_4626_514.json
 └── s1/                        ← ~1M GeoTIFFs  e.g. 31TFN_20200930_S1_4626_514.tif
 ```
@@ -93,7 +93,7 @@ EarthDial-main/data/baresoil_s1/ai4lcc/multisenge/
 
 ## 4. Phase 2 — Conversion pipeline (`baresoil/`)
 
-This is the core engineering work. Each sub-step below maps to code in `EarthDial-main/baresoil/`.
+This is the core engineering work. Each sub-step below maps to code in `LULCDial-s1/baresoil/`.
 
 ```mermaid
 flowchart TB
@@ -114,7 +114,7 @@ flowchart TB
 **Command (after `s1.tgz` is extracted):**
 
 ```powershell
-cd e:\MTP\earth2\EarthDial-main
+cd e:\MTP\LULCDial\LULCDial-s1
 python -m baresoil.build_instruct_s1 ^
   --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
   --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
@@ -126,7 +126,7 @@ python -m baresoil.build_instruct_s1 ^
 
 ### Step 2.1 — Parse patch metadata
 
-**Module:** `baresoil/ai4lcc.py` → `parse_label_json()`, `iter_patches()`
+**Module:** `baresoil/patch_meta.py` → `parse_label_json()`, `iter_patches()`
 
 **What it does:**
 
@@ -144,7 +144,7 @@ python -m baresoil.build_instruct_s1 ^
 
 ### Step 2.2 — Pick median S1 date per patch
 
-**Module:** `baresoil/ai4lcc.py` → `pick_median_s1_file()`
+**Module:** `baresoil/patch_meta.py` → `pick_median_s1_file()`
 
 **Rule:**
 
@@ -172,7 +172,7 @@ chosen = sorted_files[len(sorted_files) // 2]   # middle date
 
 ### Step 2.3 — Extract VH band → EarthDial float image
 
-**Module:** `baresoil/s1_io.py` → `read_s1_vh_db()`, `vh_db_to_pil()`
+**Module:** `baresoil/s1_vh_io.py` → `read_s1_vh_db()`, `vh_db_to_pil()`
 
 **Steps inside `read_s1_vh_db`:**
 
@@ -343,7 +343,7 @@ python -m baresoil.build_bench ^
 
 ### 5.1 Config file
 
-**Path:** `EarthDial-main/src/shell/data/Stage4_BareSoil_S1.json`
+**Path:** `LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`
 
 Points EarthDial trainer to your shards:
 
@@ -373,7 +373,7 @@ The VLM learns to:
 
 ### 5.4 Deliverable
 
-**Checkpoint name:** **BareSoilDial-S1** (save under `EarthDial-main/checkpoints/BareSoilDial_S1/`).
+**Checkpoint name:** **BareSoilDial-S1** (save under `LULCDial-s1/checkpoints/BareSoilDial_S1/`).
 
 ---
 
@@ -490,9 +490,9 @@ A: (1) S1 path mismatch after extract — fix `--s1-dir`. (2) Mixed patches → 
 
 | Step | File | Main function |
 |---|---|---|
-| Parse JSON | `baresoil/ai4lcc.py` | `iter_patches()`, `parse_label_json()` |
-| Pick S1 date | `baresoil/ai4lcc.py` | `pick_median_s1_file()` |
-| Read VH | `baresoil/s1_io.py` | `read_s1_vh_db()`, `vh_db_to_pil()` |
+| Parse JSON | `baresoil/patch_meta.py` | `iter_patches()`, `parse_label_json()` |
+| Pick S1 date | `baresoil/patch_meta.py` | `pick_median_s1_file()` |
+| Read VH | `baresoil/s1_vh_io.py` | `read_s1_vh_db()`, `vh_db_to_pil()` |
 | Taxonomy | `baresoil/taxonomy.py` | `dominant_unified_from_ids()`, `map_ai4lcc_id()` |
 | QA text | `baresoil/instruct_templates.py` | `build_classify_qa()`, `build_binary_bare_qa()`, `build_vqa_surface_qa()` |
 | Build shards | `baresoil/build_instruct_s1.py` | `build_shard()`, `main()` |
@@ -513,4 +513,4 @@ A: (1) S1 path mismatch after extract — fix `--s1-dir`. (2) Mixed patches → 
 
 ---
 
-*Guide aligned with implemented code in `EarthDial-main/baresoil/` and MultiSenGE analysis §11. Update this doc when ground-reference majority voting or MultiSenNA bench builders are added.*
+*Guide aligned with implemented code in `LULCDial-s1/baresoil/` and MultiSenGE analysis §11. Update this doc when ground-reference majority voting or MultiSenNA bench builders are added.*

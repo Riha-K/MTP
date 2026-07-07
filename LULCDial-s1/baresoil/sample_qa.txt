@@ -1,0 +1,68 @@
+LULCDial-S1 — Sample instruction templates for professor review
+================================================================
+
+Context: We fine-tune EarthDial on AI4LCC MultiSenGE (Sentinel-1, 14 OCSGE land-cover classes).
+Each patch gets 2 training tasks: classify + 2-turn dialogue (caption dropped for v0.1).
+
+Hidden tokens (for the model, not shown to end users in a product):
+  [baresoil]  = LULC / land-cover task
+  [s1_vh_10] = Sentinel-1 VH input
+  [classify]  = task type for single-turn classification
+  <image>     = image placeholder (EarthDial convention)
+
+Example patch ground truth (multi-label):
+  Sparse Built-Up, Large Scale Networks, Arable Lands, Grasslands, Forests
+
+Natural / agricultural subset for dialogue turn 2:
+  Arable Lands, Grasslands, Forests
+
+
+----------------------------------------------------------------------
+1. CLASSIFY (multi-label — choose all that apply)
+----------------------------------------------------------------------
+
+Human:
+  [baresoil] [s1_vh_10] [classify] <image>
+  Classify the land cover in this image. Choose all that apply from: Dense Built-Up,
+  Sparse Built-Up, Specialized Built-Up Areas, Specialized but Vegetative Areas,
+  Large Scale Networks, Arable Lands, Vineyards, Orchards, Grasslands, Groves and Hedges,
+  Forests, Open Spaces, Mineral, Wetlands, Water Surfaces.
+
+GPT (answer):
+  Sparse Built-Up, Large Scale Networks, Arable Lands, Grasslands, Forests
+
+Note: Similar to EarthDial AID classification ("Classify the given image in one of the
+following classes. Classes: ...") but we use multi-label because AI4LCC patches often
+contain several classes at once.
+
+
+----------------------------------------------------------------------
+2. DIALOGUE (2-turn)
+----------------------------------------------------------------------
+
+Turn 1 — Human:
+  [baresoil] [s1_vh_10] <image>
+  What land cover classes do you see in this image?
+
+Turn 1 — GPT:
+  Sparse Built-Up, Large Scale Networks, Arable Lands, Grasslands, Forests
+
+Turn 2 — Human:
+  Which of these are natural or agricultural areas?
+
+Turn 2 — GPT:
+  Arable Lands, Grasslands, Forests
+
+
+----------------------------------------------------------------------
+4. ACTIVE DESIGN (implemented in code)
+----------------------------------------------------------------------
+
+Option D1: classify + 2-turn dialogue. Caption dropped.
+
+Implemented in:
+  LULCDial-s1/baresoil/instruct_templates.py
+  LULCDial-s1/baresoil/build_instruct_s1.py
+  LULCDial-s1/baresoil/build_bench.py
+
+Scale: 8,157 patches × 2 tasks ≈ 16,314 instruction rows (before train/val split).

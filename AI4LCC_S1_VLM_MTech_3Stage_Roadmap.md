@@ -1,9 +1,9 @@
 # AI4LCC-S1 VLM — MTech 3-Stage Roadmap
 
-> **Workspace:** `e:\MTP\earth2\`  
+> **Workspace:** `e:\MTP\LULCDial\`  
 > **Base model:** [EarthDial](https://arxiv.org/abs/2412.15190) (CVPR 2025) — `EarthDial_4B_MS`  
 > **Primary dataset:** [AI4LCC MultiSenGE](BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf) (8,157 patches, Sentinel-1 VH, **14 OCSGE classes — unchanged**)  
-> **Extension code:** `EarthDial-main/baresoil/`  
+> **Extension code:** `LULCDial-s1/baresoil/`  
 > **Companion docs:** [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) · [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) · [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md)
 
 ---
@@ -58,24 +58,24 @@
 
 | Name | What it is | Path |
 |---|---|---|
-| **LULCDial-S1** | Fine-tuned VLM checkpoint (thesis model) | `EarthDial-main/checkpoints/LULCDial_S1/` |
-| **AI4LCC-S1-Instruct** | Training instruction shards | `EarthDial-main/data/baresoil_s1/shards/` |
-| **AI4LCC-S1-Dialogue-Bench** | Held-out eval (classify + caption + dialogue) | `EarthDial-main/data/baresoil_s1/bench/` |
-| **LULC-Agent** (Sem 4) | Tool-using demo around LULCDial-S1 | `EarthDial-main/baresoil/agent/` |
-| `baresoil/` | Python package name (keep — code already scaffolded) | `EarthDial-main/baresoil/` |
+| **LULCDial-S1** | Fine-tuned VLM checkpoint (thesis model) | `LULCDial-s1/checkpoints/LULCDial_S1/` |
+| **AI4LCC-S1-Instruct** | Training instruction shards | `LULCDial-s1/data/baresoil_s1/shards/` |
+| **AI4LCC-S1-Dialogue-Bench** | Held-out eval (classify + caption + dialogue) | `LULCDial-s1/data/baresoil_s1/bench/` |
+| **LULC-Agent** (Sem 4) | Tool-using demo around LULCDial-S1 | `LULCDial-s1/baresoil/agent/` |
+| `baresoil/` | Python package name (keep — code already scaffolded) | `LULCDial-s1/baresoil/` |
 
 ---
 
 ## 5. Workspace layout
 
 ```
-e:\MTP\earth2\
+e:\MTP\LULCDial\
 ├── AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md    ← this file
 ├── EarthDial_Complete_Analysis.md
 └── BenchmarkGuide\
     └── AI4LCC\                               ← paper PDF + analysis + workflow only
-└── EarthDial-main\
-    ├── baresoil\                               ← ai4lcc.py, build_instruct_s1.py, …
+└── LULCDial-s1\
+    ├── baresoil\                               ← patch_meta.py, build_instruct_s1.py, …
     ├── data\baresoil_s1\ai4lcc\multisenge\
     │   ├── labels\                             ← ✅ 8,157 JSON (done)
     │   └── s1\                                 ← ⏳ download s1.tgz (~110 GB)
@@ -117,6 +117,8 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 ---
 
 ## Stage 1 — Summer Intern
+
+> **Detailed guide:** [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md) — 4 substages (Pipeline → ZS baseline → Fine-tune → Beat ZS)
 
 **Goal:** Working **LULCDial-S1 v0.1** + measurable beat over **EarthDial zero-shot** on AI4LCC val.
 
@@ -255,7 +257,7 @@ sequenceDiagram
 | STAC S1 search | `baresoil/agent/tools/stac_search.py` |
 | VLM inference | `baresoil/agent/tools/vlm_inference.py` |
 | Report + GeoJSON | `baresoil/agent/tools/report.py` |
-| Dialogue UI | extend `EarthDial-main/demo/` or Streamlit |
+| Dialogue UI | extend `LULCDial-s1/demo/` or Streamlit |
 
 ### 3.3 Thesis chapters
 

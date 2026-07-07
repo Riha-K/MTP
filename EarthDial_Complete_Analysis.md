@@ -3,7 +3,7 @@
 > **Paper:** *EarthDial: Turning Multi-sensory Earth Observations to Interactive Dialogues* (CVPR 2025)  
 > **Authors:** Sagar Soni, Akshay Dudhane, Hiyam Debary, Mustansar Fiaz, et al. (IBM Research + MBZUAI)  
 > **arXiv:** [2412.15190](https://arxiv.org/abs/2412.15190)  
-> **Code:** `EarthDial-main/` in this workspace  
+> **Code:** `LULCDial-s1/` in this workspace  
 > **Models & Data:** [Hugging Face Models](https://huggingface.co/akshaydudhane/EarthDial_4B_RGB) · [Hugging Face Dataset](https://huggingface.co/datasets/akshaydudhane/EarthDial-Dataset)
 
 ---
@@ -576,7 +576,7 @@ The paper evaluates on **44 downstream configurations** across 7 eval pipelines 
 ## 9. Repository Structure & Code Map
 
 ```
-EarthDial-main/
+LULCDial-s1/
 ├── README.md                          # Paper summary, install, train, eval
 ├── pyproject.toml                     # Dependencies (torch, transformers 4.37.2, deepspeed)
 ├── demo/                              # Streamlit interactive demo
@@ -693,7 +693,7 @@ EarthDial-main/
 ```bash
 conda create -n earthdial python=3.9 -y
 conda activate earthdial
-cd EarthDial-main
+cd LULCDial-s1
 pip install -e .
 pip install flash-attn==2.3.6 --no-build-isolation
 ```
@@ -826,7 +826,7 @@ quadrantChart
 #### 🥉 Tier 3 — Good for thesis / workshop
 
 9. **InSAR + Optical Multi-modal VLM** (deformation + visual change)
-10. **Bare-soil / agriculture extension** (note: `papers/EarthDial-main/baresoil/` exists in related fork — agricultural niche)
+10. **Bare-soil / agriculture extension** (note: `papers/LULCDial-s1/baresoil/` exists in related fork — agricultural niche)
 11. **RS-VLM Red-teaming** — hallucinated objects, geographic bias analysis
 12. **Automatic instruction data quality scorer** — improve beyond InternLM-XComposer2 pipeline
 
@@ -882,4 +882,4 @@ quadrantChart
 
 ---
 
-*Report generated from: `EarthDial-main/` codebase scan + arXiv:2412.15190 + CVPR 2025 supplemental material. PDFs referenced in query were synthesized via arXiv content where local copies were not found on disk.*
+*Report generated from: `LULCDial-s1/` codebase scan + arXiv:2412.15190 + CVPR 2025 supplemental material. PDFs referenced in query were synthesized via arXiv content where local copies were not found on disk.*

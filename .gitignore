@@ -1,0 +1,28 @@
+# --- Large raw / generated data (do not push) ---
+LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/s1/
+LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/*.tgz
+LULCDial-s1/data/baresoil_s1/shards/
+LULCDial-s1/data/baresoil_s1/bench/previews/
+LULCDial-s1/checkpoints/
+
+# Legacy path name (renamed to LULCDial-s1)
+EarthDial-main/data/
+
+# --- Python / tooling ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+*.log
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Temp clone / scratch ---
+_mtp_remote_check/

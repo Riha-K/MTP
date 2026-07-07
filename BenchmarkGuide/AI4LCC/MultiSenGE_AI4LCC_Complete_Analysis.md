@@ -399,7 +399,7 @@ The PDF contains the canonical visual references. Open `multiSenge_AI4LCC.pdf` a
 
 ### Local preview tip (S1 only)
 
-After downloading one S1 patch, **do not** open raw float TIFF in Windows Photos. Use percentile stretch (see `EarthDial-main/baresoil/s1_io.py`).
+After downloading one S1 patch, **do not** open raw float TIFF in Windows Photos. Use percentile stretch (see `LULCDial-s1/baresoil/s1_vh_io.py`).
 
 ---
 
@@ -460,7 +460,7 @@ flowchart TB
         S1["s1.tgz ~110 GB"]
     end
 
-    subgraph BUILD["2. baresoil/ pipeline (EarthDial-main)"]
+    subgraph BUILD["2. baresoil/ pipeline (LULCDial-s1)"]
         PICK["Pick median S1 date per patch"]
         VH["Extract VH band → float dB PIL"]
         TAX["taxonomy.py → 7-class bare unified"]
@@ -548,9 +548,9 @@ flowchart TB
 | Where are labels? | JSON + `*_GR_*.tif` per patch |
 | Best bare-related classes? | **12** (mineral/open), **6** (arable), **9** (grassland) |
 | Official download? | https://doi.theia.data-terra.org/ai4lcc/ |
-| Your conversion code? | `EarthDial-main/baresoil/build_instruct_s1.py` |
+| Your conversion code? | `LULCDial-s1/baresoil/build_instruct_s1.py` |
 | EarthDial token? | `[baresoil] [s1_vh_10] [classify] <image>` |
 
 ---
 
-*Document created for BareSoilDial-S1 / earth2 workspace. Figures 1–6 refer to panels in `paperRelatedToDataset/multiSenge_AI4LCC.pdf`.*
+*Document created for BareSoilDial-S1 / LULCDial workspace. Figures 1–6 refer to panels in `paperRelatedToDataset/multiSenge_AI4LCC.pdf`.*
