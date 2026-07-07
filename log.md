@@ -10,6 +10,25 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-07 — Prune BenchmarkGuide; remove Bench2.0 duplicates
+
+**Why:** Project only needs AI4LCC guides under `BenchmarkGuide/`. BigEarthNet, DynamicWorld, OpenEarthMap, and old `BareSoil_S1_VLM_Dataset_Guide.md` (7-class plan) are out of scope. `Bench2.0/AI4LCC/` duplicated `BenchmarkGuide/AI4LCC/` with stale `earth2` / `EarthDial-main` paths.
+
+**Kept (correct / latest):**
+- `BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md` — LULCDial paths, current pipeline
+- `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md` — LULCDial-s1 module names
+- `BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf` — moved from `Bench2.0/AI4LCC/` (only copy)
+- `Stage1_Summer_Intern_Guide.md` (repo root) — 2 QA/patch, `patch_meta.py` / `s1_vh_io.py` names
+
+**Removed:**
+- `Bench2.0/` (entire folder)
+- `BenchmarkGuide/BigEarthnet/`, `DynamiWorld/`, `OpenEarthMap/`
+- `BenchmarkGuide/BareSoil_S1_VLM_Dataset_Guide.md`
+
+**Git commit:** pending (user will commit later).
+
+---
+
 ### 2026-07-07 — Connect repo to GitHub; add LULCDial-s1 + updated docs
 
 **Why:** Sync local `e:\MTP\LULCDial\` with [Riha-K/MTP](https://github.com/Riha-K/MTP.git). Update already-pushed docs; add new code, guides, and label JSONs. Exclude ~115 GB S1 imagery via `.gitignore`.
