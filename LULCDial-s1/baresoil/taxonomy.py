@@ -38,7 +38,7 @@ def ai4lcc_name(class_id: int) -> str: #6: "Arable Lands"
     return AI4LCC_CLASS_ID_TO_NAME[class_id]
 
 def ai4lcc_names_from_ids(class_ids: Iterable[int]) -> list[str]:
-    #Return sorted unique OCSGE class names present in a patch.
+    #Return sorted unique class names present in a patch.
     seen: set[int] = set()
     names: list[str] = []
     for cid in sorted(class_ids):

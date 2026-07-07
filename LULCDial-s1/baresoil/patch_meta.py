@@ -33,15 +33,15 @@ class PatchMeta:
     def gr_filename(self) -> str:
         return f"{self.tile}_GR_{self.x}_{self.y}.tif"
 
-
+#parsing one patch at a time
 def parse_label_json(json_path: Path) -> PatchMeta:
     data = json.loads(json_path.read_text(encoding="utf-8"))
-    stem = json_path.stem
-    parts = stem.split("_")
+    stem = json_path.stem # 32UMV_771_9509
+    parts = stem.split("_") # ['32UMV', '771', '9509']
     if len(parts) < 3:
         raise ValueError(f"Unexpected label filename: {json_path.name}")
-    tile = parts[0]
-    x, y = int(parts[1]), int(parts[2])
+    tile = parts[0] # '32UMV'
+    x, y = int(parts[1]), int(parts[2]) # 771, 9509
 
     label_ids = parse_ai4lcc_label_ids(data.get("labels", ""))
     s1_files = [s.strip() for s in data.get("corresponding_s1", "").split(";") if s.strip()]
@@ -59,15 +59,15 @@ def parse_label_json(json_path: Path) -> PatchMeta:
         s2_files=s2_files,
     )
 
-
+#iterate through all the patches 
 def iter_patches(labels_dir: str | Path) -> list[PatchMeta]:
     labels_dir = Path(labels_dir)
     patches = [parse_label_json(p) for p in sorted(labels_dir.glob("*.json"))]
     return patches
 
-
+#picking the S1 file that is closest to the median date
 def pick_s1_path(s1_dir: Path, s1_filename: str) -> Path | None:
-    """Resolve S1 tif inside extracted MultiSenGE s1 tree."""
+    
     direct = s1_dir / s1_filename
     if direct.exists():
         return direct
