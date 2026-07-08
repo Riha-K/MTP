@@ -1,19 +1,16 @@
-"""Build a held-out AI4LCC-S1-Dialogue-Bench JSONL from MultiSenGE val patches."""
+"""Build a held-out S1-Dialogue-Bench JSONL from val patches."""
 
 from __future__ import annotations
-
 import argparse
 import json
 from pathlib import Path
-
-from tqdm import tqdm
+from tqdm import tqdm #progress bar
 
 from .build_instruct_s1 import _split_bucket
 from .instruct_templates import build_classify_qa, build_dialogue_turns
 from .patch_meta import iter_patches, pick_available_s1_file, pick_s1_path
 from .s1_vh_io import read_s1_vh_db, vh_db_to_preview_png
 from .taxonomy import format_present_class_names
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -37,10 +34,12 @@ def main() -> int:
         if s1_path is None:
             continue
 
+        #VQA
         present_names = patch.label_names
         q_cls, a_cls = build_classify_qa(present_names)
         dialogue = build_dialogue_turns(patch.label_ids, present_names)
 
+        #rgb preview
         preview_rel = None
         if args.preview_dir:
             args.preview_dir.mkdir(parents=True, exist_ok=True)
