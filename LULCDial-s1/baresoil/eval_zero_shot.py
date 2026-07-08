@@ -1,5 +1,17 @@
 """Score zero-shot predictions on AI4LCC-S1-Dialogue-Bench."""
 
+# bench JSONL (Q + answers)
+#         │
+#         ├─ dump_requests → questions only  → (send to EarthDial later)
+#         │
+#         └─ + pred JSONL (model answers)
+#                  │
+#                  ▼
+#              evaluate()
+#                  │
+#                  ▼
+#       earthdial_zs_baseline.json
+
 from __future__ import annotations
 
 import argparse
@@ -32,7 +44,7 @@ def _f1_score(pred: set[str], gt: set[str]) -> float:
 
 
 def _dialogue_answers(dialogue: list[dict[str, str]]) -> tuple[str, str]:
-    gt_turn1 = ""
+    gt_turn1 = ""       #[human Q1, gpt A1, human Q2, gpt A2]
     gt_turn2 = ""
     for msg in dialogue:
         if msg.get("from") != "gpt":
@@ -44,7 +56,7 @@ def _dialogue_answers(dialogue: list[dict[str, str]]) -> tuple[str, str]:
             break
     return gt_turn1, gt_turn2
 
-
+#bench/pred jsonl -> list[dict]
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as f:
@@ -54,7 +66,7 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
                 rows.append(json.loads(line))
     return rows
 
-
+#question + image (dicard answer)
 def _dump_requests(bench_rows: list[dict[str, Any]], out_jsonl: Path) -> None:
     out_jsonl.parent.mkdir(parents=True, exist_ok=True)
     with out_jsonl.open("w", encoding="utf-8") as f:
@@ -71,7 +83,6 @@ def _dump_requests(bench_rows: list[dict[str, Any]], out_jsonl: Path) -> None:
             }
             f.write(json.dumps(request_row) + "\n")
 
-
 def evaluate(
     bench_rows: list[dict[str, Any]],
     pred_by_patch: dict[str, dict[str, Any]],
@@ -80,7 +91,7 @@ def evaluate(
     turn2_key: str,
 ) -> dict[str, Any]:
     used = 0
-    missing_predictions = 0
+    missing_predictions = 0 #will skip if missing
 
     classify_f1_sum = 0.0
     turn1_acc_sum = 0.0
