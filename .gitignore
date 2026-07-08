@@ -1,6 +1,7 @@
 # --- Large raw / generated data (do not push) ---
 LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/s1/
 LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/*.tgz
+LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/
 LULCDial-s1/data/baresoil_s1/shards/
 LULCDial-s1/data/baresoil_s1/bench/previews/
 LULCDial-s1/checkpoints/
