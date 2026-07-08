@@ -29,7 +29,7 @@ flowchart LR
 | Phase | What happens | Who runs it | Output |
 |---|---|---|---|
 | **1. Download** | Get official MultiSenGE labels + S1 imagery | Student | Raw folders on disk |
-| **2. Convert** | Pick one S1 date per patch → VH image → labels → 3 QA each → shard | Script `build_instruct_s1.py` | ~24k training samples |
+| **2. Convert** | Pick one S1 date per patch → VH image → labels → 2 QA each → shard | Script `build_instruct_s1.py` | ~16k training samples |
 | **3. Train** | EarthDial Stage 4 fine-tune with new `[baresoil]` token | EarthDial `finetune.py` | **BareSoilDial-S1** checkpoint |
 | **4. Evaluate** | Metrics on val split + zero-shot MultiSenNA | `build_bench.py` + eval scripts | F1 / accuracy report |
 
@@ -105,7 +105,7 @@ flowchart TB
     PARSE --> PICK
     PICK --> VH["2.3 Read VH band → float dB"]
     PARSE --> TAX["2.4 Map 14 AI4LCC → 7 unified classes"]
-    TAX --> QA["2.5 Generate 3 QA pairs"]
+    TAX --> QA["2.5 Generate 2 QA pairs"]
     VH --> QA
     QA --> SPLIT["2.6 Train/val split 90/10"]
     SPLIT --> SHARD["2.7 Save HuggingFace shard"]
@@ -114,7 +114,7 @@ flowchart TB
 **Command (after `s1.tgz` is extracted):**
 
 ```powershell
-cd e:\MTP\LULCDial\LULCDial-s1
+cd e:\MTP\earth2\LULCDial-s1
 python -m baresoil.build_instruct_s1 ^
   --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
   --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
@@ -232,37 +232,22 @@ From JSON `labels: "2;5;6;9;11"`:
 
 ---
 
-### Step 2.5 — Generate three QA pairs per patch
+### Step 2.5 — Generate two QA pairs per patch
 
 **Module:** `baresoil/instruct_templates.py`
 
-Each patch produces **3 conversations** (same VH image, different questions):
+Each patch produces **2 conversations** (same VH image):
 
 | # | Template function | Question (short) | Answer |
 |---|---|---|---|
-| 1 | `build_classify_qa()` | Classify dominant surface — 7 options | e.g. `"agricultural fallow"` |
-| 2 | `build_binary_bare_qa()` | Is bare/barren land present? yes/no | `"yes"` if unified ≠ `non_bare` |
-| 3 | `build_vqa_surface_qa()` | Describe dominant surface in SAR | Full sentence with surface name |
+| 1 | `build_classify_qa()` | Classify land cover — choose all that apply (14 OCSGE names) | e.g. `Sparse Built-Up, Arable Lands, Forests` |
+| 2 | `build_dialogue_turns()` | Turn 1: all classes; Turn 2: natural/ag subset | Turn 2: e.g. `Arable Lands, Forests` |
 
 **Special tokens (EarthDial registers these):**
 
 ```
 [baresoil] [s1_vh_10] [classify] <image>   ← task 1
-[baresoil] [s1_vh_10] <image>              ← tasks 2 & 3
-```
-
-**Example question 1 (human turn):**
-
-```text
-[baresoil] [s1_vh_10] [classify] <image>
-Classify the dominant land surface in this Sentinel-1 SAR image.
-Options: bare soil, sparse vegetation, desert sand, bare rock or paved, agricultural fallow, burnt barren, non bare.
-```
-
-**Example answer 1 (model turn):**
-
-```text
-agricultural fallow
+[baresoil] [s1_vh_10] <image>              ← task 2 (dialogue)
 ```
 
 **Scale:**
@@ -270,9 +255,9 @@ agricultural fallow
 | Item | Count |
 |---|---:|
 | Patches | 8,157 |
-| QA per patch | 3 |
-| **Max instruction rows** | **~24,471** |
-| After 90/10 split | ~22k train + ~2.4k val (approx.) |
+| QA per patch | 2 |
+| **Max instruction rows** | **~16,314** |
+| After 90/10 split | ~14.7k train + ~1.6k val (approx.) |
 
 ---
 
@@ -335,7 +320,7 @@ python -m baresoil.build_bench ^
   --preview-dir data/baresoil_s1/bench/previews
 ```
 
-**Each JSONL row:** patch_id, s1_path, label_ids, unified class, classify Q/A, binary bare Q/A, optional preview PNG.
+**Each JSONL row:** patch_id, s1_path, label_ids, label_names, classify Q/A, dialogue turns, optional preview PNG.
 
 ---
 
@@ -369,7 +354,7 @@ The VLM learns to:
 2. Answer **land-surface questions** in natural language.
 3. Associate token **`[baresoil]`** with bare-soil / LULC dialogue (not ship detection).
 
-**What PI should hear:** We are **not** training a new radar physics model from scratch — we **adapt** a pretrained vision-language model with ~24k domain-specific Q&A pairs, same philosophy EarthDial used for 11M RS pairs.
+**What PI should hear:** We are **not** training a new radar physics model from scratch — we **adapt** a pretrained vision-language model with ~16k domain-specific Q&A pairs, same philosophy EarthDial used for 11M RS pairs.
 
 ### 5.4 Deliverable
 
@@ -467,7 +452,7 @@ flowchart TB
 ## 9. FAQ for supervisor meeting
 
 **Q: Why not train on the whole 1 million S1 time slices?**  
-A: MultiSenGE has ~1M **date×patch** files but only **8,157 spatial patches**. Using all dates would repeat the same geography with slight speckle/noise changes — expensive with little new semantic signal for v0.1. Median-date **one image per patch** matches EarthDial’s instruction format and keeps ~24k QA manageable.
+A: MultiSenGE has ~1M **date×patch** files but only **8,157 spatial patches**. Using all dates would repeat the same geography with slight speckle/noise changes — expensive with little new semantic signal for v0.1. Median-date **one image per patch** matches EarthDial’s instruction format and keeps ~16k QA manageable.
 
 **Q: Where does “bare soil” come from if AI4LCC has no bare-soil class?**  
 A: Class **12 (Open Spaces, Mineral)** and partially **6 (Arable)** and **9 (Grasslands)** map to our unified bare-related taxonomy. We document this mapping in the thesis (not claiming pixel-perfect bare soil semantics).
@@ -507,7 +492,7 @@ A: (1) S1 path mismatch after extract — fix `--s1-dir`. (2) Mixed patches → 
 1. **Motivation** (1 min) — EarthDial gap on bare soil / LULC.  
 2. **Dataset choice** (2 min) — MultiSenGE: 8k patches, S1 10 m, France, official.  
 3. **Pipeline diagram** (3 min) — Walk Phase 2 steps 2.1–2.7 with one example patch.  
-4. **Training** (1 min) — EarthDial_4B_MS + `[baresoil]` + ~24k QA.  
+4. **Training** (1 min) — EarthDial_4B_MS + `[baresoil]` + ~16k QA.  
 5. **Evaluation plan** (2 min) — Val / MultiSenNA / DW+.  
 6. **Status & ask** (1 min) — Need disk for 110 GB S1; timeline to first F1 numbers.
 

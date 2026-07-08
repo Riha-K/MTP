@@ -2,7 +2,7 @@ LULCDial-S1 — Sample instruction templates for professor review
 ================================================================
 
 Context: We fine-tune EarthDial on AI4LCC MultiSenGE (Sentinel-1, 14 OCSGE land-cover classes).
-Each patch gets 2 training tasks: classify + 2-turn dialogue (caption dropped for v0.1).
+Each patch gets 2 training tasks: classify + 2-turn dialogue.
 
 Hidden tokens (for the model, not shown to end users in a product):
   [baresoil]  = LULC / land-cover task
@@ -55,10 +55,10 @@ Turn 2 — GPT:
 
 
 ----------------------------------------------------------------------
-4. ACTIVE DESIGN (implemented in code)
+3. ACTIVE DESIGN (implemented in code)
 ----------------------------------------------------------------------
 
-Option D1: classify + 2-turn dialogue. Caption dropped.
+Classify + 2-turn dialogue per patch.
 
 Implemented in:
   LULCDial-s1/baresoil/instruct_templates.py

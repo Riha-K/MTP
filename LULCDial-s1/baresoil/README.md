@@ -23,21 +23,21 @@ LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/
 1. Download `s1.tgz` (~110 GB) to a drive with space.
 2. Extract:
    ```powershell
-   cd e:\MTP\LULCDial\LULCDial-s1\data\baresoil_s1\ai4lcc\multisenge
+   cd e:\MTP\earth2\LULCDial-s1\data\baresoil_s1\ai4lcc\multisenge
    tar -xzf s1.tgz
    ```
    If the archive creates a nested folder, point `--s1-dir` at the folder that contains `*_S1_*.tif` files.
 
 3. Install deps:
    ```powershell
-   cd e:\MTP\LULCDial\LULCDial-s1
+   cd e:\MTP\earth2\LULCDial-s1
    python -m pip install -r baresoil/requirements.txt
    ```
 
 4. Tell me when extract is done (or the exact `--s1-dir` path). I will run:
 
    ```powershell
-   cd e:\MTP\LULCDial\LULCDial-s1
+   cd e:\MTP\earth2\LULCDial-s1
    python -m baresoil.build_instruct_s1 ^
      --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
      --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^

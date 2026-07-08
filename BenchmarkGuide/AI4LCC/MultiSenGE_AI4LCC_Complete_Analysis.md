@@ -553,4 +553,4 @@ flowchart TB
 
 ---
 
-*Document created for BareSoilDial-S1 / LULCDial workspace. Figures 1–6 refer to panels in `paperRelatedToDataset/multiSenge_AI4LCC.pdf`.*
+*Document created for LULCDial-S1 / `e:\MTP\earth2\` workspace. Figures 1–6 refer to panels in `BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf`.*

@@ -1,7 +1,7 @@
 # Which Files to Read Now
 
 > **Project:** AI4LCC-S1 VLM / LULCDial-S1  
-> **Workspace:** `e:\MTP\LULCDial\`
+> **Workspace:** `e:\MTP\earth2\`
 
 Here’s a **reading order for right now** — shortest path to knowing what to do next.
 

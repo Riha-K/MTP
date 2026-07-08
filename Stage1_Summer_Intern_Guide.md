@@ -51,7 +51,7 @@ flowchart TB
     S1A["1A · Pipeline<br/>JSON → VH tif → 14-class QA shards"]
     S1B["1B · Baseline<br/>EarthDial ZS on bench"]
     S1C["1C · Fine-tune<br/>LULCDial-S1 v0.1"]
-    S1D["1D · Beat ZS<br/>classify + caption on val"]
+    S1D["1D · Beat ZS<br/>classify + dialogue on val"]
 
     S1A --> S1B --> S1C --> S1D
 ```
@@ -98,7 +98,7 @@ data/baresoil_s1/ai4lcc/multisenge/
 **Commands:**
 
 ```powershell
-cd e:\MTP\LULCDial\LULCDial-s1
+cd e:\MTP\earth2\LULCDial-s1
 
 python -m baresoil.build_instruct_s1 ^
   --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
@@ -117,8 +117,8 @@ python -m baresoil.build_bench ^
 
 | File                            | ~Size              |
 | ------------------------------- | ------------------ |
-| `shards/ai4lcc_ge_train_train/` | ~22k QA rows       |
-| `shards/ai4lcc_ge_train_val/`   | ~2k QA rows        |
+| `shards/ai4lcc_ge_train_train/` | ~14.7k QA rows       |
+| `shards/ai4lcc_ge_train_val/`   | ~1.6k QA rows        |
 | `bench/v0.1/ai4lcc_val.jsonl`   | held-out eval list |
 
 
@@ -140,7 +140,7 @@ python -m baresoil.build_bench ^
 
 1. Download checkpoint: `akshaydudhane/EarthDial_4B_MS` from Hugging Face
 2. Load `bench/v0.1/ai4lcc_val.jsonl`
-3. For each sample: send S1 image + classify/caption prompt (same templates as training)
+3. For each sample: send S1 image + classify or dialogue prompt (same templates as training)
 4. Compare model answer vs ground-truth 14-class labels
 5. Save metrics → `data/baresoil_s1/metrics/earthdial_zs_baseline.json`
 
@@ -152,8 +152,8 @@ python -m baresoil.build_bench ^
 | Task                                  | Metric                     |
 | ------------------------------------- | -------------------------- |
 | Classification (14-class multi-label) | Macro-F1, example-F1       |
-| Caption                               | ROUGE-L (optional in v0.1) |
-| Dialogue turn 1                       | Accuracy                   |
+| Dialogue turn 1                       | Set-match accuracy         |
+| Dialogue turn 2 (natural/ag subset)   | Set-match accuracy         |
 
 
 **Done when:** Baseline JSON file exists with numbers you can put in a table.
@@ -198,7 +198,7 @@ LULCDial-s1/checkpoints/LULCDial_S1_v0.1/
 
 
 
-## Substage 1D — Beat ZS on classify + caption (val)
+## Substage 1D — Beat ZS on classify + dialogue (val)
 
 **What:** Run **same bench** as 1B, but with **LULCDial-S1 v0.1** instead of raw EarthDial.
 
@@ -217,8 +217,7 @@ LULCDial-s1/checkpoints/LULCDial_S1_v0.1/
 | Metric                  | Target                           |
 | ----------------------- | -------------------------------- |
 | 14-class macro-F1 (val) | **≥ +10 points** over ZS         |
-| Caption ROUGE-L         | Better than ZS                   |
-| Dialogue turn-1         | ≥ 70%                            |
+| Dialogue turn-1 + turn-2 | ≥ 70% each                      |
 | Qualitative             | 10 good SAR explanation examples |
 
 
@@ -255,7 +254,7 @@ LULCDial-s1/checkpoints/LULCDial_S1_v0.1/
 
 > **ZS** means we test EarthDial **without** training on AI4LCC first — that is our baseline.  
 > **LULCDial-S1** is the **same EarthDial architecture**, fine-tuned on AI4LCC question–answer data for Sentinel-1 land-cover dialogue — we are **not** adding a new neural layer, we are **adapting weights** and a task token.  
-> Stage 1 proves the AI4LCC QA conversion is useful because **LULCDial-S1 beats zero-shot EarthDial** on classification and captioning.
+> Stage 1 proves the AI4LCC QA conversion is useful because **LULCDial-S1 beats zero-shot EarthDial** on classification and dialogue.
 
 ---
 
@@ -268,6 +267,6 @@ LULCDial-s1/checkpoints/LULCDial_S1_v0.1/
 | -------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | `[BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md)` | Detailed pipeline steps |
 | `[LULCDial-s1/baresoil/README.md](LULCDial-s1/baresoil/README.md)`                                             | Run commands            |
-| `[readGuide.md](readGuide.md)`                                                                                       | What to read first      |
+| [`README.md`](README.md)                                                                                             | What to read first      |
 
 

@@ -1,6 +1,6 @@
 # AI4LCC-S1 VLM — MTech 3-Stage Roadmap
 
-> **Workspace:** `e:\MTP\LULCDial\`  
+> **Workspace:** `e:\MTP\earth2\`  
 > **Base model:** [EarthDial](https://arxiv.org/abs/2412.15190) (CVPR 2025) — `EarthDial_4B_MS`  
 > **Primary dataset:** [AI4LCC MultiSenGE](BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf) (8,157 patches, Sentinel-1 VH, **14 OCSGE classes — unchanged**)  
 > **Extension code:** `LULCDial-s1/baresoil/`  
@@ -21,7 +21,7 @@
 | Remap 14 AI4LCC → 7 unified bare-soil classes | **Keep official 14 OCSGE class names** in all QA answers |
 | Compete with MultiSenGE U-Net baselines | **Do not replay** U-Net-IRRG / U-Net-Index / VGG-16 |
 | “Bare soil” as custom taxonomy | **Bare soil / LULC** = application **theme**; labels stay LULC |
-| Fine-tune only | Add **classification + captioning + multi-turn dialogue** |
+| Fine-tune only | Add **classification + multi-turn dialogue** |
 | Weak novelty vs BigEarthNet | Clarify: **AI4LCC ≠ BigEarthNet**; EarthDial S1 = ships/quakes, **not SAR LULC** |
 
 ---
@@ -39,14 +39,14 @@
 
 ### 3.2 Your contribution (defensible claims)
 
-1. **First VLM instruction benchmark** pairing **AI4LCC Sentinel-1 VH** with **14-class OCSGE** dialogue (classify · caption · chat).
+1. **First VLM instruction benchmark** pairing **AI4LCC Sentinel-1 VH** with **14-class OCSGE** dialogue (classify + chat).
 2. **Empirical gap:** EarthDial_4B_MS **fails or is weak** on S1 LULC before AI4LCC fine-tune; optical BigEarthNet pretraining **does not substitute** SAR LULC dialogue.
 3. **Zero-shot regional transfer:** train MultiSenGE (Grand-Est) → evaluate **MultiSenNA** (Nouvelle-Aquitaine) without retraining.
 4. **(Stage 2+)** Multitemporal S1 dialogue using AI4LCC’s 2020 time series — capability BigEarthNet lacks.
 
 ### 3.3 Paper positioning (working titles)
 
-- *AI4LCC-S1-Dialogue: A Vision-Language Benchmark for Sentinel-1 Land-Cover Classification, Captioning, and Interactive Dialogue*
+- *AI4LCC-S1-Dialogue: A Vision-Language Benchmark for Sentinel-1 Land-Cover Classification and Interactive Dialogue*
 - *LULCDial-S1: Adapting EarthDial for Expert Regional LULC Understanding from SAR*
 
 **Do not claim:** “first SAR VLM” or “new dataset” (AI4LCC exists).  
@@ -60,7 +60,7 @@
 |---|---|---|
 | **LULCDial-S1** | Fine-tuned VLM checkpoint (thesis model) | `LULCDial-s1/checkpoints/LULCDial_S1/` |
 | **AI4LCC-S1-Instruct** | Training instruction shards | `LULCDial-s1/data/baresoil_s1/shards/` |
-| **AI4LCC-S1-Dialogue-Bench** | Held-out eval (classify + caption + dialogue) | `LULCDial-s1/data/baresoil_s1/bench/` |
+| **AI4LCC-S1-Dialogue-Bench** | Held-out eval (classify + 2-turn dialogue) | `LULCDial-s1/data/baresoil_s1/bench/` |
 | **LULC-Agent** (Sem 4) | Tool-using demo around LULCDial-S1 | `LULCDial-s1/baresoil/agent/` |
 | `baresoil/` | Python package name (keep — code already scaffolded) | `LULCDial-s1/baresoil/` |
 
@@ -69,7 +69,7 @@
 ## 5. Workspace layout
 
 ```
-e:\MTP\LULCDial\
+e:\MTP\earth2\
 ├── AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md    ← this file
 ├── EarthDial_Complete_Analysis.md
 └── BenchmarkGuide\
@@ -93,11 +93,11 @@ flowchart TB
         A1[Baseline: EarthDial ZS on AI4LCC-S1-Dialogue-Bench]
         A2[Pipeline: JSON → VH tif → 14-class QA shards]
         A3[Fine-tune LULCDial-S1 v0.1]
-        A4[Beat ZS on classify + caption on val split]
+        A4[Beat ZS on classify + dialogue on val split]
     end
 
     subgraph S2["Stage 2 · Sem 3 — Paper"]
-        B1[Bench v1.0: 3 task families + MultiSenNA ZS]
+        B1[Bench v1.0: 2 task families + MultiSenNA ZS]
         B2[Optional CVPR 2025 baseline e.g. AnySat classify]
         B3[Multitemporal S1 dialogue ablation]
         B4[Manuscript + public bench release]
@@ -128,7 +128,7 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 |---|---|---|
 | D1 | Labels parsed; **14 OCSGE names** in templates (no 7-class remap) | Shards use `Dense Built-Up`, `Arable Lands`, … |
 | D2 | `s1.tgz` extracted; median-date VH per patch | `build_instruct_s1.py` completes |
-| D3 | ~24k QA rows (8,157 patches × 3 tasks) | HF shards on disk |
+| D3 | ~16k QA rows (8,157 patches × 2 tasks) | HF shards on disk |
 | D4 | AI4LCC-S1-Dialogue-Bench v0.1 (~800 val patches) | `build_bench.py` + JSONL |
 | D5 | EarthDial_4B_MS **zero-shot** baseline logged | `metrics/earthdial_zs_baseline.json` |
 | D6 | **LULCDial-S1 v0.1** checkpoint | Stage 4 fine-tune complete |
@@ -139,7 +139,7 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 | Week | Task | Output |
 |---|---|---|
 | 1 | Env setup; `pip install -e .`; download `EarthDial_4B_MS` | `checkpoints/EarthDial_4B_MS/` |
-| 1–2 | **Update** `instruct_templates.py` → 14-class names; add caption + dialogue templates | Code PR in `baresoil/` |
+| 1–2 | **Update** `instruct_templates.py` → 14-class names; classify + 2-turn dialogue | Code PR in `baresoil/` |
 | 2 | Confirm labels on disk; **download + extract `s1.tgz`** | `data/.../multisenge/s1/` |
 | 3 | Run `build_instruct_s1.py` (train + val shards) | `shards/ai4lcc_ge_train_*` |
 | 3 | Run `build_bench.py` | `bench/v0.1/ai4lcc_val.jsonl` |
@@ -149,21 +149,19 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 | 7–8 | Error analysis: water vs mineral, urban vs arable, speckle | 2-page failure appendix |
 | 8–10 | Intern report + supervisor demo | Report PDF |
 
-### 1.3 Three instruction tasks (per patch)
+### 1.3 Two instruction tasks (per patch)
 
 | Task | Token pattern | Example answer (14-class) |
 |---|---|---|
-| **Classification** | `[lulc_s1] [s1_vh_10] [classify] <image>` | `Arable Lands, Grasslands, Forests` (multi-label) |
-| **Captioning** | `[lulc_s1] [s1_vh_10] [caption] <image>` | Prose using OCSGE names |
-| **Dialogue** | 2-turn: classify then follow-up | “What natural classes are present?” → `Grasslands, Forests` |
+| **Classification** | `[baresoil] [s1_vh_10] [classify] <image>` | `Arable Lands, Grasslands, Forests` (multi-label) |
+| **Dialogue** | 2-turn: all classes → natural/ag subset | Turn 2: `Arable Lands, Grasslands, Forests` |
 
 ### 1.4 Success metrics (Stage 1 exit)
 
 | Metric | Target |
 |---|---|
 | Multi-label **14-class** F1 (val) | LULCDial-S1 ≥ EarthDial ZS **+10 F1** (macro) |
-| Caption ROUGE-L / CIDEr | Beat EarthDial ZS |
-| Dialogue turn-1 accuracy | ≥ 70% on val |
+| Dialogue turn-1 + turn-2 accuracy | ≥ 70% on val |
 | Qualitative | 10 patches with sensible SAR-aware explanations |
 
 ### 1.5 Intern report title
@@ -182,9 +180,8 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 |---|---|---|
 | **E1 Multi-label classify** | Which of 14 OCSGE classes are present? | Example-F1, macro-F1 |
 | **E2 Dominant class** | Single dominant land-cover type | Accuracy |
-| **E3 Captioning** | Describe land use in SAR image | CIDEr, ROUGE-L, LLM-judge |
-| **E4 Dialogue** | 3-turn: presence → detail → reasoning | Turn accuracy, human eval (subset) |
-| **E5 Zero-shot transfer** | Train MultiSenGE → test **MultiSenNA** | Same metrics, no FT |
+| **E3 Dialogue** | 2-turn: all classes → natural/ag subset | Turn accuracy, human eval (subset) |
+| **E4 Zero-shot transfer** | Train MultiSenGE → test **MultiSenNA** | Same metrics, no FT |
 
 Optional **E6 Temporal** (if time): 2-date S1 → “Did surface backscatter change?” using `[s1_vh_temp_10]`.
 
@@ -202,8 +199,8 @@ Optional **E6 Temporal** (if time): 2-date S1 → “Did surface backscatter cha
 
 | Component | Size | Notes |
 |---|---|---|
-| Train instruct | ~24k QA (full MultiSenGE) | 3 QA × 8,157 patches |
-| Val | ~2.4k QA | 90/10 hash split |
+| Train instruct | ~16k QA (full MultiSenGE) | 2 QA × 8,157 patches |
+| Val | ~1.6k QA | 90/10 hash split |
 | MultiSenNA ZS test | up to 12,258 patches | **Never train on this** |
 | Optional DW+ | Global 9-class ZS (later) | Generalization story |
 
@@ -243,7 +240,7 @@ sequenceDiagram
     U->>O: Classify and explain LULC in this AOI (2020)
     O->>STAC: Sentinel-1 VH scenes
     STAC-->>O: GeoTIFF patches
-    O->>VLM: classify / caption / dialogue
+    O->>VLM: classify + dialogue
     VLM-->>O: 14-class labels + text
     O->>R: PDF report + GeoJSON
     R-->>U: Chat over report
@@ -272,9 +269,9 @@ sequenceDiagram
 
 | Deliverable | Target |
 |---|---|
-| LULC-Agent end-to-end | AOI → S1 → classify/caption → report < 10 min |
+| LULC-Agent end-to-end | AOI → S1 → classify + dialogue → report < 10 min |
 | Thesis submitted | Before defense deadline |
-| Demo video | 3 min: classify + caption + dialogue box |
+| Demo video | 3 min: classify + dialogue demo |
 | Code + bench manifest public | Zenodo or GitHub release with thesis |
 
 ---
@@ -309,10 +306,7 @@ sequenceDiagram
 
 | Priority | Action | Owner |
 |---|---|---|
-| 🔴 P0 | Download + extract **`s1.tgz`** | You |
-| 🔴 P0 | Update `instruct_templates.py` → **14 OCSGE class names**; add caption + dialogue | Code |
-| 🟡 P1 | Run `build_instruct_s1.py` after S1 on disk | Code |
-| 🟡 P1 | Run `build_bench.py` → AI4LCC-S1-Dialogue-Bench v0.1 | Code |
+| 🔴 P0 | Run `build_instruct_s1.py` + `build_bench.py` on professor PC | Code |
 | 🟡 P1 | EarthDial **zero-shot** eval on bench **before** fine-tune | Experiments |
 | 🟢 P2 | Email supervisor 1-page contribution statement (§3.2) | You |
 
@@ -320,7 +314,7 @@ sequenceDiagram
 
 ## 10. Elevator pitch
 
-> We introduce **AI4LCC-S1-Dialogue-Bench** — the first instruction-tuning and evaluation suite for **Sentinel-1 land-cover classification, captioning, and dialogue** on expert **14-class OCSGE** labels — and **LULCDial-S1**, an EarthDial fine-tune that closes the gap left by BigEarthNet optical pretraining and legacy MultiSenGE CNN baselines, with zero-shot transfer to **MultiSenNA**.
+> We introduce **AI4LCC-S1-Dialogue-Bench** — the first instruction-tuning and evaluation suite for **Sentinel-1 land-cover classification and dialogue** on expert **14-class OCSGE** labels — and **LULCDial-S1**, an EarthDial fine-tune that closes the gap left by BigEarthNet optical pretraining and legacy MultiSenGE CNN baselines, with zero-shot transfer to **MultiSenNA**.
 
 ---
 

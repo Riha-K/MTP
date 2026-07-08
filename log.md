@@ -10,6 +10,20 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-08 — Sync docs to earth2 workspace; drop caption from plan
+
+**Why:** Local folder is `e:\MTP\earth2\` (not `LULCDial\`). Caption task removed from code; roadmap and guides still mentioned it. `readGuide.md` duplicated `README.md`.
+
+**Changed:**
+- `Stage4_BareSoil_S1.json` — paths → `e:/MTP/earth2/LULCDial-s1/data/...`
+- `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md` — caption removed; 2 tasks/patch (~16k QA); workspace `earth2`
+- `Stage1_Summer_Intern_Guide.md`, `BareSoil_AI4LCC_Workflow_Guide.md`, `baresoil/README.md` — same
+- Deleted `readGuide.md` (use root `README.md`)
+
+**Naming:** Workspace folder = `earth2`; thesis product = **LULCDial-S1**; code repo = `LULCDial-s1/`.
+
+---
+
 ### 2026-07-07 — Inline study comments in baresoil core modules
 
 **Why:** Add readable inline notes while learning the pipeline (`taxonomy` → `patch_meta` → `s1_vh_io`). No logic changes.
