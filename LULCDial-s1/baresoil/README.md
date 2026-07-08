@@ -88,6 +88,40 @@ python -m baresoil.eval_zero_shot ^
 
 This path is eval-only and does not modify Stage 4 fine-tune config.
 
+## MultiSenNA prep (Stage 2 transfer eval)
+
+Use these folders now so data can be dropped/extracted once and kept ready:
+
+```text
+data/baresoil_s1/ai4lcc/multisenna/
+  labels/            ← extract MultiSenNA labels JSON here
+  s1/                ← extract MultiSenNA S1 tif here
+
+data/baresoil_s1/bench/multisenna/v0.1/
+  multisenna_bench.jsonl
+  multisenna_bench.summary.json
+```
+
+Build MultiSenNA bench JSONL (all patches by default):
+
+```powershell
+cd e:\MTP\earth2\LULCDial-s1
+python -m baresoil.multisenna.build_bench_multisenna ^
+  --labels-dir data/baresoil_s1/ai4lcc/multisenna/labels ^
+  --s1-dir data/baresoil_s1/ai4lcc/multisenna/s1 ^
+  --out-jsonl data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl
+```
+
+Optional smoke test first:
+
+```powershell
+python -m baresoil.multisenna.build_bench_multisenna ^
+  --labels-dir data/baresoil_s1/ai4lcc/multisenna/labels ^
+  --s1-dir data/baresoil_s1/ai4lcc/multisenna/s1 ^
+  --out-jsonl data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench_smoke.jsonl ^
+  --max-samples 100
+```
+
 ## Quick test before full 110 GB download
 
 Extract only `labels.tgz` (done) and run a dry check:

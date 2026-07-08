@@ -10,6 +10,26 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-08 — Add MultiSenNA folders + bench builder
+
+**Why:** Prepare Stage 2 transfer-eval data layout now, while short-time server access is available.
+
+**Changed:**
+- Added folder placeholders:
+  - `LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/labels/.gitkeep`
+  - `LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/s1/.gitkeep`
+  - `LULCDial-s1/data/baresoil_s1/bench/multisenna/v0.1/.gitkeep`
+- Added `LULCDial-s1/baresoil/multisenna/build_bench_multisenna.py`
+  - Builds MultiSenNA classify + 2-turn dialogue bench JSONL
+  - Supports `--max-samples` smoke run
+  - Writes summary JSON with counts and skipped missing-S1 rows
+- Added `LULCDial-s1/baresoil/multisenna/__init__.py`
+- Updated `LULCDial-s1/baresoil/README.md` with MultiSenNA storage paths and commands
+
+**Not changed:** fine-tune config and Stage 4 training code.
+
+---
+
 ### 2026-07-08 — Add Stage 1B zero-shot eval scorer (no fine-tune changes)
 
 **Why:** Prepare zero-shot baseline workflow now, while waiting for the allocated system, without touching Stage 4 fine-tune path.
