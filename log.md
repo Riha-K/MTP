@@ -10,6 +10,21 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-08 — Add Stage 1B zero-shot eval scorer (no fine-tune changes)
+
+**Why:** Prepare zero-shot baseline workflow now, while waiting for the allocated system, without touching Stage 4 fine-tune path.
+
+**Changed:**
+- Added `LULCDial-s1/baresoil/eval_zero_shot.py`
+  - Exports bench request rows (`--dump-requests-jsonl`)
+  - Scores predictions JSONL against bench ground truth (`--pred-jsonl`)
+  - Writes metrics JSON (`classification.example_f1`, dialogue turn-1/turn-2 set-match accuracy)
+- Updated `LULCDial-s1/baresoil/README.md` with Stage 1B command flow (request export + scoring)
+
+**Not changed:** `finetune.py`, `src/shell/data/Stage4_BareSoil_S1.json`, train shard pipeline.
+
+---
+
 ### 2026-07-08 — Sync docs to earth2 workspace; drop caption from plan
 
 **Why:** Local folder is `e:\MTP\earth2\` (not `LULCDial\`). Caption task removed from code; roadmap and guides still mentioned it. `readGuide.md` duplicated `README.md`.

@@ -59,6 +59,35 @@ Each training sample:
 {"jpg": PIL float32 VH dB 256×256, "conversations": '[{"from":"human",...},{"from":"gpt",...}]'}
 ```
 
+## Zero-shot eval prep (Stage 1B only)
+
+Use this before fine-tuning to keep a clean baseline workflow.
+
+1) Export eval requests from bench:
+```powershell
+cd e:\MTP\earth2\LULCDial-s1
+python -m baresoil.eval_zero_shot ^
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
+  --out-metrics data/baresoil_s1/metrics/_tmp.json ^
+  --dump-requests-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_requests.jsonl
+```
+
+2) Run model inference separately and save prediction rows JSONL with:
+- `patch_id`
+- `pred_classify`
+- `pred_dialogue_turn1`
+- `pred_dialogue_turn2`
+
+3) Score predictions:
+```powershell
+python -m baresoil.eval_zero_shot ^
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
+  --pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl ^
+  --out-metrics data/baresoil_s1/metrics/earthdial_zs_baseline.json
+```
+
+This path is eval-only and does not modify Stage 4 fine-tune config.
+
 ## Quick test before full 110 GB download
 
 Extract only `labels.tgz` (done) and run a dry check:
