@@ -10,6 +10,16 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-09 — Add single RUNBOOK.md command file
+
+**Why:** User needed one main file with copy-paste commands for full pipeline (data → ZS → train → eval → MultiSenNA).
+
+**Changed:**
+- Added `RUNBOOK.md` at repo root with stage checklist and all command blocks
+- Updated root `README.md` to point to `RUNBOOK.md` as primary command reference
+
+---
+
 ### 2026-07-08 — Add MultiSenNA folders + bench builder
 
 **Why:** Prepare Stage 2 transfer-eval data layout now, while short-time server access is available.

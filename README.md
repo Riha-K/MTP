@@ -11,11 +11,12 @@ Here’s a **reading order for right now** — shortest path to knowing what to 
 
 | # | File | Why |
 |---|------|-----|
+| **0** | [`RUNBOOK.md`](RUNBOOK.md) | **Main command file** — copy-paste commands from data → ZS → train → eval → MultiSenNA |
 | **1** | [`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md) | **Main plan** — 3 stages, novelty, metrics, what NOT to do, immediate P0 tasks |
 | **2** | [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | **How to run the pipeline** — download → parse JSON → VH tif → shards → train |
-| **3** | [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md) | **Commands** to build shards and bench after `s1.tgz` is on disk |
+| **3** | [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md) | **Data-prep commands** — shards, bench, zero-shot, MultiSenNA |
 
-After these three, you know: *what the thesis is*, *how data flows*, and *what to run*.
+After these, you know: *what the thesis is*, *how data flows*, and *what to run*.
 
 ---
 
@@ -49,6 +50,6 @@ After these three, you know: *what the thesis is*, *how data flows*, and *what t
 
 ## One-line answer
 
-**Start with:** `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md` → then `BareSoil_AI4LCC_Workflow_Guide.md` → then `baresoil/README.md`.
+**Start with:** `RUNBOOK.md` for commands → `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md` for plan.
 
-**Your action after reading:** download **`s1.tgz`**, then run the build scripts.
+**Your action after reading:** download **`s1.tgz`**, then follow **`RUNBOOK.md`** Step 1A.
