@@ -10,6 +10,19 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-09 — PARAM demo config defaults from old EarthDial copy
+
+**Why:** Port only server-specific demo startup settings from downloaded `EarthDial-old`, without touching LULCDial training/eval pipeline.
+
+**Changed:**
+- `LULCDial-s1/demo/app.py` — controller/SD worker defaults now from env vars (`EARTHDIAL_CONTROLLER_URL`, `EARTHDIAL_SD_WORKER_URL`), PARAM fallback `http://login01:40000`
+- `LULCDial-s1/demo/earthdial_demo.sh` — env-based GPU/model path defaults (`EARTHDIAL_GPU`, `EARTHDIAL_MODEL_PATH`)
+- `RUNBOOK.md` — added PARAM demo startup block
+
+**Not changed:** `baresoil/*`, `finetune.py`, `Stage4_BareSoil_S1.json`, training/eval logic.
+
+---
+
 ### 2026-07-09 — Add single RUNBOOK.md command file
 
 **Why:** User needed one main file with copy-paste commands for full pipeline (data → ZS → train → eval → MultiSenNA).

@@ -1,16 +1,13 @@
 """ Building  HF shards from MultiSenGE data."""
 
-
-'''
-Location/commands:
-  python -m baresoil.build_instruct_s1 ^
-    --labels-dir LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/labels ^
-    --s1-dir LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/s1 ^
-    --out-dir LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train ^
-    --split all
-'''
-
 from __future__ import annotations
+
+# Location/commands:
+#   python -m baresoil.build_instruct_s1 ^
+#     --labels-dir LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/labels ^
+#     --s1-dir LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/s1 ^
+#     --out-dir LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train ^
+#     --split all
 
 import argparse
 import hashlib #train/val split; reproducibility

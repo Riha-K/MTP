@@ -335,7 +335,21 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 
 ---
 
+## PARAM demo startup (optional, server only)
 
+Use the updated demo launcher with env overrides:
+
+```bash
+cd ~/MTP/MTP/LULCDial-s1/demo
+export EARTHDIAL_GPU=1
+export EARTHDIAL_MODEL_PATH=/home/rihak_iitp/EarthDial_Models/EarthDial_4B_RGB
+export EARTHDIAL_CONTROLLER_URL=http://0.0.0.0:40000
+bash earthdial_demo.sh
+```
+
+`demo/app.py` also reads `EARTHDIAL_CONTROLLER_URL` / `EARTHDIAL_SD_WORKER_URL` if you start Streamlit manually.
+
+---
 
 ## Related docs (deeper reading)
 

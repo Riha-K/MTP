@@ -29,17 +29,19 @@ from streamlit_image_select import image_select
 
 custom_args = sys.argv[1:]
 parser = argparse.ArgumentParser()
+_default_controller = os.environ.get("EARTHDIAL_CONTROLLER_URL", "http://login01:40000")
+_default_sd_worker = os.environ.get("EARTHDIAL_SD_WORKER_URL", "http://0.0.0.0:40006")
 parser.add_argument(
     "--controller_url",
     type=str,
-    default="http://10.140.60.209:10075",
-    help="url of the controller",
+    default=_default_controller,
+    help="url of the controller (override via EARTHDIAL_CONTROLLER_URL)",
 )
 parser.add_argument(
     "--sd_worker_url",
     type=str,
-    default="http://0.0.0.0:40006",
-    help="url of the stable diffusion worker",
+    default=_default_sd_worker,
+    help="url of the stable diffusion worker (override via EARTHDIAL_SD_WORKER_URL)",
 )
 parser.add_argument(
     "--max_image_limit", type=int, default=4, help="maximum number of images"
