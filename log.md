@@ -10,6 +10,23 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-10 — Stage 1B complete: EarthDial_4B_MS zero-shot on 801 val
+
+**Why:** Lock strict-F1 baseline before 25/50/100% fine-tune scaling.
+
+**PARAM result** (`earthdial_zs_baseline.json`):
+- `num_scored_rows`: **801** / `missing_predictions`: 0
+- classification `example_f1`: **~0.0194**
+- dialogue turn1 / turn2 set-match: **0.0** / **0.0**
+
+**Artifacts:**
+- `data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl` (801 lines)
+- `data/baresoil_s1/metrics/earthdial_zs_baseline.json`
+
+**Readout:** Near-floor ZS is expected (model free-form / wrong taxonomy vs clean OCSGE lists). Next: separate fine-tunes from `EarthDial_4B_MS` at ~25% → 50% → 100% train size, same bench + scorer.
+
+---
+
 ### 2026-07-10 — Lock plan: full 801 ZS, then 25/50/100% separate fine-tunes
 
 **Why:** User wants a data-scaling study (prove more AI4LCC data helps) without redesigning metrics/templates mid-1B.
