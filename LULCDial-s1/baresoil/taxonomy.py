@@ -1,9 +1,9 @@
-"""AI4LCC / MultiSenGE 14-class OCSGE label helpers."""
+"""AI4LCC OCSGE label helpers (MultiSenGE 14-class + MultiSenNA class 15)."""
 
 from __future__ import annotations #cleanly
 from typing import Iterable
 
-# MultiSenGE 14-class IDs  (key-->value)
+# MultiSenGE uses IDs 1–14. MultiSenNA adds coastal class 15 (Beaches, Sand).
 AI4LCC_CLASS_ID_TO_NAME: dict[int, str] = {
     1: "Dense Built-Up",
     2: "Sparse Built-Up",
@@ -19,12 +19,13 @@ AI4LCC_CLASS_ID_TO_NAME: dict[int, str] = {
     12: "Open Spaces, Mineral",
     13: "Wetlands",
     14: "Water Surfaces",
+    15: "Beaches, Sand",
 }
 
 AI4LCC_NAME_TO_ID: dict[str, int] = {v: k for k, v in AI4LCC_CLASS_ID_TO_NAME.items()}
 
 URBAN_CLASS_IDS: frozenset[int] = frozenset({1, 2, 3, 4, 5})
-NATURAL_CLASS_IDS: frozenset[int] = frozenset({6, 7, 8, 9, 10, 11, 12, 13, 14})
+NATURAL_CLASS_IDS: frozenset[int] = frozenset({6, 7, 8, 9, 10, 11, 12, 13, 14, 15})
 
 def parse_ai4lcc_label_ids(labels_field: str) -> list[int]:
     #Parsing labels ans storing labels in list
@@ -58,9 +59,9 @@ def dominant_ocsge_name(class_ids: Iterable[int]) -> str:
         return "Unknown"
     return ai4lcc_name(ids[0])
 
-#option for classify question
+#option for classify question (1–15 so MultiSenNA beaches are included)
 def ai4lcc_classify_options_text() -> str:
-    return ", ".join(AI4LCC_CLASS_ID_TO_NAME[i] for i in range(1, 15))
+    return ", ".join(AI4LCC_CLASS_ID_TO_NAME[i] for i in sorted(AI4LCC_CLASS_ID_TO_NAME))
 
 def natural_class_names_from_ids(class_ids: Iterable[int]) -> list[str]:
     return [ai4lcc_name(cid) for cid in sorted(set(class_ids)) if cid in NATURAL_CLASS_IDS]

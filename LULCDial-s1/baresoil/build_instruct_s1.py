@@ -14,7 +14,7 @@ import hashlib #train/val split; reproducibility
 import json
 import sys
 from pathlib import Path
-from datasets import Dataset #huggingface dataset library
+from datasets import Dataset, Features, Image, Value #huggingface dataset library
 from tqdm import tqdm #progress bar
 
 from .instruct_templates import build_classify_qa, build_dialogue_turns
@@ -33,6 +33,74 @@ def _split_bucket(stem: str, train_ratio: float = 0.9) -> str:
 #   → % 1000 → e.g. 342
 #   → 342 < 900 → train
 
+_SHARD_FEATURES = Features(
+    {
+        "jpg": Image(mode="F"),
+        "conversations": Value("string"),
+    }
+)
+
+
+class _ShardExampleGen:
+    """Stream examples to disk — avoids MemoryError on full MultiSenGE train."""
+
+    def __init__(
+        self,
+        patches: list,
+        s1_dir: Path,
+        split: str,
+        skip_missing_s1: bool,
+    ) -> None:
+        self.patches = patches
+        self.s1_dir = s1_dir
+        self.split = split
+        self.skip_missing_s1 = skip_missing_s1
+        self.skipped = {"missing_s1": 0, "bad_tif": 0}
+        self.patch_count = 0
+
+    def __call__(self):
+        self.skipped = {"missing_s1": 0, "bad_tif": 0}
+        self.patch_count = 0
+        for patch in tqdm(self.patches, desc=f"build-{self.split}"):
+            s1_name = pick_available_s1_file(patch, self.s1_dir)
+            if not s1_name:
+                self.skipped["missing_s1"] += 1
+                continue
+
+            s1_path = pick_s1_path(self.s1_dir, s1_name)
+            if s1_path is None:
+                self.skipped["missing_s1"] += 1
+                if self.skip_missing_s1:
+                    continue
+                raise FileNotFoundError(f"S1 file not found: {s1_name} under {self.s1_dir}")
+
+            try:
+                vh = read_s1_vh_db(s1_path)
+                pil_img = vh_db_to_pil(vh)
+            except Exception:
+                self.skipped["bad_tif"] += 1
+                continue
+
+            present_names = patch.label_names
+            q_cls, a_cls = build_classify_qa(present_names)
+            dialogue_conv = build_dialogue_turns(patch.label_ids, present_names)
+
+            yield {
+                "jpg": pil_img,
+                "conversations": json.dumps(
+                    [
+                        {"from": "human", "value": q_cls},
+                        {"from": "gpt", "value": a_cls},
+                    ]
+                ),
+            }
+            yield {
+                "jpg": pil_img,
+                "conversations": json.dumps(dialogue_conv),
+            }
+            self.patch_count += 1
+
+
 #build shard
 def build_shard(
     labels_dir: Path,
@@ -45,86 +113,26 @@ def build_shard(
     patches = iter_patches(labels_dir) #iterate 8157
     if split in ("train", "val"):
         patches = [p for p in patches if _split_bucket(p.stem) == split]
+    if max_patches is not None:
+        patches = patches[:max_patches]
 
-    images = []
-    conversations = []
-    meta_rows = []
-    skipped = {"missing_s1": 0, "bad_tif": 0}
-    patch_count = 0
+    gen = _ShardExampleGen(
+        patches=patches,
+        s1_dir=s1_dir,
+        split=split,
+        skip_missing_s1=skip_missing_s1,
+    )
 
-    #ran per patch
-    for patch in tqdm(patches, desc=f"build-{split}"):
-        if max_patches is not None and patch_count >= max_patches:
-            break
-
-        s1_name = pick_available_s1_file(patch, s1_dir) 
-        if not s1_name:
-            skipped["missing_s1"] += 1
-            continue
-
-        s1_path = pick_s1_path(s1_dir, s1_name) #.tiff location
-        if s1_path is None:
-            skipped["missing_s1"] += 1
-            if skip_missing_s1:
-                continue
-            raise FileNotFoundError(f"S1 file not found: {s1_name} under {s1_dir}")
-
-        try:
-            vh = read_s1_vh_db(s1_path)
-            pil_img = vh_db_to_pil(vh)
-        except Exception:
-            skipped["bad_tif"] += 1
-            continue
-
-        present_names = patch.label_names
-        q_cls, a_cls = build_classify_qa(present_names)
-        dialogue_conv = build_dialogue_turns(patch.label_ids, present_names)
-
-        #first question
-        conv = json.dumps(
-            [
-                {"from": "human", "value": q_cls},
-                {"from": "gpt", "value": a_cls},
-            ]
-        )
-        images.append(pil_img)
-        conversations.append(conv)
-        meta_rows.append(
-            {
-                "patch_id": patch.stem,
-                "s1_file": s1_name,
-                "label_ids": patch.label_ids,
-                "label_names": present_names,
-                "dominant_class_name": patch.dominant_class_name,
-                "task": "classify",
-            }
-        )
-
-        #second question
-        images.append(pil_img)
-        conversations.append(json.dumps(dialogue_conv))
-        meta_rows.append(
-            {
-                "patch_id": patch.stem,
-                "s1_file": s1_name,
-                "label_ids": patch.label_ids,
-                "label_names": present_names,
-                "dominant_class_name": patch.dominant_class_name,
-                "task": "dialogue",
-            }
-        )
-        patch_count += 1
-
-    #save to disk
+    # Stream to Arrow cache then save — do not hold all PIL images in RAM
     out_dir.mkdir(parents=True, exist_ok=True)
-    ds = Dataset.from_dict({"jpg": images, "conversations": conversations})
+    ds = Dataset.from_generator(gen, features=_SHARD_FEATURES)
     ds.save_to_disk(str(out_dir))
 
     manifest = {
         "split": split,
-        "num_samples": len(images),
-        "num_patches": patch_count,
-        "skipped": skipped,
+        "num_samples": len(ds),
+        "num_patches": gen.patch_count,
+        "skipped": gen.skipped,
         "labels_dir": str(labels_dir),
         "s1_dir": str(s1_dir),
         "out_dir": str(out_dir),
