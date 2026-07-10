@@ -11,7 +11,7 @@ Here’s a **reading order for right now** — shortest path to knowing what to 
 
 | # | File | Why |
 |---|------|-----|
-| **0** | [`RUNBOOK.md`](RUNBOOK.md) | **Main command file** — copy-paste commands from data → ZS → train → eval → MultiSenNA |
+| **0** | [`RUNBOOK.md`](RUNBOOK.md) | **Main command file** — 1A data → **1B full-801 ZS** → **1C scale 25/50/100%** → eval → MultiSenNA |
 | **1** | [`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md) | **Main plan** — 3 stages, novelty, metrics, what NOT to do, immediate P0 tasks |
 | **2** | [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | **How to run the pipeline** — download → parse JSON → VH tif → shards → train |
 | **3** | [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md) | **Data-prep commands** — shards, bench, zero-shot, MultiSenNA |

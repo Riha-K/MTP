@@ -217,11 +217,48 @@ python -m baresoil.eval_zero_shot \
 
 **Done when:** `earthdial_zs_baseline.json` exists with F1 + dialogue accuracies.
 
+**Notes (do not redesign mid-1B):**
+- Keep GT answers as **clean class lists** (e.g. `Arable Lands, Grasslands, Forests`).
+- Strict example-F1 / set-match is the **primary** metric. Low ZS F1 is expected and useful.
+- Do **not** change answer templates or metrics until 1B baseline is saved.
+
 ---
 
 
 
-## Step 1C — Fine-tune LULCDial-S1 v0.1 (GPU server)
+## Step 1C — Data-scaling fine-tune (25% → 50% → 100%)
+
+**Goal:** Prove the model **gains knowledge with more AI4LCC data** (not that a tiny subset already saturates).
+
+**Important:** The train folder’s 8 `.arrow` files are **one** dataset (~14710 samples), not 8 separate corpora. Scaling = **% of train patches / samples**, not “use 2 arrow files only.”
+
+**Rules:**
+- Same base every time: `EarthDial_4B_MS` (separate short runs — **not** one long continued train)
+- Same hyperparams across 25 / 50 / 100%
+- Same bench: `ai4lcc_val.jsonl` (801) + same `eval_zero_shot` scorer
+- Build subset shards with `build_instruct_s1 --max-patches N` (or equivalent), point `Stage4_BareSoil_S1.json` at that subset
+
+| Run | Train size (approx) | Checkpoint out | Metrics out |
+|-----|---------------------|----------------|-------------|
+| **1C-a** | ~25% train patches | `checkpoints/LULCDial_S1_p25/` | `metrics/lulcdial_p25.json` |
+| **1C-b** | ~50% train patches | `checkpoints/LULCDial_S1_p50/` | `metrics/lulcdial_p50.json` |
+| **1C-c** | **100%** (full) | `checkpoints/LULCDial_S1_v0.1/` | `metrics/lulcdial_v0.1.json` |
+
+**Interpretation:**
+- If **ZS ≪ 25% ≪ 100%** → genuine learning (good thesis plot)
+- If **25% ≈ 100%** → scaling weak; debug LR / epochs / templates before claiming full-data win
+
+**Optional later (after 1B, before or after scaling — pick once):**
+- Light sentence wrappers around the **same** class names + scorer tweak
+- Relaxed F1 with aliases — report **beside** strict F1, never instead
+
+---
+
+
+
+## Step 1C (legacy block) — Fine-tune LULCDial-S1 v0.1 (GPU server)
+
+> Prefer the **25 → 50 → 100%** plan above. Full 100% run is **1C-c**.
 
 **Config:** `LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`  
 **Trainer:** `LULCDial-s1/src/earthdial/train/finetune.py`  
@@ -342,9 +379,9 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 | Stage  | Command module                            | Exit artifact                   |
 | ------ | ----------------------------------------- | ------------------------------- |
 | **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl`     |
-| **1B** | `eval_zero_shot` + inference              | `earthdial_zs_baseline.json`    |
-| **1C** | `finetune.py` + `Stage4_BareSoil_S1.json` | `checkpoints/LULCDial_S1_v0.1/` |
-| **1D** | `eval_zero_shot` + inference              | `lulcdial_v0.1.json`            |
+| **1B** | `predict_zero_shot` + `eval_zero_shot`    | `earthdial_zs_baseline.json`    |
+| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25/p50/v0.1` |
+| **1D** | `eval_zero_shot` after each 1C run        | `lulcdial_p25/p50/v0.1.json`    |
 | **2**  | `build_bench_multisenna`                  | `multisenna_bench.jsonl`        |
 
 

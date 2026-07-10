@@ -10,6 +10,21 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-10 — Lock plan: full 801 ZS, then 25/50/100% separate fine-tunes
+
+**Why:** User wants a data-scaling study (prove more AI4LCC data helps) without redesigning metrics/templates mid-1B.
+
+**Docs updated:**
+- `RUNBOOK.md` — 1B notes (keep clean class-list GT; strict F1); new **1C scaling** block (25→50→100%, separate runs from `EarthDial_4B_MS`); checklist
+- `LULCDial-s1/baresoil/README.md` — post-1B plan
+- `Stage1_Summer_Intern_Guide.md` — 1C scaling wording
+
+**Do not:** treat 8 `.arrow` files as 8 datasets; change answer format mid-ZS; replace strict F1 with sentence metrics.
+
+**Next:** run full 801 ZS on PARAM (`--resume`), then `earthdial_zs_baseline.json`.
+
+---
+
 ### 2026-07-10 — PARAM: EarthDial_4B_MS downloaded; Stage 1B ready to smoke
 
 **Why:** Stage 1B needs MS/SAR weights; PARAM previously had only `EarthDial_4B_RGB`.

@@ -89,6 +89,11 @@ python -m baresoil.eval_zero_shot ^
 
 This path is eval-only and does not modify Stage 4 fine-tune config.
 
+**Plan after 1B (do not redesign mid-ZS):**
+1. Save full-801 strict F1 baseline (`earthdial_zs_baseline.json`). Low ZS is expected.
+2. Fine-tune **separate** runs from `EarthDial_4B_MS` at **~25% / ~50% / 100%** train size (same hyperparams, same bench). The 8 `.arrow` files are one dataset — scale by sample/patch count, not by “2 of 8 files.”
+3. Optional later: sentence wrappers / relaxed F1 — only after baseline is locked.
+
 ## MultiSenNA prep (Stage 2 transfer eval)
 
 Use these folders now so data can be dropped/extracted once and kept ready:

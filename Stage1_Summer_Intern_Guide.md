@@ -164,11 +164,20 @@ python -m baresoil.build_bench ^
 
 
 
-## Substage 1C — Fine-tune LULCDial-S1 v0.1
+## Substage 1C — Fine-tune LULCDial-S1 (data scaling → v0.1)
 
-**What:** Train EarthDial on your shards → save as **LULCDial-S1 v0.1**.
+**What:** Fine-tune EarthDial on your shards; prove **more data helps**.
 
-**Config:** `src/shell/data/Stage4_BareSoil_S1.json` points to train/val shards.
+**Locked plan (see `RUNBOOK.md`):**
+1. Finish **1B** full-801 ZS first (strict F1). Keep clean class-list answers — do not redesign mid-1B.
+2. Three **separate** fine-tunes from the same base `EarthDial_4B_MS`, same hyperparams, same 801 bench:
+   - ~**25%** train patches → eval
+   - ~**50%** train patches → eval
+   - **100%** → `checkpoints/LULCDial_S1_v0.1/`
+3. Scale by patch/sample count (`--max-patches` / subset shards). The 8 `.arrow` files are **one** HF dataset, not eight corpora.
+4. Prefer separate short runs (not one continued train) for a clean thesis plot.
+
+**Config (full run):** `src/shell/data/Stage4_BareSoil_S1.json` points to train/val shards.
 
 **Training recipe (EarthDial Stage 4):**
 
@@ -176,7 +185,7 @@ python -m baresoil.build_bench ^
 | Setting         | Value                                      |
 | --------------- | ------------------------------------------ |
 | Base checkpoint | `EarthDial_4B_MS`                          |
-| Data            | `ai4lcc_ge_train_train` / `_val`           |
+| Data            | `ai4lcc_ge_train_train` / `_val` (or subset) |
 | Bands           | 1 (S1 VH)                                  |
 | Normalization   | `s1`                                       |
 | Task token      | `[baresoil]` (registered in `finetune.py`) |
@@ -184,13 +193,13 @@ python -m baresoil.build_bench ^
 
 **What actually gets updated:** model weights during supervised fine-tuning on your QA pairs (image + question → answer). Same as EarthDial paper Stage 3/4 — **not** building a new model from scratch.
 
-**Output checkpoint:**
+**Output checkpoint (100% run):**
 
 ```
 LULCDial-s1/checkpoints/LULCDial_S1_v0.1/
 ```
 
-**Done when:** Training finishes; loss decreases; checkpoint loads for inference.
+**Done when:** Scaling curve exists (ZS vs 25/50/100%); full checkpoint loads for inference.
 
 **Weeks:** 4–6 (needs GPU — 8× A100 ideal per EarthDial README; fewer GPUs = longer)
 
