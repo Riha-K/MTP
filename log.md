@@ -10,6 +10,43 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-10 — Stage 1B zero-shot inference runner
+
+**Why:** Start Stage 1B (EarthDial_4B_MS baseline before fine-tune). Scorer already existed; model batch runner did not. PARAM has shards/bench but not full raw S1.
+
+**Added:**
+- `baresoil/predict_zero_shot.py` — S1 VH → `s1` norm → `sequential_vit_features` → classify + 2-turn dialogue preds
+- `baresoil/pack_bench_s1.py` — copy only bench-referenced TIFFs (~801) for upload
+- `RUNBOOK.md` / `baresoil/README.md` — Stage 1B pack → infer → score commands
+
+**Next on user side:** pack `s1_val_bench`, scp to PARAM, confirm `EarthDial_4B_MS` weights, smoke `--max-samples 20`, then full + `eval_zero_shot`.
+
+---
+
+### 2026-07-10 — Stage 1A full build + MultiSenNA bench; artifacts on PARAM
+
+**Why:** Finish MultiSenGE train/val shards + GE/NA benches on remote CPU, then stage prepared artifacts on PARAM for Stage 1B/1C (no raw 110 GB S1 on GPU login).
+
+**Code:**
+- `baresoil/build_instruct_s1.py` — stream via `Dataset.from_generator` (fixes `MemoryError` on full train save)
+- `baresoil/taxonomy.py` — add MultiSenNA class **15 = Beaches, Sand**; classify options include 1–15
+- Commit `fdd0960` pushed to `origin/main`
+
+**Remote CPU (`D:\Riha\earth2`) outputs:**
+- Train shard: `14710` samples / `7355` patches (`bad_tif: 1`)
+- Val shard: `1602` samples / `801` patches
+- GE bench: `bench/v0.1/ai4lcc_val.jsonl` → **801** rows
+- MultiSenNA bench: `12115` rows (`skipped_missing_s1: 143`)
+
+**PARAM (`~/MTP/earth2`):**
+- `git pull` → `fdd0960`
+- Copied: `shards/ai4lcc_ge_train_{train,val}/`, `bench/multisenna/v0.1/multisenna_bench.jsonl` (+ summary)
+- Verified: GE `801` lines; MultiSenNA `12115` lines; both shard dirs present
+
+**Not done yet:** Stage 1B EarthDial inference runner; Stage 1C fine-tune path update + launch.
+
+---
+
 ### 2026-07-09 — PARAM demo config defaults from old EarthDial copy
 
 **Why:** Port only server-specific demo startup settings from downloaded `EarthDial-old`, without touching LULCDial training/eval pipeline.

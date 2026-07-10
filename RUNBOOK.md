@@ -156,47 +156,62 @@ python -m baresoil.build_bench ^
 
 ## Step 1B — Zero-shot baseline (before fine-tune)
 
-**Model:** `akshaydudhane/EarthDial_4B_MS` (no AI4LCC training)  
-**Eval data:** same bench JSONL from 1A
+**Model:** `EarthDial_4B_MS` (no AI4LCC fine-tune yet)  
+**Eval data:** `bench/v0.1/ai4lcc_val.jsonl` (801 rows)  
+**Need on GPU server:** model weights + **val S1 TIFFs** (not full 110 GB — only files listed in the bench)
 
-### 1B.1 Export questions only (no answers to model)
+### 1B.0 Pack + upload val S1 only (~801 files)
+
+On laptop / remote CPU (where full `multisenge/s1` exists):
 
 ```powershell
-cd e:\MTP\earth2\LULCDial-s1
+cd e:\MTP\earth2\LULCDial-s1   # or D:\Riha\earth2\LULCDial-s1
 
-python -m baresoil.eval_zero_shot ^
+python -m baresoil.pack_bench_s1 ^
   --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
-  --out-metrics data/baresoil_s1/metrics/_tmp.json ^
-  --dump-requests-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_requests.jsonl
+  --src-s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
+  --out-dir data/baresoil_s1/ai4lcc/multisenge/s1_val_bench
 ```
 
+Then `scp -r` that `s1_val_bench` folder to PARAM:
 
+```text
+~/MTP/earth2/LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/s1_val_bench/
+```
 
-### 1B.2 Run EarthDial inference (GPU server)
+Also ensure `EarthDial_4B_MS` exists under `~/EarthDial_Models/` (RGB-only is not enough for S1).
 
-> Inference runner script is not in `baresoil/` yet.  
-> Use `ai4lcc_val_requests.jsonl` + `s1_path` per row.  
-> Model gets **image + question only** (not ground-truth answers).
+### 1B.1 Smoke inference (20 samples) then full
 
-Save predictions as JSONL with these fields per row:
+On PARAM **GPU node** (not login-only if GPU is unavailable there):
 
-- `patch_id`
-- `pred_classify`
-- `pred_dialogue_turn1`
-- `pred_dialogue_turn2`
+```bash
+cd ~/MTP/earth2/LULCDial-s1
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 
-Example output file:
+# smoke
+python -m baresoil.predict_zero_shot \
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
+  --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
+  --out-pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \
+  --max-samples 20
 
-`data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl`
+# full (resume-safe)
+python -m baresoil.predict_zero_shot \
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
+  --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
+  --out-pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \
+  --resume
+```
 
-### 1B.3 Score zero-shot
+### 1B.2 Score zero-shot
 
-```powershell
-cd e:\MTP\earth2\LULCDial-s1
-
-python -m baresoil.eval_zero_shot ^
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
-  --pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl ^
+```bash
+python -m baresoil.eval_zero_shot \
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \
   --out-metrics data/baresoil_s1/metrics/earthdial_zs_baseline.json
 ```
 
