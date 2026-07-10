@@ -62,11 +62,24 @@ def _dialogue_questions(row: dict[str, Any]) -> tuple[str, str]:
 
 def _prepare_pixel_values(model, s1_path: Path, image_size: int):
     import torch
-    from earthdial.train.dataset import build_transform
+    import torchvision.transforms as T
+    from torchvision.transforms.functional import InterpolationMode
+
+    # Match earthdial.train.dataset.build_transform(..., normalize_type='s1') eval path
+    # without importing dataset.py (avoids cv2/imageio side deps on PARAM).
+    s1_mean = (-20.26,)
+    s1_std = (5.91,)
+    transform = T.Compose(
+        [
+            T.ToTensor(),
+            T.Lambda(lambda x: x.unsqueeze(0) if x.ndim == 2 else x),
+            T.Normalize(mean=s1_mean, std=s1_std),
+            T.Resize((image_size, image_size), interpolation=InterpolationMode.BICUBIC),
+        ]
+    )
 
     vh = read_s1_vh_db(s1_path)
     pil = vh_db_to_pil(vh)
-    transform = build_transform(is_train=False, input_size=image_size, normalize_type="s1")
     pixel_values = transform(pil).unsqueeze(0)
     pixel_values = model.sequential_vit_features(pixel_values, "bilinear")
     return pixel_values.to(dtype=torch.bfloat16).cuda()

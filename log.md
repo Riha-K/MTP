@@ -10,6 +10,19 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-10 — PARAM: EarthDial_4B_MS downloaded; Stage 1B ready to smoke
+
+**Why:** Stage 1B needs MS/SAR weights; PARAM previously had only `EarthDial_4B_RGB`.
+
+**Done on PARAM (`login01`):**
+- `s1_val_bench` present — **801** TIFFs
+- Downloaded `akshaydudhane/EarthDial_4B_MS` → `~/EarthDial_Models/EarthDial_4B_MS` (~8.29 GB)
+- Code at `b39ae8f` (`predict_zero_shot.py`, `pack_bench_s1.py`)
+
+**Next:** GPU smoke (`--max-samples 20`) then full 801 + `eval_zero_shot` → `earthdial_zs_baseline.json`.
+
+---
+
 ### 2026-07-10 — Stage 1B zero-shot inference runner
 
 **Why:** Start Stage 1B (EarthDial_4B_MS baseline before fine-tune). Scorer already existed; model batch runner did not. PARAM has shards/bench but not full raw S1.
