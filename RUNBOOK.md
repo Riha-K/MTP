@@ -3,7 +3,7 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-11):** **1C-a + 1D p25 DONE** (F1 **0.782**) · **1C-b READY** (build p50 shard tonight; train tomorrow)
+> **Status (2026-07-11):** **1C-a + 1D p25 DONE** (F1 **0.782**) · **1C-b RUNNING overnight** (job **88490**, first loss 2.45)
 
 ---
 
@@ -48,7 +48,8 @@
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
 | **1C-a** 25% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p25/`; train metrics in `metrics/v0.1/train_p25/` |
 | **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` — F1 **0.782** vs ZS **0.019** |
-| **1C-b / 1C-c** 50% / 100% | **1C-b READY** (train tomorrow) | meta + sbatch in repo; build `ai4lcc_ge_train_p50` on PARAM tonight |
+| **1C-b** 50% fine-tune | **RUNNING overnight** | job **88490** → `checkpoints/LULCDial_S1_p50/`; shard `ai4lcc_ge_train_p50` (7355) |
+| **1C-c** 100% | pending | same `sbatch` pattern |
 | **1D** after 50/100% | pending | `lulcdial_p50.json` / `lulcdial_v0.1.json` |
 
 ---
@@ -643,7 +644,7 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 | ------ | ----------------------------------------- | ------------------------------- |
 | **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl` — **DONE** |
 | **1B** | `predict_zero_shot` + `eval_zero_shot`    | `metrics/v0.1/earthdial_zs_baseline.json` — **DONE** |
-| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25` **DONE** (F1 0.782) · **NEXT: p50** |
+| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25` **DONE** · **p50 RUNNING** (job 88490) · 100% pending |
 | **1D** | `eval_zero_shot` after each 1C run        | `metrics/v0.1/lulcdial_p25.json` **DONE** · p50 / v0.1 pending |
 | **2**  | `build_bench_multisenna`                  | `multisenna_bench.jsonl`        |
 

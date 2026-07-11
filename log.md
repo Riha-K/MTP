@@ -10,18 +10,29 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-11 — 1C-b TRAINING overnight (job 88490)
+
+**Why:** Start 50% fine-tune after p50 shard + scripts were ready.
+
+**Running:** `sbatch …/train_p50.sbatch` → Slurm **88490** (`ft50` on `racn116`).
+- Shard: `ai4lcc_ge_train_p50` (**7355** / 14710)
+- First loss **2.4535**, token length **1024** (healthy)
+- Out: `checkpoints/LULCDial_S1_p50/`; logs `~/ft50_88490.out`
+- ETA ~**1.5–2.5 h** wall
+
+**Morning check:** `squeue` empty + model files under `LULCDial_S1_p50/` → then `pred_p50.sbatch` → `metrics/v0.1/lulcdial_p50.json`.
+
+---
+
 ### 2026-07-11 — 1C-b (50%) environment ready; train tomorrow
 
-**Why:** Prep scaling run without starting GPU train tonight.
+**Why:** Prep scaling run (shard + scripts) before GPU train.
 
-**In repo:**
-- `src/shell/data/Stage4_BareSoil_S1_p50.json` → `shards/ai4lcc_ge_train_p50`
-- `src/shell/train_p50.sbatch` → `checkpoints/LULCDial_S1_p50/` (from `EarthDial_4B_MS`, same flags as p25)
-- `src/shell/pred_p50.sbatch` → 801 predict after train
+**Done on PARAM:**
+- Built `shards/ai4lcc_ge_train_p50` (**7355** rows)
+- `git pull` brought `Stage4_BareSoil_S1_p50.json`, `train_p50.sbatch`, `pred_p50.sbatch`
 
-**Tonight on PARAM (login01):** build shard `ai4lcc_ge_train_p50` (~7355 / 14710) — see RUNBOOK **1C-b setup**.
-
-**Tomorrow:** `sbatch …/train_p50.sbatch` → ETA ~1.5–2.5 h → predict → `metrics/v0.1/lulcdial_p50.json`.
+**Then:** training started same night (see entry above).
 
 ---
 
