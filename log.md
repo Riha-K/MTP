@@ -10,20 +10,49 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-11 — Docs: status + PARAM env pins; next = 1C-a
+
+**Why:** Capture yesterday’s PARAM installs/commands and where everything lives so 1C can reuse the same env.
+
+**Docs:**
+- `RUNBOOK.md` — status checklist; **Which file holds what**; full **PARAM GPU env** (module, pip pins, tmux, MS download); 1B paths → `preds/` + `metrics/v0.1/`; 1C.0 subsample-from-uploaded-shard
+- `README.md` — reading order + current status
+- This log entry
+
+**Done till now:** 1A (shards+bench) · 1B ZS (801, F1≈0.0194) · artifacts on PARAM + git (`e3ab205`).
+
+**Next:** On PARAM, subsample train → `ai4lcc_ge_train_p25` (~25%), edit `Stage4_BareSoil_S1.json`, fine-tune from `EarthDial_4B_MS` → `LULCDial_S1_p25`, eval same 801 bench.
+
+**PARAM env (reuse — do not reinstall blindly):**
+- Module: `MLDL/Pytorch-gpu` after `salloc` + `srun --pty bash`
+- Pins: `transformers==4.37.2`, `tokenizers==0.15.1`, `peft==0.10.0`, `numpy==1.26.4`, `protobuf`, `sentencepiece`
+- Avoid `opencv-python-headless` (numpy 2.x clash)
+- Always `tmux` for long jobs
+
+---
+
 ### 2026-07-10 — Stage 1B complete: EarthDial_4B_MS zero-shot on 801 val
 
 **Why:** Lock strict-F1 baseline before 25/50/100% fine-tune scaling.
 
-**PARAM result** (`earthdial_zs_baseline.json`):
+**PARAM result** (`metrics/v0.1/earthdial_zs_baseline.json`):
 - `num_scored_rows`: **801** / `missing_predictions`: 0
 - classification `example_f1`: **~0.0194**
 - dialogue turn1 / turn2 set-match: **0.0** / **0.0**
 
-**Artifacts:**
-- `data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl` (801 lines)
-- `data/baresoil_s1/metrics/earthdial_zs_baseline.json`
+**Artifacts (committed `e3ab205`):**
+- `data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl` (801 lines)
+- `data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json`
 
-**Readout:** Near-floor ZS is expected (model free-form / wrong taxonomy vs clean OCSGE lists). Next: separate fine-tunes from `EarthDial_4B_MS` at ~25% → 50% → 100% train size, same bench + scorer.
+**PARAM commands used (purpose):**
+- `pack_bench_s1` — copy only 801 val TIFFs (not full S1)
+- `huggingface-cli download … EarthDial_4B_MS` — MS/SAR weights (~8.3 GB)
+- `salloc` + `srun --pty` + `module load MLDL/Pytorch-gpu` — GPU shell
+- `predict_zero_shot --max-samples 20` then `--resume` full 801 (~47 min) — ZS preds
+- `eval_zero_shot` — strict F1 + dialogue set-match
+- `tmux` session `zs801` — survive SSH drops
+
+**Readout:** Near-floor ZS expected. Next: 25% → 50% → 100% separate fine-tunes from `EarthDial_4B_MS`.
 
 ---
 

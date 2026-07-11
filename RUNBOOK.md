@@ -2,7 +2,23 @@
 
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
-> **Code root:** `LULCDial-s1\`
+> **Code root:** `LULCDial-s1\`  
+> **Status (2026-07-11):** **1A done** · **1B done** (ZS F1 ≈ 0.0194 on 801) · **next = 1C-a (25% FT)**
+
+---
+
+## Which file holds what
+
+
+| File | What it is |
+|------|------------|
+| **`RUNBOOK.md`** (this file) | **All commands** — 1A/1B/1C/1D + **PARAM GPU env pins** |
+| **`log.md`** | What changed / when / results (newest first) |
+| **`README.md`** | Reading order + current status pointer |
+| **`Stage1_Summer_Intern_Guide.md`** | Stage goals, glossary, timeline |
+| **`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`** | Full thesis plan (3 stages) |
+| **`LULCDial-s1/baresoil/README.md`** | Data-prep folder layout + short commands |
+| **`LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`** | Fine-tune shard paths (edit before 1C) |
 
 ---
 
@@ -20,33 +36,108 @@
 
 ---
 
+## Status checklist (live)
+
+
+| Stage | Status | Artifact |
+|-------|--------|----------|
+| **1A** shards + GE bench | **DONE** | train 14710 / val 1602 shards; `bench/v0.1/ai4lcc_val.jsonl` (801) |
+| **1A** MultiSenNA bench | **DONE** | `bench/v0.1/multisenna_bench.jsonl` (~12k) on PARAM |
+| **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
+| **1C-a** 25% fine-tune | **NEXT** | subsample train shard → FT → `metrics/v0.1/lulcdial_p25.json` |
+| **1C-b / 1C-c** 50% / 100% | pending | same pattern |
+| **1D** beat ZS | after each 1C | compare metrics to ZS baseline |
+
+---
+
 
 
 ## Key paths (always the same)
 
 ```text
 e:\MTP\earth2\
-├── RUNBOOK.md                          ← this file
+├── RUNBOOK.md                          ← this file (commands + PARAM env)
 ├── Stage1_Summer_Intern_Guide.md       ← stage goals + glossary
 ├── log.md                              ← change history
 └── LULCDial-s1\
     ├── baresoil\                       ← data-prep + eval scripts
     │   ├── build_instruct_s1.py        ← shards (train/val)
     │   ├── build_bench.py              ← MultiSenGE val bench
-    │   ├── eval_zero_shot.py           ← score ZS predictions
+    │   ├── pack_bench_s1.py            ← pack ~801 val TIFFs for PARAM
+    │   ├── predict_zero_shot.py        ← EarthDial / FT inference
+    │   ├── eval_zero_shot.py           ← score predictions
     │   └── multisenna\
     │       └── build_bench_multisenna.py
     ├── data\baresoil_s1\
-    │   ├── ai4lcc\multisenge\labels\   ← 8,157 JSON (done)
-    │   ├── ai4lcc\multisenge\s1\       ← extract s1.tgz here
-    │   ├── ai4lcc\multisenna\labels\   ← MultiSenNA labels (later)
-    │   ├── ai4lcc\multisenna\s1\       ← MultiSenNA S1 (later)
-    │   ├── shards\                     ← HF train/val shards (generated)
-    │   ├── bench\v0.1\                 ← eval JSONL (generated)
-    │   └── metrics\                    ← baseline + final scores
+    │   ├── ai4lcc\multisenge\labels\   ← 8,157 JSON
+    │   ├── ai4lcc\multisenge\s1\       ← full S1 (remote CPU only)
+    │   ├── ai4lcc\multisenge\s1_val_bench\  ← ~801 TIFFs on PARAM
+    │   ├── shards\                     ← HF train/val (+ p25/p50 later)
+    │   ├── bench\v0.1\
+    │   │   ├── ai4lcc_val.jsonl
+    │   │   └── preds\earthdial_zs\…   ← ZS preds (committed)
+    │   └── metrics\v0.1\               ← earthdial_zs_baseline.json
     ├── src\earthdial\train\finetune.py
     └── src\shell\data\Stage4_BareSoil_S1.json
 ```
+
+---
+
+## PARAM GPU env (locked 2026-07-10 — reuse for 1C)
+
+**Login:** `ssh rihak_iitp@paramrudra.iitp.ac.in` (CAPTCHA + password)  
+**Code:** `~/MTP/earth2/LULCDial-s1`  
+**Model:** `~/EarthDial_Models/EarthDial_4B_MS` (~8.3 GB; RGB-only is **not** enough)  
+**Already on PARAM:** full train/val shards, `s1_val_bench` (801), GE + MultiSenNA benches
+
+### Every GPU session (do in this order)
+
+```bash
+# on login01
+salloc -N 1 -n 4 -p gpu --gres=gpu:1 -t 04:00:00
+srun --pty bash          # MUST — else you stay on login01
+hostname                 # expect ragpu0XX
+
+module purge
+module load MLDL/Pytorch-gpu   # capital MLDL — not mldl/
+
+# long jobs: protect from SSH drop
+tmux new -s ft25         # or: tmux attach -t ft25
+```
+
+### Python pins that made ZS work (install once per user; re-check after module load)
+
+```bash
+# EarthDial-compatible stack (do NOT let peft/transformers float to latest)
+pip install --user "transformers==4.37.2" "tokenizers==0.15.1" "peft==0.10.0"
+pip install --user "numpy==1.26.4" protobuf sentencepiece
+pip install --user datasets rasterio tqdm Pillow tifffile
+
+# Avoid: opencv-python-headless (pulled numpy 2.x and broke torch)
+# Optional noise only: FlashAttention missing — OK to ignore for ZS/FT
+```
+
+**Sanity:**
+
+```bash
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+# expect: 2.2.x  True
+```
+
+### Download MS weights (already done; keep for reference)
+
+```bash
+# on login01 (no GPU needed)
+mkdir -p ~/EarthDial_Models
+huggingface-cli download akshaydudhane/EarthDial_4B_MS \
+  --local-dir ~/EarthDial_Models/EarthDial_4B_MS
+```
+
+### Ops notes
+
+- `git` often missing on **compute** nodes — `git pull` on **login01**, then enter GPU.
+- SSH drop kills non-tmux jobs — always use **tmux** for full 801 / fine-tune.
+- Predict supports `--resume` (skips rows already in the pred JSONL).
 
 ---
 
@@ -194,15 +285,15 @@ python -m baresoil.predict_zero_shot \
   --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
   --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
   --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \
+  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
   --max-samples 20
 
-# full (resume-safe)
+# full (resume-safe) — ~47 min for 801 on A100
 python -m baresoil.predict_zero_shot \
   --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
   --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
   --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \
+  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
   --resume
 ```
 
@@ -211,11 +302,11 @@ python -m baresoil.predict_zero_shot \
 ```bash
 python -m baresoil.eval_zero_shot \
   --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
-  --pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \
-  --out-metrics data/baresoil_s1/metrics/earthdial_zs_baseline.json
+  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
+  --out-metrics data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json
 ```
 
-**Done when:** `earthdial_zs_baseline.json` exists with F1 + dialogue accuracies.
+**Done when:** `metrics/v0.1/earthdial_zs_baseline.json` exists (committed; F1 ≈ 0.0194).
 
 **Notes (do not redesign mid-1B):**
 - Keep GT answers as **clean class lists** (e.g. `Arable Lands, Grasslands, Forests`).
@@ -236,19 +327,39 @@ python -m baresoil.eval_zero_shot \
 - Same base every time: `EarthDial_4B_MS` (separate short runs — **not** one long continued train)
 - Same hyperparams across 25 / 50 / 100%
 - Same bench: `ai4lcc_val.jsonl` (801) + same `eval_zero_shot` scorer
-- Build subset shards with `build_instruct_s1 --max-patches N` (or equivalent), point `Stage4_BareSoil_S1.json` at that subset
+- **Do not** use “2 of 8 `.arrow` files” as 25% — subsample **rows** from the uploaded full train shard
 
 | Run | Train size (approx) | Checkpoint out | Metrics out |
 |-----|---------------------|----------------|-------------|
-| **1C-a** | ~25% train patches | `checkpoints/LULCDial_S1_p25/` | `metrics/lulcdial_p25.json` |
-| **1C-b** | ~50% train patches | `checkpoints/LULCDial_S1_p50/` | `metrics/lulcdial_p50.json` |
-| **1C-c** | **100%** (full) | `checkpoints/LULCDial_S1_v0.1/` | `metrics/lulcdial_v0.1.json` |
+| **1C-a** | ~25% train samples | `checkpoints/LULCDial_S1_p25/` | `metrics/v0.1/lulcdial_p25.json` |
+| **1C-b** | ~50% train samples | `checkpoints/LULCDial_S1_p50/` | `metrics/v0.1/lulcdial_p50.json` |
+| **1C-c** | **100%** (full shard) | `checkpoints/LULCDial_S1_v0.1/` | `metrics/v0.1/lulcdial_v0.1.json` |
+
+### 1C.0 Subsample train shard on PARAM (no raw S1 needed)
+
+Full train shard is already on PARAM. Keep it for 100%; write a new folder for 25%:
+
+```bash
+cd ~/MTP/earth2/LULCDial-s1
+python - <<'PY'
+from datasets import load_from_disk
+src = "data/baresoil_s1/shards/ai4lcc_ge_train_train"
+dst = "data/baresoil_s1/shards/ai4lcc_ge_train_p25"
+ds = load_from_disk(src)
+n = int(round(len(ds) * 0.25))  # ~3678 of 14710 (2 QA per patch)
+print(f"full={len(ds)} p25={n}")
+ds.select(range(n)).save_to_disk(dst)
+print("wrote", dst)
+PY
+```
+
+Then point `Stage4_BareSoil_S1.json` train `annotation` → `.../ai4lcc_ge_train_p25` (PARAM Linux path). Val stays `ai4lcc_ge_train_val`.
 
 **Interpretation:**
 - If **ZS ≪ 25% ≪ 100%** → genuine learning (good thesis plot)
 - If **25% ≈ 100%** → scaling weak; debug LR / epochs / templates before claiming full-data win
 
-**Optional later (after 1B, before or after scaling — pick once):**
+**Optional later (after scaling — pick once):**
 - Light sentence wrappers around the **same** class names + scorer tweak
 - Relaxed F1 with aliases — report **beside** strict F1, never instead
 
@@ -378,10 +489,10 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 
 | Stage  | Command module                            | Exit artifact                   |
 | ------ | ----------------------------------------- | ------------------------------- |
-| **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl`     |
-| **1B** | `predict_zero_shot` + `eval_zero_shot`    | `earthdial_zs_baseline.json`    |
-| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25/p50/v0.1` |
-| **1D** | `eval_zero_shot` after each 1C run        | `lulcdial_p25/p50/v0.1.json`    |
+| **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl` — **DONE** |
+| **1B** | `predict_zero_shot` + `eval_zero_shot`    | `metrics/v0.1/earthdial_zs_baseline.json` — **DONE** |
+| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25/p50/v0.1` — **NEXT: p25** |
+| **1D** | `eval_zero_shot` after each 1C run        | `metrics/v0.1/lulcdial_p25/p50/v0.1.json` |
 | **2**  | `build_bench_multisenna`                  | `multisenna_bench.jsonl`        |
 
 
@@ -392,9 +503,9 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 Use the updated demo launcher with env overrides:
 
 ```bash
-cd ~/MTP/MTP/LULCDial-s1/demo
+cd ~/MTP/earth2/LULCDial-s1/demo
 export EARTHDIAL_GPU=1
-export EARTHDIAL_MODEL_PATH=/home/rihak_iitp/EarthDial_Models/EarthDial_4B_RGB
+export EARTHDIAL_MODEL_PATH=/home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS
 export EARTHDIAL_CONTROLLER_URL=http://0.0.0.0:40000
 bash earthdial_demo.sh
 ```
@@ -408,10 +519,10 @@ bash earthdial_demo.sh
 
 | File                                                                                                                 | Purpose                            |
 | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| `[Stage1_Summer_Intern_Guide.md](Stage1_Summer_Intern_Guide.md)`                                                     | Stage goals, glossary, timeline    |
-| `[LULCDial-s1/baresoil/README.md](LULCDial-s1/baresoil/README.md)`                                                   | Data-prep commands + folder layout |
-| `[BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md)` | PI-level workflow explanation      |
-| `[AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md)`                                     | Full thesis roadmap (3 stages)     |
-| `[log.md](log.md)`                                                                                                   | What changed in repo and when      |
+| [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md)                                                     | Stage goals, glossary, timeline    |
+| [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md)                                                   | Data-prep commands + folder layout |
+| [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | PI-level workflow explanation      |
+| [`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md)                                     | Full thesis roadmap (3 stages)     |
+| [`log.md`](log.md)                                                                                                   | What changed in repo and when      |
 
 

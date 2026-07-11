@@ -69,30 +69,25 @@ python -m baresoil.pack_bench_s1 ^
   --out-dir data/baresoil_s1/ai4lcc/multisenge/s1_val_bench
 ```
 
-2) On PARAM GPU — run EarthDial_4B_MS inference:
+2) On PARAM GPU — run EarthDial_4B_MS inference (full env pins in root `RUNBOOK.md`):
 ```bash
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 python -m baresoil.predict_zero_shot \
   --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
   --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
   --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl
+  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl
 ```
 
 3) Score:
 ```powershell
 python -m baresoil.eval_zero_shot ^
   --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
-  --pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl ^
-  --out-metrics data/baresoil_s1/metrics/earthdial_zs_baseline.json
+  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl ^
+  --out-metrics data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json
 ```
 
-This path is eval-only and does not modify Stage 4 fine-tune config.
-
-**Plan after 1B (do not redesign mid-ZS):**
-1. Save full-801 strict F1 baseline (`earthdial_zs_baseline.json`). Low ZS is expected.
-2. Fine-tune **separate** runs from `EarthDial_4B_MS` at **~25% / ~50% / 100%** train size (same hyperparams, same bench). The 8 `.arrow` files are one dataset — scale by sample/patch count, not by “2 of 8 files.”
-3. Optional later: sentence wrappers / relaxed F1 — only after baseline is locked.
+**1B DONE** (F1 ≈ 0.0194). Next: 1C scaling — see root `RUNBOOK.md` §1C.0 (subsample uploaded train shard on PARAM).
 
 ## MultiSenNA prep (Stage 2 transfer eval)
 
