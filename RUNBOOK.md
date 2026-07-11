@@ -3,7 +3,7 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-11):** **1A done** · **1B done** (ZS F1 ≈ 0.0194 on 801) · **next = 1C-a (25% FT)**
+> **Status (2026-07-11):** **1A done** · **1B done** (ZS F1 ≈ 0.0194 on 801) · **1C-a RUNNING** (`sbatch` job — prefer this over interactive)
 
 ---
 
@@ -44,7 +44,7 @@
 | **1A** shards + GE bench | **DONE** | train 14710 / val 1602 shards; `bench/v0.1/ai4lcc_val.jsonl` (801) |
 | **1A** MultiSenNA bench | **DONE** | `bench/v0.1/multisenna_bench.jsonl` (~12k) on PARAM |
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
-| **1C-a** 25% fine-tune | **RUNNING on PARAM** | `tmux ft25` → `checkpoints/LULCDial_S1_p25/` (~1.5–3 h, 41 steps) |
+| **1C-a** 25% fine-tune | **RUNNING (sbatch)** | job `ft25` → `checkpoints/LULCDial_S1_p25/` (~60–80 min, 41 steps) |
 | **1C-b / 1C-c** 50% / 100% | pending | same pattern |
 | **1D** beat ZS | after each 1C | compare metrics to ZS baseline |
 
@@ -90,19 +90,75 @@ e:\MTP\earth2\
 **Model:** `~/EarthDial_Models/EarthDial_4B_MS` (~8.3 GB; RGB-only is **not** enough)  
 **Already on PARAM:** full train/val shards, `s1_val_bench` (801), GE + MultiSenNA benches
 
-### Every GPU session (do in this order)
+### Prefer `sbatch` for training (survives SSH / closing CMD)
+
+Interactive `salloc` + `tmux` **failed repeatedly**: SSH reset or exiting the outer `srun` shell kills the allocation (and tmux with it). Use **`sbatch`** for 1C fine-tunes.
+
+```bash
+# on login01 — create once, then sbatch
+cat > ~/train_p25.sh << 'EOF'
+#!/bin/bash
+#SBATCH -N 1
+#SBATCH -n 4
+#SBATCH -p gpu
+#SBATCH --gres=gpu:1
+#SBATCH -t 04:00:00
+#SBATCH -J ft25
+# IMPORTANT: use absolute paths — Slurm does NOT expand ~
+#SBATCH -o /home/rihak_iitp/ft25_%j.out
+#SBATCH -e /home/rihak_iitp/ft25_%j.err
+
+module purge
+module load MLDL/Pytorch-gpu
+cd /home/rihak_iitp/MTP/earth2/LULCDial-s1/src
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+export CUDA_VISIBLE_DEVICES=0
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+python -m torch.distributed.run \
+  --nnodes=1 --nproc_per_node=1 --master_port=34229 \
+  earthdial/train/finetune.py \
+  --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
+  --conv_style "phi3-chat" \
+  --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
+  --meta_path shell/data/Stage4_BareSoil_S1.json \
+  --overwrite_output_dir True \
+  --force_image_size 448 --bf16 True --num_train_epochs 1 \
+  --per_device_train_batch_size 1 --gradient_accumulation_steps 128 \
+  --grad_checkpoint True --freeze_backbone True --max_seq_length 1024 \
+  --evaluation_strategy "no" --save_strategy "epoch" --logging_steps 1 \
+  --learning_rate 4e-5 --do_train True
+EOF
+
+chmod +x ~/train_p25.sh
+sbatch ~/train_p25.sh
+squeue -u $USER
+```
+
+**Monitor (safe to close CMD anytime):**
+
+```bash
+squeue -u $USER
+tail -f ~/ft25_<JOBID>.out          # after fixing #SBATCH paths
+# if an older script used ~/ in #SBATCH, logs landed in literal ~/~/ :
+#   tail -f ~/~/ft25_<JOBID>.out
+grep loss ~/ft25_<JOBID>.out | tail -5
+ls -lt ~/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25/
+```
+
+Done when `squeue` empty **and** checkpoint has model files (not only `runs/`).
+
+### Interactive GPU session (debug / short jobs only)
 
 ```bash
 # on login01
 salloc -N 1 -n 4 -p gpu --gres=gpu:1 -t 04:00:00
 srun --pty bash          # MUST — else you stay on login01
-hostname                 # expect ragpu0XX
+hostname                 # expect racn1XX / ragpu0XX
 
 module purge
 module load MLDL/Pytorch-gpu   # capital MLDL — not mldl/
-
-# long jobs: protect from SSH drop
-tmux new -s ft25         # or: tmux attach -t ft25
+# prompt must show (Pytorch-gpu) — do NOT run conda deactivate (undoes the module)
 ```
 
 ### Python pins (install on **login01** with `MLDL/Pytorch-gpu` loaded — Python **3.10**)
@@ -144,56 +200,28 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
 
 ### Ops notes (hard-won)
 
+- Prefer **`sbatch`** for fine-tune — closing CMD / SSH drop does not kill the job.
+- Interactive `salloc`+`srun`+`tmux`: detach (`Ctrl+B` then `D`) is **not enough** if you then `exit` the outer `srun` shell or that SSH session dies — Slurm cancels the whole allocation.
+- `#SBATCH -o ~/…` does **not** expand `~` → logs go to literal `~/~/ft25_JOBID.out`. Use `/home/rihak_iitp/…`.
 - `git` missing on **compute** nodes — `git pull` only on **login01** (home is shared).
-- SSH drop kills non-tmux jobs — always **tmux** for train / full 801.
-- Prompt must say `(Pytorch-gpu)` before any `python` train command — not `(base)`.
+- Prompt must say `(Pytorch-gpu)` before any `python` train command — not `(base)` / py3.13.
+- **Never** `conda deactivate` after `module load MLDL/Pytorch-gpu` — it drops you back to base without torch.
 - Do **not** nest `salloc` inside an existing job; cancel extras with `scancel`.
 - Compute nodes often have **no internet** — `pip` only on login01.
 - Fine-tune needs distributed launcher: use `python -m torch.distributed.run` (plain `python finetune.py` → `KeyError: RANK`).
 - DeepSpeed may JIT-compile ops and fail with `which c++` missing — on **1× A100 80GB**, omit `--deepspeed` (bf16 is enough for 4B).
 - Predict supports `--resume` (skips rows already in the pred JSONL).
+- Aborted mid-epoch runs leave only `runs/` (TensorBoard) — `save_strategy epoch` means **no weights** until epoch ends. Restart is a clean load of `EarthDial_4B_MS`.
 
-### 1C-a launch (PARAM, 1 GPU) — copy-paste
-
-```bash
-# after salloc + srun + module load + tmux
-cd ~/MTP/earth2/LULCDial-s1/src
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-export CUDA_VISIBLE_DEVICES=0
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-
-python -m torch.distributed.run \
-  --nnodes=1 \
-  --nproc_per_node=1 \
-  --master_port=34229 \
-  earthdial/train/finetune.py \
-  --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --conv_style "phi3-chat" \
-  --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
-  --meta_path shell/data/Stage4_BareSoil_S1.json \
-  --overwrite_output_dir True \
-  --force_image_size 448 \
-  --bf16 True \
-  --num_train_epochs 1 \
-  --per_device_train_batch_size 1 \
-  --gradient_accumulation_steps 128 \
-  --grad_checkpoint True \
-  --freeze_backbone True \
-  --max_seq_length 1024 \
-  --evaluation_strategy "no" \
-  --save_strategy "epoch" \
-  --logging_steps 1 \
-  --learning_rate 4e-5 \
-  --do_train True
-```
+### 1C-a flags (must-haves)
 
 **Important:** use `--force_image_size 448` (not 224). S1 `sequential_vit_features` emits 256 tokens; 224 makes the text side expect 64 and zeroes the loss. Match ZS / EarthDial S1.
 
-**While training:** leave the GPU shell in **tmux**. Detach with `Ctrl+B` then `D` if you will close SSH / sleep the laptop; reattach with `tmux attach -t ft25`. Keeping CMD open on the laptop is fine only while the SSH session stays connected.
-
-**ETA (p25, 41 steps):** about **1.5–3 hours**. First step is slowest (warmup + 128 accum micro-batches).
+**ETA (p25, 41 steps):** about **60–80 min** wall (~60–100 s/step). First step slowest. Healthy first `loss` ≈ **2.4** (not ~0).
 
 `Stage4_BareSoil_S1.json` train path must be `.../shards/ai4lcc_ge_train_p25`.
+
+Full launch command: see **Prefer `sbatch`** block above (same flags as the interactive copy used earlier).
 
 ---
 

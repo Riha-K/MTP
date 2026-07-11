@@ -10,22 +10,29 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
-### 2026-07-11 — 1C-a training launched on PARAM (p25, image 448)
+### 2026-07-11 — 1C-a via `sbatch` (interactive runs kept dying)
 
-**Why:** Finish Stage 1C-a fine-tune after fixing dataloader / OOM / token mismatch.
+**Why:** Two interactive `salloc`+`tmux` attempts died mid-run (SSH reset / exiting outer `srun` kills the allocation). No epoch checkpoint → only `runs/` left; aborted runs do **not** affect the next start (reload `EarthDial_4B_MS`).
 
-**Running now (PARAM `tmux ft25`, job on GPU):**
-- Base: `EarthDial_4B_MS`
-- Data: `ai4lcc_ge_train_p25` (+ val in meta → ~5280 examples)
-- Out: `checkpoints/LULCDial_S1_p25/`
-- Flags: `force_image_size 448`, batch 1, accum 128, `grad_checkpoint`, `freeze_backbone`, `max_seq_length 1024`, no deepspeed
-- Steps: **41** optimizer steps / 1 epoch
+**Now running:** `sbatch ~/train_p25.sh` → Slurm job **88440** (`ft25` on `racn115`). First logged loss **2.4005**, token length **1024** (healthy). ETA ~**60–80 min**.
 
-**ETA:** ~1.5–3 h wall time (~2–4 min/step × 41). FlashAttention warnings OK; must **not** see 64↔256 token mismatch.
+**Gotchas locked into RUNBOOK:**
+- Prefer **`sbatch`** for fine-tune; close CMD freely.
+- `#SBATCH -o ~/…` → literal path `~/~/ft25_JOBID.out` (Slurm does not expand `~`). Use `/home/rihak_iitp/…`.
+- Do **not** `conda deactivate` after `module load MLDL/Pytorch-gpu`.
+- FlashAttention warnings OK; must not see 64↔256 token mismatch / zero loss.
 
-**After train:** predict 801 → `preds/lulcdial_p25/` → score `metrics/v0.1/lulcdial_p25.json`.
+**After train:** confirm model files under `checkpoints/LULCDial_S1_p25/` → predict 801 → `preds/lulcdial_p25/` → score `metrics/v0.1/lulcdial_p25.json`.
 
-**Ops:** Detach tmux optional if SSH stays up; recommended so laptop sleep/SSH drop does not kill the job (`Ctrl+B` then `D`; reattach `tmux attach -t ft25`).
+---
+
+### 2026-07-11 — 1C-a interactive attempt (p25, image 448) — superseded by sbatch
+
+**Why:** Finish Stage 1C-a after dataloader / OOM / token fixes.
+
+**Tried:** `tmux ft25`, flags `force_image_size 448`, batch 1, accum 128, etc. Loss dropped 2.4 → ~0.19 by step 8, then jobs cancelled (~14–40 min) with no weights saved (`save_strategy epoch`).
+
+**Ops lesson:** tmux detach alone is not enough if the Slurm interactive job dies.
 
 ---
 
