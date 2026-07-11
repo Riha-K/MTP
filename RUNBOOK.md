@@ -150,6 +150,7 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
 - Do **not** nest `salloc` inside an existing job; cancel extras with `scancel`.
 - Compute nodes often have **no internet** — `pip` only on login01.
 - Fine-tune needs distributed launcher: use `python -m torch.distributed.run` (plain `python finetune.py` → `KeyError: RANK`).
+- DeepSpeed may JIT-compile ops and fail with `which c++` missing — on **1× A100 80GB**, omit `--deepspeed` (bf16 is enough for 4B).
 - Predict supports `--resume` (skips rows already in the pred JSONL).
 
 ### 1C-a launch (PARAM, 1 GPU) — copy-paste
@@ -176,9 +177,10 @@ python -m torch.distributed.run \
   --per_device_train_batch_size 2 \
   --gradient_accumulation_steps 64 \
   --learning_rate 4e-5 \
-  --do_train True \
-  --deepspeed shell/zero_stage1_config.json
+  --do_train True
 ```
+
+(`--deepspeed` omitted — no C++ compiler on node. Add back only if `module load` provides `g++`.)
 
 `Stage4_BareSoil_S1.json` train path must be `.../shards/ai4lcc_ge_train_p25`.
 
@@ -449,11 +451,10 @@ python -m torch.distributed.run \
   --per_device_train_batch_size 2 \
   --gradient_accumulation_steps 64 \
   --learning_rate 4e-5 \
-  --do_train True \
-  --deepspeed shell/zero_stage1_config.json
+  --do_train True
 ```
 
-For 8-GPU machines, set `--nproc_per_node=8` and drop `CUDA_VISIBLE_DEVICES`.
+For 8-GPU machines, set `--nproc_per_node=8`, drop `CUDA_VISIBLE_DEVICES`, and you may add `--deepspeed shell/zero_stage1_config.json` if `g++` is available.
 
 See also: `LULCDial-s1/src/EarthDial.sh` (example shell wrapper).
 

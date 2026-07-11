@@ -26,7 +26,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 - Plain `python finetune.py` → `KeyError: RANK` — must use `python -m torch.distributed.run --nproc_per_node=1 …`
 - Always `module load MLDL/Pytorch-gpu` inside tmux before train
 
-**Next:** Run 1C-a with distributed launcher (see RUNBOOK §1C-a launch), then eval 801 → `metrics/v0.1/lulcdial_p25.json`.
+**Next:** Run 1C-a with `torch.distributed.run` and **without** `--deepspeed` if `c++` missing on node (A100 80GB + bf16 is enough for 4B).
 
 ---
 
