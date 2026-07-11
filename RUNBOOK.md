@@ -44,7 +44,7 @@
 | **1A** shards + GE bench | **DONE** | train 14710 / val 1602 shards; `bench/v0.1/ai4lcc_val.jsonl` (801) |
 | **1A** MultiSenNA bench | **DONE** | `bench/v0.1/multisenna_bench.jsonl` (~12k) on PARAM |
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
-| **1C-a** 25% fine-tune | **NEXT** | subsample train shard → FT → `metrics/v0.1/lulcdial_p25.json` |
+| **1C-a** 25% fine-tune | **IN PROGRESS** | p25 shard ready; launch with `torch.distributed.run` |
 | **1C-b / 1C-c** 50% / 100% | pending | same pattern |
 | **1D** beat ZS | after each 1C | compare metrics to ZS baseline |
 
@@ -105,22 +105,31 @@ module load MLDL/Pytorch-gpu   # capital MLDL — not mldl/
 tmux new -s ft25         # or: tmux attach -t ft25
 ```
 
-### Python pins that made ZS work (install once per user; re-check after module load)
+### Python pins (install on **login01** with `MLDL/Pytorch-gpu` loaded — Python **3.10**)
 
 ```bash
+# MUST see Pytorch-gpu + 3.10 before any pip --user
+module purge
+module load MLDL/Pytorch-gpu
+which python   # .../envs/Pytorch-gpu/bin/python
+python -c "import sys; print(sys.version)"   # 3.10.x
+
 # EarthDial-compatible stack (do NOT let peft/transformers float to latest)
 pip install --user "transformers==4.37.2" "tokenizers==0.15.1" "peft==0.10.0"
 pip install --user "numpy==1.26.4" protobuf sentencepiece
-pip install --user datasets rasterio tqdm Pillow tifffile
+pip install --user deepspeed==0.13.5 einops einops-exts timm==0.9.12
+pip install --user datasets imageio orjson shortuuid termcolor yacs tensorboardX
+pip install --user opencv-python-headless decord
+pip install --user "numpy==1.26.4"   # re-pin after opencv (it wants numpy 2.x)
 
-# Avoid: opencv-python-headless (pulled numpy 2.x and broke torch)
-# Optional noise only: FlashAttention missing — OK to ignore for ZS/FT
+# NEVER: pip install in plain (base) / Python 3.13 — those packages are invisible to Pytorch-gpu
+# FlashAttention missing — OK; code falls back to eager attention
 ```
 
-**Sanity:**
+**Sanity (on GPU node after module load):**
 
 ```bash
-python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
+python -c "import torch, deepspeed, cv2, imageio, decord; print(torch.__version__, torch.cuda.is_available())"
 # expect: 2.2.x  True
 ```
 
@@ -133,11 +142,45 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
   --local-dir ~/EarthDial_Models/EarthDial_4B_MS
 ```
 
-### Ops notes
+### Ops notes (hard-won)
 
-- `git` often missing on **compute** nodes — `git pull` on **login01**, then enter GPU.
-- SSH drop kills non-tmux jobs — always use **tmux** for full 801 / fine-tune.
+- `git` missing on **compute** nodes — `git pull` only on **login01** (home is shared).
+- SSH drop kills non-tmux jobs — always **tmux** for train / full 801.
+- Prompt must say `(Pytorch-gpu)` before any `python` train command — not `(base)`.
+- Do **not** nest `salloc` inside an existing job; cancel extras with `scancel`.
+- Compute nodes often have **no internet** — `pip` only on login01.
+- Fine-tune needs distributed launcher: use `python -m torch.distributed.run` (plain `python finetune.py` → `KeyError: RANK`).
 - Predict supports `--resume` (skips rows already in the pred JSONL).
+
+### 1C-a launch (PARAM, 1 GPU) — copy-paste
+
+```bash
+# after salloc + srun + module load + tmux
+cd ~/MTP/earth2/LULCDial-s1/src
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+export CUDA_VISIBLE_DEVICES=0
+
+python -m torch.distributed.run \
+  --nnodes=1 \
+  --nproc_per_node=1 \
+  --master_port=34229 \
+  earthdial/train/finetune.py \
+  --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
+  --conv_style "phi3-chat" \
+  --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
+  --meta_path shell/data/Stage4_BareSoil_S1.json \
+  --overwrite_output_dir True \
+  --force_image_size 224 \
+  --bf16 True \
+  --num_train_epochs 1 \
+  --per_device_train_batch_size 2 \
+  --gradient_accumulation_steps 64 \
+  --learning_rate 4e-5 \
+  --do_train True \
+  --deepspeed shell/zero_stage1_config.json
+```
+
+`Stage4_BareSoil_S1.json` train path must be `.../shards/ai4lcc_ge_train_p25`.
 
 ---
 
@@ -383,21 +426,22 @@ e:/MTP/earth2/LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train_train
 e:/MTP/earth2/LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train_val
 ```
 
-**Template command (Linux GPU server — adapt paths/GPUs):**
+**Template command (PARAM — 1 GPU; do NOT use plain `python finetune.py`):**
 
 ```bash
-cd /path/to/LULCDial-s1/src
+cd ~/MTP/earth2/LULCDial-s1/src
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+export CUDA_VISIBLE_DEVICES=0
 
-torchrun \
+python -m torch.distributed.run \
   --nnodes=1 \
-  --nproc_per_node=8 \
+  --nproc_per_node=1 \
   --master_port=34229 \
   earthdial/train/finetune.py \
-  --model_name_or_path "/path/to/EarthDial_4B_MS" \
+  --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
   --conv_style "phi3-chat" \
-  --output_dir "/path/to/checkpoints/LULCDial_S1_v0.1" \
-  --meta_path "shell/data/Stage4_BareSoil_S1.json" \
+  --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
+  --meta_path shell/data/Stage4_BareSoil_S1.json \
   --overwrite_output_dir True \
   --force_image_size 224 \
   --bf16 True \
@@ -406,8 +450,10 @@ torchrun \
   --gradient_accumulation_steps 64 \
   --learning_rate 4e-5 \
   --do_train True \
-  --deepspeed "shell/zero_stage1_config.json"
+  --deepspeed shell/zero_stage1_config.json
 ```
+
+For 8-GPU machines, set `--nproc_per_node=8` and drop `CUDA_VISIBLE_DEVICES`.
 
 See also: `LULCDial-s1/src/EarthDial.sh` (example shell wrapper).
 

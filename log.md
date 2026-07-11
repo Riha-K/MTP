@@ -10,6 +10,26 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-11 — 1C-a prep on PARAM; train blocked on RANK / deps
+
+**Why:** Start 25% fine-tune from `EarthDial_4B_MS` on PARAM.
+
+**Done:**
+- Subsampled train shard → `shards/ai4lcc_ge_train_p25` (3678 / 14710)
+- `Stage4_BareSoil_S1.json` → PARAM p25 + val paths (commit `f6c02ba`)
+- Code: optional `flash_attn` (`0d5bb03`), optional `decord` (`016ab2f`)
+- Installed train deps under **Pytorch-gpu / Python 3.10** (`deepspeed`, `cv2`, `imageio`, `decord`, …)
+
+**Gotchas logged in RUNBOOK:**
+- `pip` in `(base)` / py3.13 ≠ visible to Pytorch-gpu py3.10
+- `git` only on login01; compute has no PyPI
+- Plain `python finetune.py` → `KeyError: RANK` — must use `python -m torch.distributed.run --nproc_per_node=1 …`
+- Always `module load MLDL/Pytorch-gpu` inside tmux before train
+
+**Next:** Run 1C-a with distributed launcher (see RUNBOOK §1C-a launch), then eval 801 → `metrics/v0.1/lulcdial_p25.json`.
+
+---
+
 ### 2026-07-11 — Docs: status + PARAM env pins; next = 1C-a
 
 **Why:** Capture yesterday’s PARAM installs/commands and where everything lives so 1C can reuse the same env.
