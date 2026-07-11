@@ -1,5 +1,14 @@
-from .llama2_flash_attn_monkey_patch import replace_llama2_attn_with_flash_attn
-from .llama_flash_attn_monkey_patch import replace_llama_attn_with_flash_attn
+try:
+    from .llama2_flash_attn_monkey_patch import replace_llama2_attn_with_flash_attn
+    from .llama_flash_attn_monkey_patch import replace_llama_attn_with_flash_attn
+except ImportError:
+    # flash_attn is optional on clusters without CUDA-compiled wheels
+    def replace_llama2_attn_with_flash_attn(*_args, **_kwargs):
+        raise ImportError("flash_attn is not installed")
+
+    def replace_llama_attn_with_flash_attn(*_args, **_kwargs):
+        raise ImportError("flash_attn is not installed")
+
 from .llama_rmsnorm_monkey_patch import \
     replace_llama_rmsnorm_with_fused_rmsnorm
 from .pad_data_collator import concat_pad_data_collator, pad_data_collator

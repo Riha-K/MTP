@@ -455,16 +455,23 @@ def main():
     img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)
     tcs_loader = TCSLoader("~/petreloss.conf") if has_tcs_loader else None
 
+    try:
+        import flash_attn  # noqa: F401
+        _attn_impl = "flash_attention_2"
+    except ImportError:
+        _attn_impl = "eager"
+        logger.warning("flash_attn not installed; using eager attention")
+
     if model_args.model_name_or_path is not None:
         logger.info("Loading InternVLChatModel...")
         config = InternVLChatConfig.from_pretrained(model_args.model_name_or_path)
         config.vision_config.drop_path_rate = model_args.drop_path_rate
         if config.llm_config.model_type == "internlm2":
-            config.llm_config.attn_implementation = "flash_attention_2"  # for InternLM
-            logger.info("Using flash_attention_2 for InternLM")
+            config.llm_config.attn_implementation = _attn_impl  # for InternLM
+            logger.info("Using %s for InternLM", _attn_impl)
         else:
-            config.llm_config._attn_implementation = "flash_attention_2"  # for LLaMA
-            logger.info("Using flash_attention_2 for LLaMA")
+            config.llm_config._attn_implementation = _attn_impl  # for LLaMA / Phi-3
+            logger.info("Using %s for LLaMA/Phi-3", _attn_impl)
         config.template = data_args.conv_style
         config.select_layer = model_args.vision_select_layer
         config.dynamic_image_size = data_args.dynamic_image_size
@@ -488,12 +495,12 @@ def main():
         )
         if llm_config.model_type == "internlm2":
             model_type = InternLM2ForCausalLM
-            llm_config.attn_implementation = "flash_attention_2"  # for InternLM
-            logger.info("Using flash_attention_2 for InternLM")
+            llm_config.attn_implementation = _attn_impl  # for InternLM
+            logger.info("Using %s for InternLM", _attn_impl)
         else:
             model_type = AutoModelForCausalLM
-            llm_config._attn_implementation = "flash_attention_2"  # for LLaMA
-            logger.info("Using flash_attention_2 for LLaMA")
+            llm_config._attn_implementation = _attn_impl  # for LLaMA / Phi-3
+            logger.info("Using %s for LLaMA/Phi-3", _attn_impl)
         llm = model_type.from_pretrained(
             model_args.llm_path,
             torch_dtype=torch.bfloat16,
