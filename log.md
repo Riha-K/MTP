@@ -10,6 +10,25 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-11 — 1C-a training launched on PARAM (p25, image 448)
+
+**Why:** Finish Stage 1C-a fine-tune after fixing dataloader / OOM / token mismatch.
+
+**Running now (PARAM `tmux ft25`, job on GPU):**
+- Base: `EarthDial_4B_MS`
+- Data: `ai4lcc_ge_train_p25` (+ val in meta → ~5280 examples)
+- Out: `checkpoints/LULCDial_S1_p25/`
+- Flags: `force_image_size 448`, batch 1, accum 128, `grad_checkpoint`, `freeze_backbone`, `max_seq_length 1024`, no deepspeed
+- Steps: **41** optimizer steps / 1 epoch
+
+**ETA:** ~1.5–3 h wall time (~2–4 min/step × 41). FlashAttention warnings OK; must **not** see 64↔256 token mismatch.
+
+**After train:** predict 801 → `preds/lulcdial_p25/` → score `metrics/v0.1/lulcdial_p25.json`.
+
+**Ops:** Detach tmux optional if SSH stays up; recommended so laptop sleep/SSH drop does not kill the job (`Ctrl+B` then `D`; reattach `tmux attach -t ft25`).
+
+---
+
 ### 2026-07-11 — Fix S1 dataloader: pass PIL into transform (not pre-tensor)
 
 **Why:** 1C-a model loaded, then crashed with `ToTensor ... Got <class 'torch.Tensor'>` — SAR branch converted images to tensors before `build_transform(s1)` which expects PIL.

@@ -44,7 +44,7 @@
 | **1A** shards + GE bench | **DONE** | train 14710 / val 1602 shards; `bench/v0.1/ai4lcc_val.jsonl` (801) |
 | **1A** MultiSenNA bench | **DONE** | `bench/v0.1/multisenna_bench.jsonl` (~12k) on PARAM |
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
-| **1C-a** 25% fine-tune | **IN PROGRESS** | p25 shard ready; launch with `torch.distributed.run` |
+| **1C-a** 25% fine-tune | **RUNNING on PARAM** | `tmux ft25` → `checkpoints/LULCDial_S1_p25/` (~1.5–3 h, 41 steps) |
 | **1C-b / 1C-c** 50% / 100% | pending | same pattern |
 | **1D** beat ZS | after each 1C | compare metrics to ZS baseline |
 
@@ -160,6 +160,7 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
 cd ~/MTP/earth2/LULCDial-s1/src
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 export CUDA_VISIBLE_DEVICES=0
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 python -m torch.distributed.run \
   --nnodes=1 \
@@ -171,16 +172,26 @@ python -m torch.distributed.run \
   --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
   --meta_path shell/data/Stage4_BareSoil_S1.json \
   --overwrite_output_dir True \
-  --force_image_size 224 \
+  --force_image_size 448 \
   --bf16 True \
   --num_train_epochs 1 \
-  --per_device_train_batch_size 2 \
-  --gradient_accumulation_steps 64 \
+  --per_device_train_batch_size 1 \
+  --gradient_accumulation_steps 128 \
+  --grad_checkpoint True \
+  --freeze_backbone True \
+  --max_seq_length 1024 \
+  --evaluation_strategy "no" \
+  --save_strategy "epoch" \
+  --logging_steps 1 \
   --learning_rate 4e-5 \
   --do_train True
 ```
 
-(`--deepspeed` omitted — no C++ compiler on node. Add back only if `module load` provides `g++`.)
+**Important:** use `--force_image_size 448` (not 224). S1 `sequential_vit_features` emits 256 tokens; 224 makes the text side expect 64 and zeroes the loss. Match ZS / EarthDial S1.
+
+**While training:** leave the GPU shell in **tmux**. Detach with `Ctrl+B` then `D` if you will close SSH / sleep the laptop; reattach with `tmux attach -t ft25`. Keeping CMD open on the laptop is fine only while the SSH session stays connected.
+
+**ETA (p25, 41 steps):** about **1.5–3 hours**. First step is slowest (warmup + 128 accum micro-batches).
 
 `Stage4_BareSoil_S1.json` train path must be `.../shards/ai4lcc_ge_train_p25`.
 
