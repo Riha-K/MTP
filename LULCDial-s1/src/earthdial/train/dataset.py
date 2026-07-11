@@ -13,7 +13,10 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 import transformers
-from decord import VideoReader
+try:
+    from decord import VideoReader
+except ImportError:
+    VideoReader = None  # optional; only needed for video samples
 from earthdial.conversation import get_conv_template
 from PIL import Image
 from torch.utils.data import ConcatDataset, WeightedRandomSampler
@@ -101,6 +104,11 @@ def read_frames_decord(
         video_path, num_frames, sample='rand', fix_start=None,
         client=None, clip=None, min_num_frames=4
 ):
+    if VideoReader is None:
+        raise ImportError(
+            "decord is required for video samples. "
+            "Install with: module load MLDL/Pytorch-gpu && pip install --user decord"
+        )
     if 's3://' in video_path:
         video_bytes = client.get(video_path)
         video_reader = VideoReader(io.BytesIO(video_bytes), num_threads=1)
