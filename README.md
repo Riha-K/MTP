@@ -6,7 +6,7 @@
 
 > **Workspace:** `e:\MTP\earth2\`  
 
-> **Status (2026-07-11):** **1A + 1B done** · **next = 1C-a (25% fine-tune on PARAM)**
+> **Status (2026-07-11):** **1A–1B done** · **1C-a + 1D p25 DONE** (F1 **0.782** vs ZS **0.019**) · **next = 1C-b (50%)**
 
 
 

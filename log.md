@@ -10,19 +10,50 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-11 — 1D p25 eval DONE (beats ZS by a large margin)
+
+**Why:** Score 25% fine-tune on the same 801 MultiSenGE val bench as 1B.
+
+**Done:**
+- Predict job **88461** (`sbatch ~/pred_p25.sh`) → wrote 801 preds → `preds/lulcdial_p25/ai4lcc_val_predictions.jsonl`
+- Metrics (git): `metrics/v0.1/lulcdial_p25.json`
+
+| Metric | ZS (`earthdial_zs_baseline`) | p25 (`lulcdial_p25`) |
+|--------|------------------------------|----------------------|
+| example F1 | **0.0194** | **0.7816** |
+| turn1 set-match | 0.0 | 0.104 |
+| turn2 set-match | 0.0 | 0.376 |
+
+**Verdict:** 1C-a / 1D **pass** — primary F1 ~40× ZS on identical bench.
+
+**Next:** 1C-b (50%) / 1C-c (100%) with same hyperparams + same eval pattern, or MultiSenNA transfer later.
+
+---
+
+### 2026-07-11 — 1C-a DONE (p25 fine-tune on PARAM)
+
+**Why:** Complete Stage 1C-a 25% fine-tune and archive train metrics locally.
+
+**Result:** Slurm job **88440** (`sbatch ~/train_p25.sh`) → **COMPLETED** `0:0`, elapsed ~46 min (train ~41:42).
+- Out (PARAM): `~/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25/` (+ `checkpoint-41`, safetensors)
+- Metrics (git): `LULCDial-s1/data/baresoil_s1/metrics/v0.1/train_p25/`
+  - `train_loss` ≈ **0.2431**, `epoch` ≈ 0.99, `train_samples` = 5280
+  - step loss: ~2.40 → ~0.14 (healthy; token length 1024)
+- Also: `all_results.json`, `trainer_state.json` (per-step history)
+
+---
+
 ### 2026-07-11 — 1C-a via `sbatch` (interactive runs kept dying)
 
 **Why:** Two interactive `salloc`+`tmux` attempts died mid-run (SSH reset / exiting outer `srun` kills the allocation). No epoch checkpoint → only `runs/` left; aborted runs do **not** affect the next start (reload `EarthDial_4B_MS`).
 
-**Now running:** `sbatch ~/train_p25.sh` → Slurm job **88440** (`ft25` on `racn115`). First logged loss **2.4005**, token length **1024** (healthy). ETA ~**60–80 min**.
+**Launch:** `sbatch ~/train_p25.sh` → job **88440** on `racn115`. First loss **2.4005**, token length **1024**.
 
 **Gotchas locked into RUNBOOK:**
 - Prefer **`sbatch`** for fine-tune; close CMD freely.
 - `#SBATCH -o ~/…` → literal path `~/~/ft25_JOBID.out` (Slurm does not expand `~`). Use `/home/rihak_iitp/…`.
 - Do **not** `conda deactivate` after `module load MLDL/Pytorch-gpu`.
 - FlashAttention warnings OK; must not see 64↔256 token mismatch / zero loss.
-
-**After train:** confirm model files under `checkpoints/LULCDial_S1_p25/` → predict 801 → `preds/lulcdial_p25/` → score `metrics/v0.1/lulcdial_p25.json`.
 
 ---
 

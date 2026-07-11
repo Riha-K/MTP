@@ -3,7 +3,7 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-11):** **1A done** · **1B done** (ZS F1 ≈ 0.0194 on 801) · **1C-a RUNNING** (`sbatch` job — prefer this over interactive)
+> **Status (2026-07-11):** **1A–1B done** · **1C-a + 1D p25 DONE** (F1 **0.782** vs ZS **0.019**) · **next = 1C-b (50%)**
 
 ---
 
@@ -44,9 +44,10 @@
 | **1A** shards + GE bench | **DONE** | train 14710 / val 1602 shards; `bench/v0.1/ai4lcc_val.jsonl` (801) |
 | **1A** MultiSenNA bench | **DONE** | `bench/v0.1/multisenna_bench.jsonl` (~12k) on PARAM |
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
-| **1C-a** 25% fine-tune | **RUNNING (sbatch)** | job `ft25` → `checkpoints/LULCDial_S1_p25/` (~60–80 min, 41 steps) |
-| **1C-b / 1C-c** 50% / 100% | pending | same pattern |
-| **1D** beat ZS | after each 1C | compare metrics to ZS baseline |
+| **1C-a** 25% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p25/`; train metrics in `metrics/v0.1/train_p25/` |
+| **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` — F1 **0.782** vs ZS **0.019** |
+| **1C-b / 1C-c** 50% / 100% | pending | same `sbatch` + predict + eval pattern |
+| **1D** after 50/100% | pending | `lulcdial_p50.json` / `lulcdial_v0.1.json` |
 
 ---
 
@@ -577,8 +578,8 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 | ------ | ----------------------------------------- | ------------------------------- |
 | **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl` — **DONE** |
 | **1B** | `predict_zero_shot` + `eval_zero_shot`    | `metrics/v0.1/earthdial_zs_baseline.json` — **DONE** |
-| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25/p50/v0.1` — **NEXT: p25** |
-| **1D** | `eval_zero_shot` after each 1C run        | `metrics/v0.1/lulcdial_p25/p50/v0.1.json` |
+| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | `LULCDial_S1_p25` **DONE** (F1 0.782) · **NEXT: p50** |
+| **1D** | `eval_zero_shot` after each 1C run        | `metrics/v0.1/lulcdial_p25.json` **DONE** · p50 / v0.1 pending |
 | **2**  | `build_bench_multisenna`                  | `multisenna_bench.jsonl`        |
 
 
