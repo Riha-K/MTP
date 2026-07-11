@@ -287,9 +287,10 @@ def build_transform(is_train, input_size, pad2square=False, normalize_type='imag
             ])
         elif normalize_type=="s1":
                 transform = T.Compose([
-                        T.Lambda(lambda img: img if img.mode == 'L' else img.convert('RGB')),
+                        T.Lambda(lambda img: img if getattr(img, "mode", None) == "L" else (img.convert("L") if hasattr(img, "convert") else img)),
                         T.Resize((input_size, input_size), interpolation=InterpolationMode.BICUBIC),
-                        T.Normalize(mean=S1_MEAN, std=S1_STD)
+                        T.ToTensor(),
+                        T.Normalize(mean=S1_MEAN, std=S1_STD),
                     ])
         else:
             transform = T.Compose([

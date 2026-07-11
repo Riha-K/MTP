@@ -272,8 +272,7 @@ class ShardDataLoader(Dataset):
                 pixel_values_norm = [transform(image) for image in pixel_values_ms]
                 pixel_values = torch.stack(pixel_values_norm)
             else:
-                # Handle other types of datasets like SAR or NIR or Methane plume
-                images = torch.tensor(np.array(images), dtype=torch.float32)
+                # SAR / single-band: keep PIL (or ndarray); transform includes ToTensor
                 pixel_values = [transform(image) for image in images]
                 pixel_values = torch.stack(pixel_values)
 
@@ -353,7 +352,7 @@ class ShardDataLoader(Dataset):
 
         # Handle multi-band temporal images
         if self.no_bands != 3:
-            images = torch.tensor(np.array(images), dtype=torch.float32)
+            # SAR / multi-band stills: pass PIL/ndarray into transform (do not pre-tensorize)
             pixel_values = [transform(image) for image in images]
             pixel_values = torch.stack(pixel_values)
             self.logger.info("Passing to model Vit ", pixel_values.size())

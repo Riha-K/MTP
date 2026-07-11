@@ -10,7 +10,15 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
-### 2026-07-11 — 1C-a prep on PARAM; train blocked on RANK / deps
+### 2026-07-11 — Fix S1 dataloader: pass PIL into transform (not pre-tensor)
+
+**Why:** 1C-a model loaded, then crashed with `ToTensor ... Got <class 'torch.Tensor'>` — SAR branch converted images to tensors before `build_transform(s1)` which expects PIL.
+
+**Fix:** `dataloader.py` SAR paths apply `transform` on PIL; train `s1` transform adds `ToTensor`; `S1_MEAN/STD` are proper 1-tuples.
+
+**Also:** omit `--deepspeed` on PARAM (no `c++`); use `torch.distributed.run`.
+
+---
 
 **Why:** Start 25% fine-tune from `EarthDial_4B_MS` on PARAM.
 
