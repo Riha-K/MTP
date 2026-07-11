@@ -6,7 +6,7 @@
 
 > **Workspace:** `e:\MTP\earth2\`  
 
-> **Status (2026-07-11):** **1A–1B done** · **1C-a + 1D p25 DONE** (F1 **0.782** vs ZS **0.019**) · **next = 1C-b (50%)**
+> **Status (2026-07-11):** **1C-a + 1D p25 DONE** (F1 **0.782**) · **1C-b READY** (shard tonight; train tomorrow)
 
 
 

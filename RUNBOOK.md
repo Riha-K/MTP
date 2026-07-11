@@ -3,7 +3,7 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-11):** **1A–1B done** · **1C-a + 1D p25 DONE** (F1 **0.782** vs ZS **0.019**) · **next = 1C-b (50%)**
+> **Status (2026-07-11):** **1C-a + 1D p25 DONE** (F1 **0.782**) · **1C-b READY** (build p50 shard tonight; train tomorrow)
 
 ---
 
@@ -18,7 +18,9 @@
 | **`Stage1_Summer_Intern_Guide.md`** | Stage goals, glossary, timeline |
 | **`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`** | Full thesis plan (3 stages) |
 | **`LULCDial-s1/baresoil/README.md`** | Data-prep folder layout + short commands |
-| **`LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`** | Fine-tune shard paths (edit before 1C) |
+| **`LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`** | Fine-tune shard paths (p25) |
+| **`…/Stage4_BareSoil_S1_p50.json`** | Fine-tune shard paths (p50 / 1C-b) |
+| **`…/shell/train_p50.sbatch`** | 1C-b `sbatch` launcher |
 
 ---
 
@@ -46,7 +48,7 @@
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
 | **1C-a** 25% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p25/`; train metrics in `metrics/v0.1/train_p25/` |
 | **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` — F1 **0.782** vs ZS **0.019** |
-| **1C-b / 1C-c** 50% / 100% | pending | same `sbatch` + predict + eval pattern |
+| **1C-b / 1C-c** 50% / 100% | **1C-b READY** (train tomorrow) | meta + sbatch in repo; build `ai4lcc_ge_train_p50` on PARAM tonight |
 | **1D** after 50/100% | pending | `lulcdial_p50.json` / `lulcdial_v0.1.json` |
 
 ---
@@ -439,6 +441,69 @@ PY
 ```
 
 Then point `Stage4_BareSoil_S1.json` train `annotation` → `.../ai4lcc_ge_train_p25` (PARAM Linux path). Val stays `ai4lcc_ge_train_val`.
+
+### 1C-b setup (50%) — do tonight; train tomorrow
+
+**Same rules as p25:** fresh start from `EarthDial_4B_MS` (do **not** continue from p25), same hyperparams (`448`, batch 1, accum 128, `freeze_backbone`, no deepspeed).
+
+**Repo files (already committed / pull on PARAM):**
+- Meta: `src/shell/data/Stage4_BareSoil_S1_p50.json` → shard `ai4lcc_ge_train_p50`
+- Train: `src/shell/train_p50.sbatch` → out `checkpoints/LULCDial_S1_p50/`
+- Predict: `src/shell/pred_p50.sbatch` → `preds/lulcdial_p50/`
+
+#### Tonight on login01 — build p50 shard (CPU; needs `datasets`)
+
+```bash
+cd ~/MTP/earth2/LULCDial-s1
+git pull https://github.com/Riha-K/MTP.git main   # if needed; git only on login01
+
+module purge
+module load MLDL/Pytorch-gpu   # so `datasets` / py3.10 match train env
+
+python - <<'PY'
+from datasets import load_from_disk
+src = "data/baresoil_s1/shards/ai4lcc_ge_train_train"
+dst = "data/baresoil_s1/shards/ai4lcc_ge_train_p50"
+ds = load_from_disk(src)
+n = int(round(len(ds) * 0.50))  # ~7355 of 14710
+print(f"full={len(ds)} p50={n}")
+ds.select(range(n)).save_to_disk(dst)
+print("wrote", dst)
+PY
+
+# sanity
+ls -lt data/baresoil_s1/shards/ai4lcc_ge_train_p50/
+python -c "from datasets import load_from_disk; print(len(load_from_disk('data/baresoil_s1/shards/ai4lcc_ge_train_p50')))"
+```
+
+Expect ~**7355** rows. Do **not** start `sbatch` tonight unless you want training overnight.
+
+#### Tomorrow — launch train
+
+```bash
+# on login01 after git pull (if laptop pushed more)
+sbatch ~/MTP/earth2/LULCDial-s1/src/shell/train_p50.sbatch
+squeue -u $USER
+tail -f ~/ft50_<JOBID>.out
+```
+
+**ETA (p50):** ~**1.5–2.5 h** (~70 optimizer steps; ~2× p25 wall). Healthy first loss ≈ 2.4.
+
+#### After train — predict + score
+
+```bash
+sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_p50.sbatch
+# then on login01:
+cd ~/MTP/earth2/LULCDial-s1
+module load MLDL/Pytorch-gpu
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
+python -m baresoil.eval_zero_shot \
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/lulcdial_p50/ai4lcc_val_predictions.jsonl \
+  --out-metrics data/baresoil_s1/metrics/v0.1/lulcdial_p50.json
+```
+
+Compare to `lulcdial_p25.json` (F1 ≈ 0.782) and ZS (F1 ≈ 0.019).
 
 **Interpretation:**
 - If **ZS ≪ 25% ≪ 100%** → genuine learning (good thesis plot)

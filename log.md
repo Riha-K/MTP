@@ -10,6 +10,21 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-11 — 1C-b (50%) environment ready; train tomorrow
+
+**Why:** Prep scaling run without starting GPU train tonight.
+
+**In repo:**
+- `src/shell/data/Stage4_BareSoil_S1_p50.json` → `shards/ai4lcc_ge_train_p50`
+- `src/shell/train_p50.sbatch` → `checkpoints/LULCDial_S1_p50/` (from `EarthDial_4B_MS`, same flags as p25)
+- `src/shell/pred_p50.sbatch` → 801 predict after train
+
+**Tonight on PARAM (login01):** build shard `ai4lcc_ge_train_p50` (~7355 / 14710) — see RUNBOOK **1C-b setup**.
+
+**Tomorrow:** `sbatch …/train_p50.sbatch` → ETA ~1.5–2.5 h → predict → `metrics/v0.1/lulcdial_p50.json`.
+
+---
+
 ### 2026-07-11 — 1D p25 eval DONE (beats ZS by a large margin)
 
 **Why:** Score 25% fine-tune on the same 801 MultiSenGE val bench as 1B.

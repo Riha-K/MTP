@@ -1,0 +1,22 @@
+{
+    "BareSoil_AI4LCC_GE_train": {
+        "annotation": "/home/rihak_iitp/MTP/earth2/LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train_p50",
+        "data_augment": false,
+        "repeat_time": 1,
+        "image_key": "jpg",
+        "conversation": "conversations",
+        "dynamic_image": false,
+        "bands": 1,
+        "normalization": "s1"
+    },
+    "BareSoil_AI4LCC_GE_val": {
+        "annotation": "/home/rihak_iitp/MTP/earth2/LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train_val",
+        "data_augment": false,
+        "repeat_time": 1,
+        "image_key": "jpg",
+        "conversation": "conversations",
+        "dynamic_image": false,
+        "bands": 1,
+        "normalization": "s1"
+    }
+}
