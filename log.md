@@ -10,17 +10,31 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-12 — 1C-b + 1D p50 DONE (F1 ≈ flat vs p25)
+
+**Why:** Finish 50% scaling point and compare to ZS / p25 on the same 801 bench.
+
+**Train (job 88490):** `COMPLETED`; `train_loss` ≈ **0.1998**; ~2.8 h wall; out `checkpoints/LULCDial_S1_p50/` (+ `checkpoint-69`).  
+**Predict (job 88568):** 801 preds → `preds/lulcdial_p50/`.  
+**Metrics (git):** `metrics/v0.1/lulcdial_p50.json`, `metrics/v0.1/train_p50/`.
+
+| Metric | ZS | p25 | p50 |
+|--------|-----|-----|-----|
+| example F1 | **0.0194** | **0.7816** | **0.7834** |
+| turn1 set-match | 0.0 | 0.104 | 0.122 |
+| turn2 set-match | 0.0 | 0.376 | 0.377 |
+
+**Verdict:** Fine-tuning works (≫ ZS). **25% → 50% barely moves F1** on this bench (~+0.002). Scaling curve so far is **flat after p25**.
+
+**Next:** 1C-c **100%** (same hyperparams, fresh from `EarthDial_4B_MS`) → score `lulcdial_v0.1.json`. If still ≈ p25/p50, thesis plot = big ZS→FT jump, weak further data scaling; then MultiSenNA transfer / optional template work.
+
+---
+
 ### 2026-07-11 — 1C-b TRAINING overnight (job 88490)
 
 **Why:** Start 50% fine-tune after p50 shard + scripts were ready.
 
-**Running:** `sbatch …/train_p50.sbatch` → Slurm **88490** (`ft50` on `racn116`).
-- Shard: `ai4lcc_ge_train_p50` (**7355** / 14710)
-- First loss **2.4535**, token length **1024** (healthy)
-- Out: `checkpoints/LULCDial_S1_p50/`; logs `~/ft50_88490.out`
-- ETA ~**1.5–2.5 h** wall
-
-**Morning check:** `squeue` empty + model files under `LULCDial_S1_p50/` → then `pred_p50.sbatch` → `metrics/v0.1/lulcdial_p50.json`.
+**Result:** completed overnight (see **2026-07-12** entry). First loss **2.4535**; shard **7355** rows.
 
 ---
 
