@@ -3,7 +3,7 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-12):** **1C-a/b + 1D DONE** — ZS **0.019** · p25 **0.782** · p50 **0.783** · **next = 1C-c (100%)**
+> **Status (2026-07-12):** **1C-a/b + 1D DONE** (p25 **0.782** · p50 **0.783**) · **1C-c READY** (`train_v0.1.sbatch`, ETA ~4–6 h)
 
 ---
 
@@ -50,7 +50,7 @@
 | **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` — F1 **0.782** vs ZS **0.019** |
 | **1C-b** 50% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p50/`; train `metrics/v0.1/train_p50/` |
 | **1D** p50 vs ZS/p25 | **DONE** | `metrics/v0.1/lulcdial_p50.json` — F1 **0.783** (≈ p25 **0.782**) |
-| **1C-c** 100% | **NEXT** | full `ai4lcc_ge_train_train` → `LULCDial_S1_v0.1/` |
+| **1C-c** 100% | **READY / launch** | `train_v0.1.sbatch` → `LULCDial_S1_v0.1/` (full shard; ETA ~4–6 h) |
 | **1D** after 100% | pending | `metrics/v0.1/lulcdial_v0.1.json` |
 
 ---

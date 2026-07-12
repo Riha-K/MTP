@@ -10,6 +10,17 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-12 — 1C-c (100%) launch ready
+
+**Why:** Complete data-scaling curve with full MultiSenGE train shard (same 1-epoch recipe as p25/p50).
+
+**Repo:** `Stage4_BareSoil_S1_v0.1.json` → `ai4lcc_ge_train_train`; `train_v0.1.sbatch` / `pred_v0.1.sbatch` → `checkpoints/LULCDial_S1_v0.1/`.  
+**ETA:** ~**4–6 h** (~127 steps). Wall limit 8 h. Fresh from `EarthDial_4B_MS`.
+
+**PARAM:** `git pull` then `sbatch …/train_v0.1.sbatch`.
+
+---
+
 ### 2026-07-12 — 1C-b + 1D p50 DONE (F1 ≈ flat vs p25)
 
 **Why:** Finish 50% scaling point and compare to ZS / p25 on the same 801 bench.

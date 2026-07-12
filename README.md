@@ -2,7 +2,7 @@
 
 > **Project:** AI4LCC-S1 VLM / LULCDial-S1  
 > **Workspace:** `e:\MTP\earth2\`  
-> **Status (2026-07-12):** **1C-a/b + 1D DONE** — ZS F1 **0.019** · p25 **0.782** · p50 **0.783** · **next = 1C-c (100%)**
+> **Status (2026-07-12):** **1C-a/b DONE** (F1 ~**0.78**) · **1C-c READY** — `sbatch …/train_v0.1.sbatch`
 
 ---
 
@@ -41,7 +41,7 @@ After these, you know: *where we are*, *what to run next*, *PARAM setup*.
 | 1B EarthDial ZS (801) | **DONE** — F1 ≈ **0.0194** |
 | 1C-a 25% + 1D | **DONE** — F1 **0.782** |
 | 1C-b 50% + 1D | **DONE** — F1 **0.783** (≈ flat vs p25) |
-| 1C-c 100% + 1D | **NEXT** — full train shard → `LULCDial_S1_v0.1` |
+| 1C-c 100% + 1D | **READY** — `sbatch …/train_v0.1.sbatch` (ETA ~4–6 h) |
 | MultiSenNA transfer | after scaling curve |
 
 ---
@@ -65,4 +65,4 @@ After these, you know: *where we are*, *what to run next*, *PARAM setup*.
 
 ## One-line answer
 
-**Commands → `RUNBOOK.md`.** **History → `log.md`.** **Next → 1C-c (100% FT from `EarthDial_4B_MS`) then eval vs p25/p50.**
+**Commands → `RUNBOOK.md`.** **History → `log.md`.** **Next → `sbatch …/train_v0.1.sbatch` (100% FT).**
