@@ -826,7 +826,7 @@ quadrantChart
 #### 🥉 Tier 3 — Good for thesis / workshop
 
 9. **InSAR + Optical Multi-modal VLM** (deformation + visual change)
-10. **Bare-soil / agriculture extension** (note: `papers/LULCDial-s1/baresoil/` exists in related fork — agricultural niche)
+10. **Bare-soil / agriculture / LULC SAR dialogue** — **active in this workspace as LULCDial-S1** (`baresoil/` + AI4LCC MultiSenGE). Stage 1 GE scaling done Jul 2026 (ZS F1 ≈ 0.02 → FT ≈ 0.80); next MultiSenNA transfer. See root `RUNBOOK.md` / `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`.
 11. **RS-VLM Red-teaming** — hallucinated objects, geographic bias analysis
 12. **Automatic instruction data quality scorer** — improve beyond InternLM-XComposer2 pipeline
 

@@ -1,5 +1,7 @@
 # <img src="../images/EarthDial_logo.png" height="30"> EarthDial Demo
 
+> **Note:** Upstream EarthDial chat/demo setup (Streamlit workers). **Not** the LULCDial-S1 Stage 1 ops path — for fine-tune / eval use root [`RUNBOOK.md`](../../RUNBOOK.md).
+
 <p align="center">
     <img src="https://i.imgur.com/waxVImv.png" alt="Oryx EarthDial-ChatGPT">
 </p>

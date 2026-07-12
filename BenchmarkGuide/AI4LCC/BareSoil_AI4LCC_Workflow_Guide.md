@@ -1,9 +1,11 @@
-# BareSoilDial-S1 — AI4LCC MultiSenGE Workflow Guide
+# LULCDial-S1 — AI4LCC MultiSenGE Workflow Guide
 
-> **Purpose:** Explain **every step** of the Section 11 workflow (MultiSenGE → EarthDial training → evaluation) so you can present it to supervisors / PI.  
+> **Purpose:** Explain **every step** of the MultiSenGE → EarthDial fine-tune → evaluation workflow for supervisors / PI.  
+> **Product name:** **LULCDial-S1** (same EarthDial architecture, AI4LCC-adapted weights). Legacy title “BareSoilDial” retired.  
 > **Audience:** Technical committee + non-specialist reviewers.  
 > **Code location:** `LULCDial-s1/baresoil/`  
-> **Dataset reference:** [`paperRelatedToDataset/MultiSenGE_AI4LCC_Complete_Analysis.md`](paperRelatedToDataset/MultiSenGE_AI4LCC_Complete_Analysis.md)
+> **Status (2026-07):** Stage 1 GE eval **done** (ZS → 100% FT). **Next:** MultiSenNA transfer.  
+> **Dataset reference:** [`MultiSenGE_AI4LCC_Complete_Analysis.md`](MultiSenGE_AI4LCC_Complete_Analysis.md)
 
 ---
 
@@ -11,15 +13,15 @@
 
 **Problem:** EarthDial understands Sentinel-1 for **ships and earthquakes**, but not **bare soil / land-cover dialogue**.
 
-**Solution:** Take the official French **AI4LCC MultiSenGE** dataset (8,157 patches, Sentinel-1 + expert LULC labels), convert it into **question–answer training pairs** in EarthDial’s format, fine-tune **EarthDial_4B_MS**, and evaluate on **held-out French data** (MultiSenNA) and later **global benchmarks** (Dynamic World+).
+**Solution:** Take the official French **AI4LCC MultiSenGE** dataset (8,157 patches, Sentinel-1 + expert LULC labels), convert it into **question–answer training pairs** in EarthDial’s format, fine-tune **EarthDial_4B_MS** into **LULCDial-S1**, and evaluate on **held-out MultiSenGE val**, then **MultiSenNA** (transfer), and later **global** Dynamic World+.
 
 **Why MultiSenGE first:** Official 10 m Sentinel-1 GRD patches, 14-class urban/agriculture labels, ~110 GB (not 500 GB like SEN12MS), **not already used by EarthDial**.
 
 ```mermaid
 flowchart LR
     A["Official AI4LCC<br/>MultiSenGE"] --> B["baresoil/ pipeline<br/>labels + S1 → QA shards"]
-    B --> C["Fine-tune<br/>EarthDial_4B_MS"]
-    C --> D["Eval<br/>MultiSenNA + DW+"]
+    B --> C["Fine-tune<br/>EarthDial_4B_MS → LULCDial-S1"]
+    C --> D["Eval<br/>GE val → MultiSenNA → DW+"]
 ```
 
 ---
@@ -30,8 +32,8 @@ flowchart LR
 |---|---|---|---|
 | **1. Download** | Get official MultiSenGE labels + S1 imagery | Student | Raw folders on disk |
 | **2. Convert** | Pick one S1 date per patch → VH image → labels → 2 QA each → shard | Script `build_instruct_s1.py` | ~16k training samples |
-| **3. Train** | EarthDial Stage 4 fine-tune with new `[baresoil]` token | EarthDial `finetune.py` | **BareSoilDial-S1** checkpoint |
-| **4. Evaluate** | Metrics on val split + zero-shot MultiSenNA | `build_bench.py` + eval scripts | F1 / accuracy report |
+| **3. Train** | EarthDial Stage 4 fine-tune on AI4LCC S1 QA (25→50→100% scaling) | EarthDial `finetune.py` + PARAM `sbatch` | **LULCDial-S1** checkpoints (`p25` / `p50` / `v0.1`) |
+| **4. Evaluate** | GE val bench (801) + ZS baseline; then MultiSenNA transfer; DW+ later | `predict_zero_shot` + `eval_zero_shot` | example F1 + dialogue set-match |
 
 ---
 
@@ -189,46 +191,36 @@ chosen = sorted_files[len(sorted_files) // 2]   # middle date
 
 ---
 
-### Step 2.4 — Taxonomy: 14 AI4LCC classes → 7 unified bare classes
+### Step 2.4 — Taxonomy: keep official **14 OCSGE** class names
 
 **Module:** `baresoil/taxonomy.py`
 
-MultiSenGE has **14 expert classes**. Your thesis uses a **7-class unified taxonomy** so results compare across AI4LCC, Dynamic World, SEN12MS later.
+**Supervisor decision (locked):** do **not** remap to a custom 7-class bare-soil taxonomy. QA answers use **official MultiSenGE / OCSGE display names** (e.g. `Arable Lands`, `Open Spaces, Mineral`, `Forests`).
 
-#### 14 AI4LCC classes (source)
+MultiSenGE has **14 expert classes** (IDs 1–14). MultiSenNA adds coastal class **15 = Beaches, Sand**.
 
-| ID | Name | Bare relevance |
+#### 14 AI4LCC classes (source — what the model says)
+
+| ID | Name | Notes for thesis |
 |---:|---|---|
-| 1–5 | Urban subclasses | Usually **non-bare** (paved / built) |
-| **6** | Arable Lands | **Bare-positive** (ploughed / fallow seasonal) |
-| 7–8 | Vineyards, Orchards | Partial |
-| **9** | Grasslands | **Bare-positive** (sparse / dry grass) |
+| 1–5 | Urban subclasses | Built / paved — usually non-vegetated mineral surfaces |
+| **6** | Arable Lands | Seasonal soil exposure possible |
+| 7–8 | Vineyards, Orchards | Agricultural |
+| **9** | Grasslands | Natural / agricultural |
 | 10 | Groves and Hedges | Sparse vegetation |
-| 11 | Forests | Non-bare |
-| **12** | **Open Spaces, Mineral** | **Strongest bare-soil proxy** (quarries, bare mineral) |
-| 13–14 | Wetland, Water | Non-bare |
+| 11 | Forests | Natural |
+| **12** | **Open Spaces, Mineral** | Closest official proxy to “bare / mineral open space” |
+| 13–14 | Wetland, Water | Natural / water |
 
-#### Mapping to 7 unified classes (what the model learns to say)
+#### How answers are built (Stage 1)
 
-| Unified ID | Display name | Bare-positive? | AI4LCC IDs mapped here |
-|---|---|---|---|
-| `bare_soil` | bare soil | ✅ | **12** |
-| `agricultural_fallow` | agricultural fallow | ✅ | 6, 7, 8 |
-| `sparse_vegetation` | sparse vegetation | ✅ | 4, 9, 10 |
-| `bare_rock_paved` | bare rock or paved | ✅ (partial) | 1, 2, 3, 5 |
-| `desert_sand` | desert sand | ✅ | (not in MultiSenGE — for other datasets) |
-| `burnt_barren` | burnt barren | ✅ | (future / other datasets) |
-| `non_bare` | non bare | ❌ | 11, 13, 14 |
+1. Read JSON `labels: "2;5;6;9;11"` → list of **present** class IDs.  
+2. Map IDs → **official names** via `taxonomy.py`.  
+3. **Classify / dialogue turn 1:** comma-separated present names.  
+4. **Dialogue turn 2:** subset that are natural/agricultural (`natural_class_names_from_ids`).  
+5. Dominant class (if needed): lowest present OCSGE id (`dominant_ocsge_name`) — not a 7-class remapping.
 
-#### How dominant class is chosen
-
-From JSON `labels: "2;5;6;9;11"`:
-
-1. Map each ID → unified class (e.g. 2→`bare_rock_paved`, 6→`agricultural_fallow`, 9→`sparse_vegetation`, 11→`non_bare`).
-2. **Count** how many IDs map to each unified class.
-3. **Winner** = unified class with highest count → used as **answer** for classification QA.
-
-**Limitation to disclose:** This uses **presence in patch**, not pixel area from `ground_reference.tif`. Future improvement: read `*_GR_*.tif` and use **majority pixel vote** (more accurate for mixed patches).
+**Limitation to disclose:** JSON lists **presence**, not pixel area. Optional future: majority vote from `ground_reference.tif`.
 
 ---
 
@@ -358,7 +350,7 @@ The VLM learns to:
 
 ### 5.4 Deliverable
 
-**Checkpoint name:** **BareSoilDial-S1** (save under `LULCDial-s1/checkpoints/BareSoilDial_S1/`).
+**Checkpoint name:** **LULCDial-S1** (e.g. `LULCDial-s1/checkpoints/LULCDial_S1_v0.1/` after 100% fine-tune). Same EarthDial architecture; new weights for OCSGE 14-class S1 dialogue (`[baresoil]` + `[s1_vh_10]`).
 
 ---
 
@@ -366,53 +358,67 @@ The VLM learns to:
 
 ```mermaid
 flowchart TB
-    MODEL["BareSoilDial-S1 checkpoint"]
+    BASE["EarthDial_4B_MS<br/>zero-shot baseline"]
+    FT["LULCDial-S1<br/>p25 / p50 / v0.1 FT"]
 
-    MODEL --> V1["4A. MultiSenGE val split<br/>~800 patches · same region · hash hold-out"]
-    MODEL --> V2["4B. MultiSenNA zero-shot<br/>12,258 patches · west France · NEVER trained"]
-    MODEL --> V3["4C. Dynamic World+ · Sem 3<br/>299 patches · global · Bare ground class"]
+    BASE --> V1["4A. MultiSenGE val bench<br/>801 patches · held-out GE"]
+    FT --> V1
 
-    V1 --> MET["Metrics: accuracy, macro-F1,<br/>binary bare IoU/F1"]
+    FT --> V2["4B. MultiSenNA transfer<br/>~12k patches · NEVER train on NA"]
+    BASE -.->|"optional compare"| V2
+
+    FT --> V3["4C. Dynamic World+ · later<br/>global bare-ground · Sem 3"]
+
+    V1 --> MET["Primary: example F1<br/>Secondary: turn1/turn2 set-match"]
     V2 --> MET
     V3 --> MET
 ```
 
-### 6.1 Evaluation A — MultiSenGE val (development)
+**Stage 1 status (2026-07):** **4A done** (ZS F1 ≈ 0.019 → 100% FT F1 ≈ 0.799). **4B next.** **4C later.**
+
+### 6.1 Evaluation A — MultiSenGE val (development) ✅
 
 | Aspect | Detail |
 |---|---|
-| Data | Same 90/10 hash split as training — **val shard** |
-| Purpose | Tune hyperparameters, catch overfitting during intern |
-| Leakage | None — patch IDs disjoint from train |
-| Metrics | 7-class accuracy, binary bare yes/no accuracy, macro-F1 |
+| Data | `bench/v0.1/ai4lcc_val.jsonl` — **801** MultiSenGE val patches (+ packed `s1_val_bench`) |
+| Tasks | Classify (multi-label present classes) + 2-turn dialogue |
+| Taxonomy | **OCSGE 14-class** present-class lists (not a collapsed 7-class bare-only scheme) |
+| Purpose | Beat ZS; measure data scaling (25% / 50% / 100% FT) |
+| Leakage | Val patches disjoint from train shard |
+| **Primary metric** | **example F1** (set overlap with partial credit) |
+| **Secondary** | Dialogue **turn1 / turn2 exact set-match** accuracy (all-or-nothing) |
+| Scorer | `baresoil/eval_zero_shot.py` |
 
-### 6.2 Evaluation B — MultiSenNA (regional zero-shot) ⭐
-
-| Aspect | Detail |
-|---|---|
-| Region | Nouvelle-Aquitaine (western France) — **different from MultiSenGE** |
-| Patches | **12,258** |
-| Rule | **Never train on MultiSenNA** — proves generalization to new geography |
-| Build | Same pipeline: `build_instruct_s1.py` with MultiSenNA labels + S1 paths |
-| Thesis claim | “Regional zero-shot on unseen French LULC” |
-
-### 6.3 Evaluation C — Dynamic World+ (global zero-shot, Sem 3)
+### 6.2 Evaluation B — MultiSenNA (regional transfer) ⭐ NEXT
 
 | Aspect | Detail |
 |---|---|
-| Patches | 299 test |
+| Region | Nouvelle-Aquitaine (western France) — **different geography from MultiSenGE** |
+| Patches | ~**12k** (`multisenna_bench.jsonl` on PARAM) |
+| Rule | **Never train on MultiSenNA** — transfer / regional zero-shot |
+| Model | Prefer best GE FT checkpoint (`LULCDial_S1_v0.1`); compare to EarthDial ZS |
+| Metrics | Same as 4A: example F1 + turn1/turn2 set-match |
+| Thesis claim | “GE-trained LULCDial-S1 transfers to unseen French LULC (NA)” |
+
+### 6.3 Evaluation C — Dynamic World+ (global, later / Sem 3)
+
+| Aspect | Detail |
+|---|---|
+| Patches | ~299 test |
 | Class | **Bare ground** (Dynamic World index 7) |
-| Purpose | Global benchmark with explicit bare class |
+| Purpose | Global benchmark with an explicit bare class — **after** MultiSenNA |
+| Note | Different label space than OCSGE 14-class; treat as separate protocol |
 
-### 6.4 Baseline comparison
+### 6.4 Baseline and scaling comparison
 
-| Model | Role |
-|---|---|
-| **EarthDial_4B_MS** (no fine-tune) | Upper bound “generic RS VLM” |
-| **EarthDial_4B_MS** + Stage 3 SAR only | Shows bare-soil task needs **LULC** data |
-| **BareSoilDial-S1** | Your contribution |
+| Model | Role | GE val example F1 (Stage 1) |
+|---|---|---:|
+| **EarthDial_4B_MS** (zero-shot) | Pretrained RS VLM, no AI4LCC FT | ≈ **0.019** |
+| **LULCDial-S1 p25** (25% data) | Scaling point | ≈ **0.782** |
+| **LULCDial-S1 p50** (50% data) | Scaling point | ≈ **0.783** |
+| **LULCDial-S1 v0.1** (100% data) | Best GE checkpoint for transfer | ≈ **0.799** |
 
-**Target (intern):** Beat EarthDial baseline on binary bare + unified classification by **≥5 F1 points** on val (from roadmap).
+**Target (intern):** Beat EarthDial ZS on the GE val bench (achieved). Dialogue exact set-match stays harder (~0.12 / ~0.37) — report beside F1, do not replace F1.
 
 ---
 
@@ -498,4 +504,4 @@ A: (1) S1 path mismatch after extract — fix `--s1-dir`. (2) Mixed patches → 
 
 ---
 
-*Guide aligned with implemented code in `LULCDial-s1/baresoil/` and MultiSenGE analysis §11. Update this doc when ground-reference majority voting or MultiSenNA bench builders are added.*
+*Guide aligned with `LULCDial-s1/baresoil/` (14-class OCSGE, example F1 + set-match). MultiSenNA bench builder exists; Stage 1 GE scaling complete Jul 2026. Next: NA transfer.*

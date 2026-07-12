@@ -4,7 +4,10 @@
 > **Base model:** [EarthDial](https://arxiv.org/abs/2412.15190) (CVPR 2025) — `EarthDial_4B_MS`  
 > **Primary dataset:** [AI4LCC MultiSenGE](BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf) (8,157 patches, Sentinel-1 VH, **14 OCSGE classes — unchanged**)  
 > **Extension code:** `LULCDial-s1/baresoil/`  
-> **Companion docs:** [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) · [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) · [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md)
+> **Ops / history:** [`RUNBOOK.md`](RUNBOOK.md) · [`log.md`](log.md) · [`README.md`](README.md)  
+> **Companion docs:** [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) · [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) · [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md) · [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md)
+
+**Status (2026-07-12):** Stage 1 **GE scaling DONE** (ZS F1 ≈ **0.019** → 25% **0.782** → 50% **0.783** → 100% **0.799**). Dialogue exact set-match stays hard (~0.12 / ~0.37). **Next = MultiSenNA transfer (Stage 2 track E4).**
 
 ---
 
@@ -40,9 +43,10 @@
 ### 3.2 Your contribution (defensible claims)
 
 1. **First VLM instruction benchmark** pairing **AI4LCC Sentinel-1 VH** with **14-class OCSGE** dialogue (classify + chat).
-2. **Empirical gap:** EarthDial_4B_MS **fails or is weak** on S1 LULC before AI4LCC fine-tune; optical BigEarthNet pretraining **does not substitute** SAR LULC dialogue.
-3. **Zero-shot regional transfer:** train MultiSenGE (Grand-Est) → evaluate **MultiSenNA** (Nouvelle-Aquitaine) without retraining.
-4. **(Stage 2+)** Multitemporal S1 dialogue using AI4LCC’s 2020 time series — capability BigEarthNet lacks.
+2. **Empirical gap:** EarthDial_4B_MS is **near-floor** on S1 LULC before AI4LCC fine-tune (GE val example F1 ≈ **0.02**); optical BigEarthNet pretraining **does not substitute** SAR LULC dialogue.
+3. **Data scaling:** most of the GE gain appears by **~25%** of train data under a fixed 1-epoch recipe; 50%/100% add little F1 (flat scaling story).
+4. **Regional transfer:** train MultiSenGE (Grand-Est) → evaluate **MultiSenNA** (Nouvelle-Aquitaine) without retraining (**next experiment**).
+5. **(Stage 2+)** Multitemporal S1 dialogue using AI4LCC’s 2020 time series — capability BigEarthNet lacks.
 
 ### 3.3 Paper positioning (working titles)
 
@@ -58,9 +62,9 @@
 
 | Name | What it is | Path |
 |---|---|---|
-| **LULCDial-S1** | Fine-tuned VLM checkpoint (thesis model) | `LULCDial-s1/checkpoints/LULCDial_S1/` |
+| **LULCDial-S1** | Fine-tuned VLM family (thesis model) | `checkpoints/LULCDial_S1_p25/`, `_p50/`, `_v0.1/` (PARAM) |
 | **AI4LCC-S1-Instruct** | Training instruction shards | `LULCDial-s1/data/baresoil_s1/shards/` |
-| **AI4LCC-S1-Dialogue-Bench** | Held-out eval (classify + 2-turn dialogue) | `LULCDial-s1/data/baresoil_s1/bench/` |
+| **AI4LCC-S1-Dialogue-Bench** | Held-out eval (classify + 2-turn dialogue) | `bench/v0.1/ai4lcc_val.jsonl` (801) |
 | **LULC-Agent** (Sem 4) | Tool-using demo around LULCDial-S1 | `LULCDial-s1/baresoil/agent/` |
 | `baresoil/` | Python package name (keep — code already scaffolded) | `LULCDial-s1/baresoil/` |
 
@@ -71,16 +75,21 @@
 ```
 e:\MTP\earth2\
 ├── AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md    ← this file
+├── RUNBOOK.md / log.md / README.md           ← commands, history, status
+├── Stage1_Summer_Intern_Guide.md
 ├── EarthDial_Complete_Analysis.md
-└── BenchmarkGuide\
-    └── AI4LCC\                               ← paper PDF + analysis + workflow only
+├── BenchmarkGuide\AI4LCC\                    ← paper PDF + analysis + workflow
 └── LULCDial-s1\
-    ├── baresoil\                               ← patch_meta.py, build_instruct_s1.py, …
-    ├── data\baresoil_s1\ai4lcc\multisenge\
-    │   ├── labels\                             ← ✅ 8,157 JSON (done)
-    │   └── s1\                                 ← ⏳ download s1.tgz (~110 GB)
-    ├── src\shell\data\Stage4_BareSoil_S1.json
-    └── checkpoints\LULCDial_S1\
+    ├── baresoil\                             ← build_instruct, bench, predict, eval
+    ├── data\baresoil_s1\
+    │   ├── ai4lcc\multisenge\labels\         ← ✅ 8,157 JSON
+    │   ├── ai4lcc\multisenge\s1_val_bench\   ← ✅ packed 801 val TIFFs (PARAM)
+    │   ├── shards\                           ← ✅ train / val / p25 / p50 (PARAM)
+    │   ├── bench\v0.1\                       ← ✅ GE val + preds + MultiSenNA bench
+    │   └── metrics\v0.1\                     ← ✅ ZS + p25 + p50 + v0.1
+    ├── src\shell\data\Stage4_BareSoil_S1*.json
+    ├── src\shell\train_*.sbatch / pred_*.sbatch
+    └── checkpoints\                          ← LULCDial_S1_* on PARAM (~8 GB each)
 ```
 
 ---
@@ -89,17 +98,17 @@ e:\MTP\earth2\
 
 ```mermaid
 flowchart TB
-    subgraph S1["Stage 1 · Summer Intern (8–10 weeks)"]
-        A1[Baseline: EarthDial ZS on AI4LCC-S1-Dialogue-Bench]
-        A2[Pipeline: JSON → VH tif → 14-class QA shards]
-        A3[Fine-tune LULCDial-S1 v0.1]
-        A4[Beat ZS on classify + dialogue on val split]
+    subgraph S1["Stage 1 · Summer Intern — mostly DONE"]
+        A1[Baseline: EarthDial ZS on 801 GE val]
+        A2[Pipeline: JSON → VH → 14-class QA shards]
+        A3[FT scaling: p25 → p50 → v0.1 100%]
+        A4[Beat ZS on example F1; log dialogue set-match]
     end
 
-    subgraph S2["Stage 2 · Sem 3 — Paper"]
-        B1[Bench v1.0: 2 task families + MultiSenNA ZS]
-        B2[Optional CVPR 2025 baseline e.g. AnySat classify]
-        B3[Multitemporal S1 dialogue ablation]
+    subgraph S2["Stage 2 · Sem 3 — Paper — NEXT"]
+        B1[MultiSenNA transfer E4 — no NA train]
+        B2[Optional: AnySat / more epochs / templates]
+        B3[Optional multitemporal S1 ablation]
         B4[Manuscript + public bench release]
     end
 
@@ -118,36 +127,36 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 
 ## Stage 1 — Summer Intern
 
-> **Detailed guide:** [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md) — 4 substages (Pipeline → ZS baseline → Fine-tune → Beat ZS)
+> **Detailed guide:** [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md) — 1A pipeline → 1B ZS → 1C FT scaling → 1D eval  
+> **Live commands:** [`RUNBOOK.md`](RUNBOOK.md)
 
-**Goal:** Working **LULCDial-S1 v0.1** + measurable beat over **EarthDial zero-shot** on AI4LCC val.
+**Goal:** Working **LULCDial-S1 v0.1** + measurable beat over **EarthDial zero-shot** on AI4LCC GE val — **achieved (Jul 2026).**
 
 ### 1.1 Deliverables
 
-| # | Deliverable | Done when |
+| # | Deliverable | Status |
 |---|---|---|
-| D1 | Labels parsed; **14 OCSGE names** in templates (no 7-class remap) | Shards use `Dense Built-Up`, `Arable Lands`, … |
-| D2 | `s1.tgz` extracted; median-date VH per patch | `build_instruct_s1.py` completes |
-| D3 | ~16k QA rows (8,157 patches × 2 tasks) | HF shards on disk |
-| D4 | AI4LCC-S1-Dialogue-Bench v0.1 (~800 val patches) | `build_bench.py` + JSONL |
-| D5 | EarthDial_4B_MS **zero-shot** baseline logged | `metrics/earthdial_zs_baseline.json` |
-| D6 | **LULCDial-S1 v0.1** checkpoint | Stage 4 fine-tune complete |
-| D7 | Intern report + 10 qualitative dialogue examples | PDF + notebook |
+| D1 | Labels parsed; **14 OCSGE names** in templates (no 7-class remap) | ✅ Done |
+| D2 | S1 available for train/val (PARAM shards + `s1_val_bench`) | ✅ Done |
+| D3 | ~16k QA rows (train/val HF shards) | ✅ Done |
+| D4 | AI4LCC-S1-Dialogue-Bench v0.1 (**801** val patches) | ✅ `bench/v0.1/ai4lcc_val.jsonl` |
+| D5 | EarthDial_4B_MS **zero-shot** baseline | ✅ F1 ≈ **0.019** (`earthdial_zs_baseline.json`) |
+| D6 | **LULCDial-S1** FT scaling | ✅ p25 / p50 / **v0.1** (100%) on PARAM |
+| D7 | Beat ZS on primary metric + logged dialogue | ✅ example F1 **0.799** @ 100%; set-match ~0.12 / ~0.37 |
+| D8 | Intern report + qualitative examples | ⏳ Write-up (optional wrap-up) |
 
-### 1.2 Week-by-week
+### 1.2 What we actually ran (GE scaling)
 
-| Week | Task | Output |
-|---|---|---|
-| 1 | Env setup; `pip install -e .`; download `EarthDial_4B_MS` | `checkpoints/EarthDial_4B_MS/` |
-| 1–2 | **Update** `instruct_templates.py` → 14-class names; classify + 2-turn dialogue | Code PR in `baresoil/` |
-| 2 | Confirm labels on disk; **download + extract `s1.tgz`** | `data/.../multisenge/s1/` |
-| 3 | Run `build_instruct_s1.py` (train + val shards) | `shards/ai4lcc_ge_train_*` |
-| 3 | Run `build_bench.py` | `bench/v0.1/ai4lcc_val.jsonl` |
-| 4 | **Baseline eval** — EarthDial ZS on bench (no fine-tune) | Baseline metrics file |
-| 4–6 | Stage 4 fine-tune (`Stage4_BareSoil_S1.json`, `[lulc_s1]` or `[baresoil]` token) | `LULCDial_S1_v0.1/` |
-| 6–7 | Eval fine-tuned model on same bench | `metrics/lulcdial_v0.1.json` |
-| 7–8 | Error analysis: water vs mineral, urban vs arable, speckle | 2-page failure appendix |
-| 8–10 | Intern report + supervisor demo | Report PDF |
+| Run | Train data | Checkpoint | GE val example F1 | turn1 / turn2 set-match |
+|---|---|---|---:|---|
+| ZS | — | `EarthDial_4B_MS` | **0.019** | 0.00 / 0.00 |
+| 1C-a | 25% | `LULCDial_S1_p25` | **0.782** | 0.10 / 0.38 |
+| 1C-b | 50% | `LULCDial_S1_p50` | **0.783** | 0.12 / 0.38 |
+| 1C-c | 100% | `LULCDial_S1_v0.1` | **0.799** | 0.12 / 0.37 |
+
+**Recipe (locked):** 1 epoch, `force_image_size 448`, batch 1, accum 128, `freeze_backbone`, bf16, no DeepSpeed; launch via `sbatch` on PARAM.
+
+**Finding:** Huge ZS→FT jump; **25%→50%≈flat**; **100% only small extra F1**. Exact dialogue set-match does **not** scale with more GE data under the current 1-epoch recipe.
 
 ### 1.3 Two instruction tasks (per patch)
 
@@ -156,13 +165,16 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 | **Classification** | `[baresoil] [s1_vh_10] [classify] <image>` | `Arable Lands, Grasslands, Forests` (multi-label) |
 | **Dialogue** | 2-turn: all classes → natural/ag subset | Turn 2: `Arable Lands, Grasslands, Forests` |
 
-### 1.4 Success metrics (Stage 1 exit)
+### 1.4 Success metrics (Stage 1 exit) — updated
 
-| Metric | Target |
-|---|---|
-| Multi-label **14-class** F1 (val) | LULCDial-S1 ≥ EarthDial ZS **+10 F1** (macro) |
-| Dialogue turn-1 + turn-2 accuracy | ≥ 70% on val |
-| Qualitative | 10 patches with sensible SAR-aware explanations |
+| Metric | Original target | Achieved (Jul 2026) |
+|---|---|---|
+| Multi-label **example F1** (801 val) | Beat ZS by a large margin | ✅ **0.019 → 0.799** |
+| Dialogue turn-1 / turn-2 **exact set-match** | Aspirational ≥70% | ❌ ~**0.12 / 0.37** — keep as secondary; do not block Stage 1 |
+| Data-scaling curve 25/50/100% | Prove learning with more data | ✅ Curve complete; weak after 25% |
+| Qualitative | 10 patches | ⏳ Optional for report |
+
+**Primary metric for thesis tables:** **example F1**. Report set-match beside it (strict all-or-nothing).
 
 ### 1.5 Intern report title
 
@@ -172,37 +184,40 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 
 ## Stage 2 — Sem 3 + Paper
 
-**Goal:** Publish **AI4LCC-S1-Dialogue-Bench** + **LULCDial-S1** with zero-shot transfer and ablations.
+**Goal:** Publish **AI4LCC-S1-Dialogue-Bench** + **LULCDial-S1** with **MultiSenNA transfer** and optional ablations.
 
-### 2.1 Benchmark v1.0 — five evaluation tracks
+**Immediate (Jul 2026):** Run **E4 MultiSenNA** with `LULCDial_S1_v0.1` (and ZS compare). Bench JSONL already on PARAM; **do not train on NA**.
 
-| Track | Task | Metric |
-|---|---|---|
-| **E1 Multi-label classify** | Which of 14 OCSGE classes are present? | Example-F1, macro-F1 |
-| **E2 Dominant class** | Single dominant land-cover type | Accuracy |
-| **E3 Dialogue** | 2-turn: all classes → natural/ag subset | Turn accuracy, human eval (subset) |
-| **E4 Zero-shot transfer** | Train MultiSenGE → test **MultiSenNA** | Same metrics, no FT |
+### 2.1 Benchmark v1.0 — evaluation tracks
+
+| Track | Task | Metric | Status |
+|---|---|---|---|
+| **E1 Multi-label classify** | Which of 14 OCSGE classes are present? | **example F1** (primary) | ✅ GE val done |
+| **E2 Dominant class** | Single dominant land-cover type | Accuracy | Optional later |
+| **E3 Dialogue** | 2-turn: all classes → natural/ag | Exact **set-match** (secondary) | ✅ Logged on GE; still hard |
+| **E4 Transfer** | Train MultiSenGE → test **MultiSenNA** | Same metrics, **no NA FT** | ⭐ **NEXT** |
 
 Optional **E6 Temporal** (if time): 2-date S1 → “Did surface backscatter change?” using `[s1_vh_temp_10]`.
 
 ### 2.2 Required experiments
 
-| # | Comparison | Purpose |
-|---|---|---|
-| 1 | EarthDial_4B_MS (ZS) vs LULCDial-S1 | Main result |
-| 2 | LULCDial-S1 vs **AnySat** (CVPR 2025) patch classify | Modern non-VLM baseline |
-| 3 | S1-only vs S2-only (same AI4LCC patches) | Modality ablation |
-| 4 | Single-date vs multi-date S1 | Temporal ablation |
-| 5 | Failure cases | Water / Wetlands vs Open Spaces Mineral; urban paved vs bare |
+| # | Comparison | Purpose | Status |
+|---|---|---|---|
+| 1 | EarthDial_4B_MS (ZS) vs LULCDial-S1 | Main GE result | ✅ Done (scaling table) |
+| 2 | Data scale 25% / 50% / 100% | Show learning vs saturation | ✅ Done |
+| 3 | LULCDial-S1 vs **AnySat** (CVPR 2025) | Modern non-VLM baseline | Pending |
+| 4 | GE → **MultiSenNA** transfer | Regional generalization | **NEXT** |
+| 5 | Optional: 2 epochs / unfreeze / templates | Dialogue set-match ablation | After E4 |
+| 6 | Failure cases | Water / mineral / urban vs arable | Pending write-up |
 
 ### 2.3 Data scale
 
 | Component | Size | Notes |
 |---|---|---|
-| Train instruct | ~16k QA (full MultiSenGE) | 2 QA × 8,157 patches |
-| Val | ~1.6k QA | 90/10 hash split |
-| MultiSenNA ZS test | up to 12,258 patches | **Never train on this** |
-| Optional DW+ | Global 9-class ZS (later) | Generalization story |
+| Train instruct | ~14.7k QA rows (full MultiSenGE train) | + val in meta during FT |
+| Val / GE bench | **801** patches | Primary Stage 1 metric |
+| MultiSenNA ZS/transfer test | ~12k patches | **Never train on this** — bench on PARAM |
+| Optional DW+ | Global bare-ground ZS (later) | Sem 3+ |
 
 ### 2.4 Publication targets
 
@@ -217,8 +232,8 @@ Optional **E6 Temporal** (if time): 2-date S1 → “Did surface backscatter cha
 
 1. **Introduction** — gap: EarthDial S1 ≠ LULC; AI4LCC only had CNN baselines  
 2. **AI4LCC-S1-Dialogue-Bench** — tasks, splits, 14-class policy  
-3. **LULCDial-S1** — EarthDial fine-tune recipe  
-4. **Experiments** — ZS vs FT, MultiSenNA, ablations  
+3. **LULCDial-S1** — EarthDial fine-tune recipe + data scaling  
+4. **Experiments** — ZS vs FT, scaling curve, MultiSenNA, ablations  
 5. **Conclusion** — agent preview (Stage 3)
 
 ---
@@ -280,8 +295,8 @@ sequenceDiagram
 
 | Period | Focus | Exit criterion |
 |---|---|---|
-| **May–Jul** (Intern) | Pipeline + LULCDial-S1 v0.1 + ZS baseline | Intern report; +10 F1 vs ZS |
-| **Aug–Oct** (Sem 3) | Bench v1.0 + MultiSenNA + paper tables | Draft complete |
+| **May–Jul** (Intern) | Pipeline + ZS + FT scaling p25/p50/v0.1 | ✅ GE curve done; F1 0.019→0.799 |
+| **Jul–Oct** (Sem 3 start) | **MultiSenNA transfer** + paper tables | Draft + NA metrics |
 | **Nov–Jan** | Write + submit | Manuscript submitted |
 | **Feb–Apr** (Sem 4) | LULC-Agent + thesis Ch 1–3 | Working demo |
 | **May–Jul** (Sem 4) | Defense prep | Thesis submitted |
@@ -299,22 +314,25 @@ sequenceDiagram
 | Claim “new dataset” | AI4LCC exists — you add **VLM instructions + bench** |
 | OpenEarthMap-SAR as primary train | Umbra SAR, not Sentinel-1 |
 | Four separate agents in Sem 4 | One orchestrator + tools |
+| Train on **MultiSenNA** for the transfer claim | Invalidates E4 |
+| Treat dialogue set-match ≥70% as Stage 1 blocker | Exact match is hard; F1 is primary |
 
 ---
 
-## 9. Immediate next steps (this week)
+## 9. Immediate next steps (now)
 
 | Priority | Action | Owner |
 |---|---|---|
-| 🔴 P0 | Run `build_instruct_s1.py` + `build_bench.py` on professor PC | Code |
-| 🟡 P1 | EarthDial **zero-shot** eval on bench **before** fine-tune | Experiments |
-| 🟢 P2 | Email supervisor 1-page contribution statement (§3.2) | You |
+| 🔴 P0 | **MultiSenNA transfer:** predict with `LULCDial_S1_v0.1` (+ ZS compare) on NA bench; score example F1 + set-match | Experiments (PARAM `sbatch`) |
+| 🟡 P1 | Pack/confirm NA S1 paths on PARAM if predict needs images beyond bench metadata | Data |
+| 🟢 P2 | Intern/scaling write-up: one table ZS→p25→p50→v0.1; note flat dialogue set-match | You |
+| ⚪ P3 | Optional later: 2-epoch or template ablation for dialogue | Experiments |
 
 ---
 
 ## 10. Elevator pitch
 
-> We introduce **AI4LCC-S1-Dialogue-Bench** — the first instruction-tuning and evaluation suite for **Sentinel-1 land-cover classification and dialogue** on expert **14-class OCSGE** labels — and **LULCDial-S1**, an EarthDial fine-tune that closes the gap left by BigEarthNet optical pretraining and legacy MultiSenGE CNN baselines, with zero-shot transfer to **MultiSenNA**.
+> We introduce **AI4LCC-S1-Dialogue-Bench** — an instruction-tuning and evaluation suite for **Sentinel-1 land-cover classification and dialogue** on expert **14-class OCSGE** labels — and **LULCDial-S1**, an EarthDial fine-tune that closes the zero-shot gap on MultiSenGE (example F1 ≈ 0.02 → ≈ 0.80) and targets zero-shot / transfer evaluation on **MultiSenNA**.
 
 ---
 
@@ -322,11 +340,15 @@ sequenceDiagram
 
 | Document | Purpose |
 |---|---|
+| [`RUNBOOK.md`](RUNBOOK.md) | Copy-paste PARAM / pipeline commands |
+| [`log.md`](log.md) | What was run + metrics history |
+| [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md) | Stage 1 substages + glossary |
 | [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) | Dataset deep dive |
 | [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | Step-by-step pipeline for PI |
 | [`BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf`](BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf) | Original MultiSenGE paper |
 | [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md) | EarthDial architecture reference |
+| `metrics/v0.1/*.json` | Frozen Stage 1 numbers |
 
 ---
 
-*Previous filename `BareSoil_S1_MTech_3Stage_Roadmap.md` superseded by this document (March 2026 — post supervisor meeting).*
+*Previous filename `BareSoil_S1_MTech_3Stage_Roadmap.md` superseded (March 2026 — post supervisor meeting). Updated July 2026 after Stage 1 GE scaling completion.*

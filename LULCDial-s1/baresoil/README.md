@@ -1,5 +1,7 @@
 # BareSoil S1 — AI4LCC data prep
 
+> **Status (2026-07):** Stage 1 GE pipeline + ZS + FT scaling **done**. This README is the **data-prep** reference; live FT/eval commands are in root [`RUNBOOK.md`](../../RUNBOOK.md).
+
 ## What you download (official AI4LCC — **not** the HF tile clips)
 
 | File | URL | Size | Required |
@@ -87,11 +89,15 @@ python -m baresoil.eval_zero_shot ^
   --out-metrics data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json
 ```
 
-**1B DONE** (F1 ≈ 0.0194). Next: 1C scaling — see root `RUNBOOK.md` §1C.0 (subsample uploaded train shard on PARAM).
+**1B–1D DONE** (ZS F1 ≈ 0.019 → p25 **0.782** → p50 **0.783** → 100% **0.799**).  
+Metrics: `data/baresoil_s1/metrics/v0.1/`. Full PARAM commands: root `RUNBOOK.md`.  
+**Next:** MultiSenNA transfer with `LULCDial_S1_v0.1` (never train on NA).
 
-## MultiSenNA prep (Stage 2 transfer eval)
+## MultiSenNA prep (Stage 2 transfer eval) — NEXT
 
-Use these folders now so data can be dropped/extracted once and kept ready:
+Bench JSONL (~12k) is already on PARAM (`bench/v0.1/multisenna_bench.jsonl` or under `bench/multisenna/`). **Do not train on NA.**
+
+Folders if you need to rebuild:
 
 ```text
 data/baresoil_s1/ai4lcc/multisenna/

@@ -10,6 +10,14 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-12 — Doc sync: Stage 1 done / MultiSenNA next
+
+**Why:** Align roadmap, workflow guide, Stage1 guide, MultiSenGE §11, baresoil README with locked **14-class** policy and Jul 2026 metrics.
+
+**Updated:** `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`, `BareSoil_AI4LCC_Workflow_Guide.md` (Phase 4 + taxonomy), `MultiSenGE_AI4LCC_Complete_Analysis.md` §6.3/§11, `Stage1_Summer_Intern_Guide.md`, `baresoil/README.md`, `demo/README.md` note, `EarthDial_Complete_Analysis.md` novelty pointer.
+
+---
+
 ### 2026-07-12 — 1C-c + 1D DONE (100% FT, F1 0.799)
 
 **Why:** Finish MultiSenGE data-scaling curve (25 / 50 / 100%, same 1-epoch recipe).

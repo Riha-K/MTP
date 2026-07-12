@@ -598,9 +598,11 @@ python -m baresoil.eval_zero_shot ^
 
 
 
-## Step 2 — MultiSenNA prep (transfer eval, later)
+## Step 2 — MultiSenNA transfer eval (NEXT)
 
-**Extract data here:**
+Bench (~12k) is on PARAM. **Never train on MultiSenNA.** Predict with `LULCDial_S1_v0.1` (+ optional ZS), then `eval_zero_shot`.
+
+**If rebuilding data locally:**
 
 ```text
 LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/labels/

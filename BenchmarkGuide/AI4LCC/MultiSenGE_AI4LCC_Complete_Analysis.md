@@ -279,19 +279,11 @@ mindmap
       14 Water
 ```
 
-### 6.3 Important: no explicit “bare soil” class
+### 6.3 Important: no class literally named “bare soil”
 
-MultiSenGE does **not** label a class named “bare soil.” For **BareSoilDial-S1**, map:
+MultiSenGE does **not** use the English label “bare soil.” Closest official class is **12 Open Spaces, Mineral**; arable/grass may show seasonal soil.  
 
-| MultiSenGE ID | Your unified class (`taxonomy.py`) |
-|---|---|
-| 12 Open Spaces, Mineral | `bare_soil` |
-| 6 Arable Lands | `agricultural_fallow` |
-| 9 Grasslands | `sparse_vegetation` |
-| 1–5 Urban | `bare_rock_paved` or `non_bare` (context-dependent) |
-| 11 Forest, 14 Water, 13 Wetland | `non_bare` |
-
-Use **ground reference raster** (`*_GR_*.tif`) for **dominant pixel class** per patch, not only the semicolon list in JSON (which is **multi-label presence**, not proportions).
+**LULCDial-S1 policy (locked):** keep **all 14 OCSGE names** in QA answers — do **not** collapse to a custom 7-class bare taxonomy. Document class 12 / 6 / 9 as bare-*related* discussion in the thesis, not as remapped training labels.
 
 ---
 
@@ -451,31 +443,31 @@ Same file naming, JSON schema, and 14-class typology.
 
 ---
 
-## 11. Workflow for BareSoilDial-S1 (your project)
+## 11. Workflow for LULCDial-S1 (your project)
 
 ```mermaid
 flowchart TB
     subgraph DOWNLOAD["1. Download official AI4LCC"]
         L["labels.tgz ✓"]
-        S1["s1.tgz ~110 GB"]
+        S1["s1.tgz / packed val bench ✓"]
     end
 
-    subgraph BUILD["2. baresoil/ pipeline (LULCDial-s1)"]
+    subgraph BUILD["2. baresoil/ pipeline"]
         PICK["Pick median S1 date per patch"]
         VH["Extract VH band → float dB PIL"]
-        TAX["taxonomy.py → 7-class bare unified"]
-        QA["instruct_templates.py → QA pairs"]
-        SHARD["build_instruct_s1.py → HF shard"]
+        TAX["taxonomy.py → official 14 OCSGE names"]
+        QA["instruct_templates.py → classify + 2-turn dialogue"]
+        SHARD["build_instruct_s1.py → HF shards"]
     end
 
-    subgraph TRAIN["3. EarthDial Stage 4"]
-        CFG["Stage4_BareSoil_S1.json"]
-        FT["Fine-tune EarthDial_4B_MS<br/>token: [baresoil] [s1_vh_10]"]
+    subgraph TRAIN["3. EarthDial Stage 4 on PARAM"]
+        CFG["Stage4_BareSoil_S1_*.json"]
+        FT["Fine-tune EarthDial_4B_MS<br/>p25 / p50 / v0.1 · [baresoil] [s1_vh_10]"]
     end
 
     subgraph EVAL["4. Evaluation"]
-        VAL["MultiSenGE val split"]
-        NA["MultiSenNA zero-shot"]
+        VAL["MultiSenGE val 801 · example F1 ✅"]
+        NA["MultiSenNA transfer · NEXT"]
     end
 
     L --> PICK
@@ -488,21 +480,22 @@ flowchart TB
 
 ### 11.1 What you use vs ignore
 
-| Use | Ignore (for S1 bare-soil VLM) |
+| Use | Ignore (for S1 LULC VLM Stage 1) |
 |---|---|
-| `s1/` VV+VH patches | `s2/` (unless ablation) |
-| `labels/*.json` + `ground_reference/` | HF `wtr001/S1_AI4LCC` tile mosaics |
-| Class 6, 9, 12 for bare-positive mining | Class 1–5 only patches for bare-soil positives |
-| MultiSenNA for eval | Training on MultiSenNA (leaks zero-shot) |
+| `s1/` VV+VH patches (VH band) | `s2/` (unless ablation) |
+| `labels/*.json` | HF `wtr001/S1_AI4LCC` tile mosaics |
+| Official **14 OCSGE** names in answers | Custom 7-class bare remapping |
+| MultiSenNA for **transfer eval only** | Training on MultiSenNA |
 
-### 11.2 Expected training scale
+### 11.2 Expected training scale (actual Stage 1)
 
 | Item | Count |
 |---|---|
 | Spatial patches | 8,157 |
-| QA templates per patch | 3 (classify + binary bare + VQA) |
-| Max instruction pairs | **~24,471** (before filtering / caps) |
-| Intern target | 30–50K QA (can add templates or S2 ablation later) |
+| QA templates per patch | **2** (classify + 2-turn dialogue) |
+| Train QA rows (full) | ~14,710 |
+| GE val bench | **801** |
+| Achieved GE example F1 | ZS ≈ 0.019 → 100% FT ≈ **0.799** |
 
 ---
 
