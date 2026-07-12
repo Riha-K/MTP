@@ -10,6 +10,26 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-12 — 1C-c + 1D DONE (100% FT, F1 0.799)
+
+**Why:** Finish MultiSenGE data-scaling curve (25 / 50 / 100%, same 1-epoch recipe).
+
+**Train (job 88573):** `train_loss` ≈ **0.171**; ~1.9 h; `checkpoints/LULCDial_S1_v0.1/` (+ `checkpoint-127`).  
+**Predict (job 88591):** 801 preds on PARAM.  
+**Metrics (git):** `lulcdial_v0.1.json`, `train_v0.1/`.
+
+| Metric | ZS | p25 | p50 | **100%** |
+|--------|-----|-----|-----|----------|
+| example F1 | 0.019 | 0.782 | 0.783 | **0.799** |
+| turn1 set-match | 0.0 | 0.104 | 0.122 | 0.122 |
+| turn2 set-match | 0.0 | 0.376 | 0.377 | 0.371 |
+
+**Verdict:** Big win vs ZS. Scaling after 25% is **weak** (p25≈p50; 100% only ~+0.017 F1). Stage 1 scaling curve is complete.
+
+**Next:** MultiSenNA transfer eval (Stage 2), or optional ablations (2 epochs / unfreeze).
+
+---
+
 ### 2026-07-12 — 1C-c (100%) launch ready
 
 **Why:** Complete data-scaling curve with full MultiSenGE train shard (same 1-epoch recipe as p25/p50).

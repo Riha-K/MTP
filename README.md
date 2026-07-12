@@ -2,7 +2,7 @@
 
 > **Project:** AI4LCC-S1 VLM / LULCDial-S1  
 > **Workspace:** `e:\MTP\earth2\`  
-> **Status (2026-07-12):** **1C-a/b DONE** (F1 ~**0.78**) · **1C-c READY** — `sbatch …/train_v0.1.sbatch`
+> **Status (2026-07-12):** **Stage 1 scaling DONE** — ZS **0.019** · p25 **0.782** · p50 **0.783** · **100% 0.799** · **next = MultiSenNA**
 
 ---
 
@@ -26,10 +26,8 @@ After these, you know: *where we are*, *what to run next*, *PARAM setup*.
 | Copy-paste commands + PARAM GPU env | [`RUNBOOK.md`](RUNBOOK.md) |
 | History / results | [`log.md`](log.md) |
 | Thesis plan (3 stages) | [`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md) |
-| Fine-tune meta (p25 / p50) | `Stage4_BareSoil_S1.json`, `Stage4_BareSoil_S1_p50.json` |
-| Eval metrics | `metrics/v0.1/earthdial_zs_baseline.json`, `lulcdial_p25.json`, `lulcdial_p50.json` |
-| Train metrics | `metrics/v0.1/train_p25/`, `train_p50/` |
-| Val predictions | `preds/earthdial_zs/`, `preds/lulcdial_p25/`, `preds/lulcdial_p50/` |
+| Eval metrics (scaling curve) | `metrics/v0.1/earthdial_zs_baseline.json`, `lulcdial_p25.json`, `lulcdial_p50.json`, `lulcdial_v0.1.json` |
+| Train metrics | `metrics/v0.1/train_p25/`, `train_p50/`, `train_v0.1/` |
 
 ---
 
@@ -38,11 +36,11 @@ After these, you know: *where we are*, *what to run next*, *PARAM setup*.
 | Stage | Status |
 |-------|--------|
 | 1A shards + GE/NA benches | **DONE** |
-| 1B EarthDial ZS (801) | **DONE** — F1 ≈ **0.0194** |
+| 1B EarthDial ZS (801) | **DONE** — F1 ≈ **0.019** |
 | 1C-a 25% + 1D | **DONE** — F1 **0.782** |
-| 1C-b 50% + 1D | **DONE** — F1 **0.783** (≈ flat vs p25) |
-| 1C-c 100% + 1D | **READY** — `sbatch …/train_v0.1.sbatch` (ETA ~4–6 h) |
-| MultiSenNA transfer | after scaling curve |
+| 1C-b 50% + 1D | **DONE** — F1 **0.783** |
+| 1C-c 100% + 1D | **DONE** — F1 **0.799** |
+| MultiSenNA transfer | **NEXT** (Stage 2) |
 
 ---
 
@@ -59,10 +57,10 @@ After these, you know: *where we are*, *what to run next*, *PARAM setup*.
 ## Skip for now
 
 - `LULCDial-s1/src/vela_setup/` — IBM cluster templates
-- Template/scorer redesign — wait until after 25/50/100% scaling curve
+- Template/scorer redesign — optional; scaling curve is done
 
 ---
 
 ## One-line answer
 
-**Commands → `RUNBOOK.md`.** **History → `log.md`.** **Next → `sbatch …/train_v0.1.sbatch` (100% FT).**
+**Commands → `RUNBOOK.md`.** **History → `log.md`.** **Next → MultiSenNA transfer eval with best GE model (`LULCDial_S1_v0.1`).**

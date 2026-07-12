@@ -3,7 +3,7 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-12):** **1C-a/b + 1D DONE** (p25 **0.782** · p50 **0.783**) · **1C-c READY** (`train_v0.1.sbatch`, ETA ~4–6 h)
+> **Status (2026-07-12):** **Stage 1 scaling DONE** — ZS **0.019** · p25 **0.782** · p50 **0.783** · **100% 0.799** · **next = MultiSenNA**
 
 ---
 
@@ -50,8 +50,9 @@
 | **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` — F1 **0.782** vs ZS **0.019** |
 | **1C-b** 50% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p50/`; train `metrics/v0.1/train_p50/` |
 | **1D** p50 vs ZS/p25 | **DONE** | `metrics/v0.1/lulcdial_p50.json` — F1 **0.783** (≈ p25 **0.782**) |
-| **1C-c** 100% | **READY / launch** | `train_v0.1.sbatch` → `LULCDial_S1_v0.1/` (full shard; ETA ~4–6 h) |
-| **1D** after 100% | pending | `metrics/v0.1/lulcdial_v0.1.json` |
+| **1C-c** 100% | **DONE** | `checkpoints/LULCDial_S1_v0.1/`; train `metrics/v0.1/train_v0.1/` |
+| **1D** 100% vs curve | **DONE** | `metrics/v0.1/lulcdial_v0.1.json` — F1 **0.799** |
+| **MultiSenNA** transfer | **NEXT** | Stage 2 — eval GE model on NA bench |
 
 ---
 
@@ -645,8 +646,8 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 | ------ | ----------------------------------------- | ------------------------------- |
 | **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl` — **DONE** |
 | **1B** | `predict_zero_shot` + `eval_zero_shot`    | `metrics/v0.1/earthdial_zs_baseline.json` — **DONE** |
-| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | p25 **0.782** · p50 **0.783** **DONE** · **NEXT: 100%** |
-| **1D** | `eval_zero_shot` after each 1C run        | `lulcdial_p25/p50.json` **DONE** · `lulcdial_v0.1.json` pending |
+| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | p25 **0.782** · p50 **0.783** · 100% **0.799** — **DONE** |
+| **1D** | `eval_zero_shot` after each 1C run        | all GE metrics **DONE** · next MultiSenNA |
 | **2**  | `build_bench_multisenna`                  | `multisenna_bench.jsonl`        |
 
 
