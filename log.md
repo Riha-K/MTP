@@ -10,6 +10,15 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-12 — MultiSenNA transfer setup (smoke + full sbatch)
+
+**Why:** Start Stage 2 E4 — GE model on NA without NA training.
+
+**Repo:** `pred_multisenna_smoke.sbatch` (100) · `pred_multisenna_v0.1.sbatch` (~12k, 16 h wall).  
+**Blocker to check on PARAM:** MultisenNA S1 TIFFs under `s1_na_bench` or `multisenna/s1` must match bench filenames.
+
+---
+
 ### 2026-07-12 — Doc sync: Stage 1 done / MultiSenNA next
 
 **Why:** Align roadmap, workflow guide, Stage1 guide, MultiSenGE §11, baresoil README with locked **14-class** policy and Jul 2026 metrics.

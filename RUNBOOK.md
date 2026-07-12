@@ -600,9 +600,66 @@ python -m baresoil.eval_zero_shot ^
 
 ## Step 2 — MultiSenNA transfer eval (NEXT)
 
-Bench (~12k) is on PARAM. **Never train on MultiSenNA.** Predict with `LULCDial_S1_v0.1` (+ optional ZS), then `eval_zero_shot`.
+**Never train on MultiSenNA.** Use GE checkpoint `LULCDial_S1_v0.1`. Full NA ~12k ≈ **8–12 h** GPU — **smoke 100 first**.
 
-**If rebuilding data locally:**
+### 2.0 On PARAM — verify bench + S1 images
+
+```bash
+cd ~/MTP/earth2/LULCDial-s1
+
+ls -lt data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
+      data/baresoil_s1/bench/v0.1/multisenna_bench.jsonl 2>/dev/null
+wc -l data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
+     data/baresoil_s1/bench/v0.1/multisenna_bench.jsonl 2>/dev/null
+
+ls data/baresoil_s1/ai4lcc/multisenna/s1_na_bench 2>/dev/null | head
+ls data/baresoil_s1/ai4lcc/multisenna/s1 2>/dev/null | head
+
+python - <<'PY'
+import json
+from pathlib import Path
+cands = [
+    Path("data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl"),
+    Path("data/baresoil_s1/bench/v0.1/multisenna_bench.jsonl"),
+]
+bench = next(p for p in cands if p.is_file())
+row = json.loads(bench.open().readline())
+name = Path(row["s1_path"]).name
+for root in [
+    Path("data/baresoil_s1/ai4lcc/multisenna/s1_na_bench"),
+    Path("data/baresoil_s1/ai4lcc/multisenna/s1"),
+]:
+    hit = root / name
+    print(bench, "->", hit, "OK" if hit.is_file() else "MISSING")
+PY
+```
+
+If **MISSING**: pack where MultiSenNA S1 lives, then `scp -r` `s1_na_bench` to PARAM `.../ai4lcc/multisenna/`.
+
+### 2.1 Smoke (100) then full
+
+```bash
+cd ~/MTP/earth2
+git pull https://github.com/Riha-K/MTP.git main
+
+sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_multisenna_smoke.sbatch
+# after smoke OK:
+sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_multisenna_v0.1.sbatch   # ~8–12 h
+```
+
+Score (adjust `--bench-jsonl` if your path is the other one):
+
+```bash
+cd ~/MTP/earth2/LULCDial-s1
+module load MLDL/Pytorch-gpu
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
+python -m baresoil.eval_zero_shot \
+  --bench-jsonl data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
+  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/lulcdial_v0.1_multisenna/predictions.jsonl \
+  --out-metrics data/baresoil_s1/metrics/v0.1/lulcdial_v0.1_multisenna.json
+```
+
+**If rebuilding bench locally:**
 
 ```text
 LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/labels/
