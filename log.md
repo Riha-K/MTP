@@ -10,6 +10,23 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-13 — E4 MultiSenNA transfer DONE (F1 ≈ 0.670)
+
+**Why:** Regional transfer claim — GE-trained `LULCDial_S1_v0.1` on MultiSenNA, no NA fine-tune.
+
+**Predict:** 12115 / 12115 preds (`preds/lulcdial_v0.1_multisenna/`).  
+**Metrics:** `metrics/v0.1/lulcdial_v0.1_multisenna.json`
+
+| Eval | example F1 | turn1 set-match | turn2 set-match |
+|------|------------|-----------------|-----------------|
+| GE val (100% FT) | 0.799 | ~0.12 | ~0.37 |
+| **NA transfer** | **0.670** | 0.018 | 0.081 |
+| NA smoke (100) | 0.609 | 0.00 | 0.00 |
+
+**Story:** Clear GE→NA drop (~0.13 F1) but still strong vs GE ZS (~0.02). Optional next: EarthDial ZS on NA for transfer baseline table.
+
+---
+
 ### 2026-07-12 — MultiSenNA transfer setup (smoke + full sbatch)
 
 **Why:** Start Stage 2 E4 — GE model on NA without NA training.

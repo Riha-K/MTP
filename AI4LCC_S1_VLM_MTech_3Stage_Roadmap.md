@@ -7,7 +7,7 @@
 > **Ops / history:** [`RUNBOOK.md`](RUNBOOK.md) · [`log.md`](log.md) · [`README.md`](README.md)  
 > **Companion docs:** [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) · [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) · [`EarthDial_Complete_Analysis.md`](EarthDial_Complete_Analysis.md) · [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md)
 
-**Status (2026-07-12):** Stage 1 **GE scaling DONE** (ZS F1 ≈ **0.019** → 25% **0.782** → 50% **0.783** → 100% **0.799**). Dialogue exact set-match stays hard (~0.12 / ~0.37). **Next = MultiSenNA transfer (Stage 2 track E4).**
+**Status (2026-07-13):** Stage 1 GE scaling **DONE** (ZS F1 ≈ **0.019** → 25% **0.782** → 50% **0.783** → 100% **0.799**). **E4 MultiSenNA transfer DONE** — GE→NA example F1 ≈ **0.670** (12 115 patches, no NA train). Dialogue set-match stays hard (GE ~0.12/0.37; NA ~0.02/0.08). **Next:** optional NA ZS baseline, then Stage 2 ablations / temporal / paper tables.
 
 ---
 
@@ -45,7 +45,7 @@
 1. **First VLM instruction benchmark** pairing **AI4LCC Sentinel-1 VH** with **14-class OCSGE** dialogue (classify + chat).
 2. **Empirical gap:** EarthDial_4B_MS is **near-floor** on S1 LULC before AI4LCC fine-tune (GE val example F1 ≈ **0.02**); optical BigEarthNet pretraining **does not substitute** SAR LULC dialogue.
 3. **Data scaling:** most of the GE gain appears by **~25%** of train data under a fixed 1-epoch recipe; 50%/100% add little F1 (flat scaling story).
-4. **Regional transfer:** train MultiSenGE (Grand-Est) → evaluate **MultiSenNA** (Nouvelle-Aquitaine) without retraining (**next experiment**).
+4. **Regional transfer:** train MultiSenGE (Grand-Est) → evaluate **MultiSenNA** (Nouvelle-Aquitaine) without retraining — **done** (example F1 ≈ **0.670**).
 5. **(Stage 2+)** Multitemporal S1 dialogue using AI4LCC’s 2020 time series — capability BigEarthNet lacks.
 
 ### 3.3 Paper positioning (working titles)
@@ -186,7 +186,7 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 
 **Goal:** Publish **AI4LCC-S1-Dialogue-Bench** + **LULCDial-S1** with **MultiSenNA transfer** and optional ablations.
 
-**Immediate (Jul 2026):** Run **E4 MultiSenNA** with `LULCDial_S1_v0.1` (and ZS compare). Bench JSONL already on PARAM; **do not train on NA**.
+**Immediate (Jul 2026):** **E4 DONE** — NA transfer F1 ≈ **0.670**. Optional: EarthDial ZS on NA for baseline table; then ablations / paper draft.
 
 ### 2.1 Benchmark v1.0 — evaluation tracks
 
@@ -195,7 +195,7 @@ Each stage **extends** the same checkpoint and benchmark — no sensor or taxono
 | **E1 Multi-label classify** | Which of 14 OCSGE classes are present? | **example F1** (primary) | ✅ GE val done |
 | **E2 Dominant class** | Single dominant land-cover type | Accuracy | Optional later |
 | **E3 Dialogue** | 2-turn: all classes → natural/ag | Exact **set-match** (secondary) | ✅ Logged on GE; still hard |
-| **E4 Transfer** | Train MultiSenGE → test **MultiSenNA** | Same metrics, **no NA FT** | ⭐ **NEXT** |
+| **E4 Transfer** | Train MultiSenGE → test **MultiSenNA** | Same metrics, **no NA FT** | ✅ **DONE** (F1 ≈ 0.670) |
 
 Optional **E6 Temporal** (if time): 2-date S1 → “Did surface backscatter change?” using `[s1_vh_temp_10]`.
 
@@ -206,7 +206,7 @@ Optional **E6 Temporal** (if time): 2-date S1 → “Did surface backscatter cha
 | 1 | EarthDial_4B_MS (ZS) vs LULCDial-S1 | Main GE result | ✅ Done (scaling table) |
 | 2 | Data scale 25% / 50% / 100% | Show learning vs saturation | ✅ Done |
 | 3 | LULCDial-S1 vs **AnySat** (CVPR 2025) | Modern non-VLM baseline | Pending |
-| 4 | GE → **MultiSenNA** transfer | Regional generalization | **NEXT** |
+| 4 | GE → **MultiSenNA** transfer | Regional generalization | ✅ **DONE** (F1 ≈ 0.670) |
 | 5 | Optional: 2 epochs / unfreeze / templates | Dialogue set-match ablation | After E4 |
 | 6 | Failure cases | Water / mineral / urban vs arable | Pending write-up |
 
@@ -323,7 +323,7 @@ sequenceDiagram
 
 | Priority | Action | Owner |
 |---|---|---|
-| 🔴 P0 | **MultiSenNA transfer:** predict with `LULCDial_S1_v0.1` (+ ZS compare) on NA bench; score example F1 + set-match | Experiments (PARAM `sbatch`) |
+| 🔴 P0 | Optional: EarthDial ZS on MultiSenNA for transfer baseline table; sync NA preds/metrics to git | Experiments + paper |
 | 🟡 P1 | Pack/confirm NA S1 paths on PARAM if predict needs images beyond bench metadata | Data |
 | 🟢 P2 | Intern/scaling write-up: one table ZS→p25→p50→v0.1; note flat dialogue set-match | You |
 | ⚪ P3 | Optional later: 2-epoch or template ablation for dialogue | Experiments |
