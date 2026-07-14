@@ -44,7 +44,7 @@
 
 1. **First VLM instruction benchmark** pairing **AI4LCC Sentinel-1 VH** with **14-class OCSGE** dialogue (classify + chat).
 2. **Empirical gap:** EarthDial_4B_MS is **near-floor** on S1 LULC before AI4LCC fine-tune (GE val example F1 ≈ **0.02**); optical BigEarthNet pretraining **does not substitute** SAR LULC dialogue.
-3. **Data scaling:** most of the GE gain appears by **~25%** of train data under a fixed 1-epoch recipe; 50%/100% add little F1 (flat scaling story).
+3. **Data-efficiency ablation (supporting):** under a fixed 1-epoch recipe, most GE F1 appears by ~**25%** data; headline model remains **100%** FT (F1 ≈ **0.799**), not the 25% run.
 4. **Regional transfer:** train MultiSenGE (Grand-Est) → evaluate **MultiSenNA** (Nouvelle-Aquitaine) without retraining — **done** (example F1 ≈ **0.670**).
 5. **(Stage 2+)** Multitemporal S1 dialogue using AI4LCC’s 2020 time series — capability BigEarthNet lacks.
 
