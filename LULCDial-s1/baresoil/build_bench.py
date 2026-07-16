@@ -1,4 +1,4 @@
-"""Build a held-out S1-Dialogue-Bench JSONL from val patches."""
+"""Build a held-out S1-Dialogue-Bench JSONL from test (val) patches."""
 
 from __future__ import annotations
 import argparse
@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from tqdm import tqdm #progress bar
 
-from .build_instruct_s1 import _split_bucket
+from .build_instruct_s1 import DEFAULT_TRAIN_RATIO, _split_bucket
 from .instruct_templates import build_classify_qa, build_dialogue_turns
 from .patch_meta import iter_patches, pick_available_s1_file, pick_s1_path
 from .s1_vh_io import read_s1_vh_db, vh_db_to_preview_png
@@ -18,14 +18,25 @@ def main() -> int:
     parser.add_argument("--s1-dir", type=Path, required=True)
     parser.add_argument("--out-jsonl", type=Path, required=True)
     parser.add_argument("--preview-dir", type=Path, default=None)
-    parser.add_argument("--max-samples", type=int, default=500)
+    parser.add_argument(
+        "--train-ratio",
+        type=float,
+        default=DEFAULT_TRAIN_RATIO,
+        help="Must match build_instruct_s1 (default 0.7)",
+    )
+    parser.add_argument(
+        "--max-samples",
+        type=int,
+        default=None,
+        help="Cap bench rows (default: all test patches)",
+    )
     args = parser.parse_args()
 
     rows = []
     for patch in tqdm(iter_patches(args.labels_dir), desc="bench"):
-        if _split_bucket(patch.stem) != "val":
+        if _split_bucket(patch.stem, args.train_ratio) != "val":
             continue
-        if len(rows) >= args.max_samples:
+        if args.max_samples is not None and len(rows) >= args.max_samples:
             break
         s1_name = pick_available_s1_file(patch, args.s1_dir)
         if not s1_name:

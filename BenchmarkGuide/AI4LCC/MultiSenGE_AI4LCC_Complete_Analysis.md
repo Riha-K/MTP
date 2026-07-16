@@ -10,26 +10,34 @@
 
 ---
 
+
+
 ## 1. Executive summary
 
 **MultiSenGE** is a French regional benchmark that pairs **Sentinel-1 SAR**, **Sentinel-2 multispectral time series**, and **high-resolution vector LULC labels** at **10 m** over the **Grand-Est** region (eastern France). It was created because existing S1+S2 datasets (BigEarthNet, SEN12MS) lacked **multitemporal** depth and **fine urban LULC** classes.
 
-| Property | Value |
-|---|---|
-| **Spatial extent** | Grand-Est, **57,433 km²** (~10.6% of France) |
-| **Reference year** | 2019/2020 |
-| **Spatial patches (triplets)** | **8,157** non-overlapping **256×256** @ 10 m |
-| **S2 temporal images** | **72,033** patches |
-| **S1 temporal images** | **1,012,227** patches |
-| **S2 tiles** | **14** Sentinel-2 MGRS tiles |
-| **LULC classes (final raster)** | **14** (5 urban + 9 natural) |
-| **Tasks supported** | Semantic segmentation, scene classification, multimodal fusion, multitemporal DL |
+
+| Property                        | Value                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| **Spatial extent**              | Grand-Est, **57,433 km²** (~10.6% of France)                                     |
+| **Reference year**              | 2019/2020                                                                        |
+| **Spatial patches (triplets)**  | **8,157** non-overlapping **256×256** @ 10 m                                     |
+| **S2 temporal images**          | **72,033** patches                                                               |
+| **S1 temporal images**          | **1,012,227** patches                                                            |
+| **S2 tiles**                    | **14** Sentinel-2 MGRS tiles                                                     |
+| **LULC classes (final raster)** | **14** (5 urban + 9 natural)                                                     |
+| **Tasks supported**             | Semantic segmentation, scene classification, multimodal fusion, multitemporal DL |
+
 
 The dataset is now distributed under the **AI4LCC** umbrella. A sister collection **MultiSenNA** (Nouvelle-Aquitaine, **12,258** patches) was added later for cross-region evaluation — same schema, different geography.
 
 ---
 
+
+
 ## 2. Paper objectives
+
+
 
 ### 2.1 Primary objective
 
@@ -39,6 +47,8 @@ Build and release a **large-scale, open, multimodal + multitemporal** LULC bench
 - Labels are **more accurate and finer** than MODIS (SEN12MS) or CORINE-only coarse mapping (BigEarthNet).
 - Researchers can benchmark **deep learning** for segmentation and classification without building the pipeline from scratch.
 
+
+
 ### 2.2 Secondary objectives
 
 1. **Urban fabric detail:** Split urban areas into **5 subclasses** (dense built-up, sparse built-up, etc.) — impossible with SEN12MS (1 urban class via MODIS) or limited CORINE urban detail in BigEarthNet.
@@ -46,14 +56,17 @@ Build and release a **large-scale, open, multimodal + multitemporal** LULC bench
 3. **Baseline science:** Publish **U-Net + VGG-16** baselines on urban classes (Metz / tile T31UGQ) to anchor future work.
 4. **Community tooling:** JSON metadata per patch + [MultiSenGE-Tools](https://github.com/r-wenger/MultiSenGE-Tools) for parsing dates and filenames.
 
+
+
 ### 2.3 What the paper is *not* trying to do
 
 - Not a global dataset (regional France only in this paper).
 - Not a VLM / language dataset (no QA, captions, or dialogue).
-- Not an optical-only product — S1 is a first-class modality.
-- Not focused on **bare soil** as a named class (see §8 for your thesis mapping).
+- Not an optical-only product.
 
 ---
+
+
 
 ## 3. Research gaps the paper addresses
 
@@ -79,28 +92,42 @@ flowchart TB
     G4 --> M4
 ```
 
+
+
+
+
 ### 3.1 Comparison with prior datasets (from paper)
 
-| Dataset | S1+S2 | Temporal | Reference | Urban classes | Patches (spatial units) |
-|---|---|---|---|---|---|
-| **BigEarthNet** | ✅ pairs | Mostly single-date | CORINE (19 labels, 11 used) | Coarse | 590,326 pairs |
-| **SEN12MS** | ✅ triplets | Seasonal splits | MODIS LC | **1** urban class | 180,662 |
-| **MultiSenGE** | ✅ triplets | **Full 2020 SITS** | **OCSGE2-GEOGRANDEST** | **5** urban subclasses | **8,157** (non-overlap) |
 
-**Key claim:** OCSGE2 has **MMU &lt; 50 m²** and was built by **visual interpretation of aerial photography (2019/2020)** — much closer to **10 m Sentinel** resolution than CORINE (25 ha MMU) or MODIS (500 m).
+| Dataset         | S1+S2      | Temporal           | Reference                   | Urban classes          | Patches (spatial units) |
+| --------------- | ---------- | ------------------ | --------------------------- | ---------------------- | ----------------------- |
+| **BigEarthNet** | ✅ pairs    | Mostly single-date | CORINE (19 labels, 11 used) | Coarse                 | 590,326 pairs           |
+| **SEN12MS**     | ✅ triplets | Seasonal splits    | MODIS LC                    | **1** urban class      | 180,662                 |
+| **MultiSenGE**  | ✅ triplets | **Full 2020 SITS** | **OCSGE2-GEOGRANDEST**      | **5** urban subclasses | **8,157** (non-overlap) |
+
+
+**Key claim:** OCSGE2 has **MMU < 50 m²** and was built by **visual interpretation of aerial photography (2019/2020)** — much closer to **10 m Sentinel** resolution than CORINE (25 ha MMU) or MODIS (500 m).
 
 ---
 
+
+
 ## 4. Data sources
+
+
 
 ### 4.1 Source inventory
 
-| Layer | Source | Access | Role |
-|---|---|---|---|
-| **LULC vectors** | [OCSGE2-GEOGRANDEST](https://www.geograndest.fr) | Open (Etalab v2) | Primary reference; 53 classes at 1:10,000 |
-| **Road network** | BDTOPO-IGN | IGN vector lines | Road importance + buffering for class 5 |
-| **Sentinel-2 L2A** | [THEIA Land](https://www.theia-land.fr) | `theia_download` script | 2020 SITS, cloud &lt; 10% |
-| **Sentinel-1 GRD** | PEPS / EODAG via **S1-Tiling** (CNES) | Ascending + descending 2020 | VV+VH, sliced to S2 grid |
+
+| Layer              | Source                                           | Access                      | Role                                      |
+| ------------------ | ------------------------------------------------ | --------------------------- | ----------------------------------------- |
+| **LULC vectors**   | [OCSGE2-GEOGRANDEST](https://www.geograndest.fr) | Open (Etalab v2)            | Primary reference; 53 classes at 1:10,000 |
+| **Road network**   | BDTOPO-IGN                                       | IGN vector lines            | Road importance + buffering for class 5   |
+| **Sentinel-2 L2A** | [THEIA Land](https://www.theia-land.fr)          | `theia_download` script     | 2020 SITS, cloud < 10%                    |
+| **Sentinel-1 GRD** | PEPS / EODAG via **S1-Tiling** (CNES)            | Ascending + descending 2020 | VV+VH, sliced to S2 grid                  |
+
+
+
 
 ### 4.2 Study area
 
@@ -109,16 +136,20 @@ flowchart TB
 - **S2 tiling:** 14 tiles (paper Figure 1 — Sentinel-2 MGRS grid over the region).
 - **Why this region:** OCSGE2-GEOGRANDEST was available as a **new, accurate, open** regional vector LULC database.
 
+
+
 ### 4.3 OCSGE original hierarchy (before simplification)
 
 OCSGE2 uses **four nomenclature levels**. At the coarsest (**level 1**):
 
-| Level-1 ID | Name |
-|---|---|
-| 1 | Artificial surfaces |
-| 2 | Agricultural areas |
-| 3 | Forest / semi-natural areas |
-| 4 | Water surfaces |
+
+| Level-1 ID | Name                        |
+| ---------- | --------------------------- |
+| 1          | Artificial surfaces         |
+| 2          | Agricultural areas          |
+| 3          | Forest / semi-natural areas |
+| 4          | Water surfaces              |
+
 
 At the finest level used in mapping (**1:10,000**), there are **53 LULC classes** with minimum element size **50 m²**.
 
@@ -126,7 +157,11 @@ The paper **reclassifies level-3 OCSGE classes** into **14 raster classes** suit
 
 ---
 
+
+
 ## 5. Methodology — how the dataset was built
+
+
 
 ### 5.1 End-to-end production workflow
 
@@ -139,7 +174,7 @@ flowchart LR
 
     subgraph REFPROC["B. Reference processing (5 steps)"]
         R1["1. Resample to 10 m"]
-        R2["2. Remove polygons &lt; 2.5 ha<br/>(connected components)"]
+        R2["2. Remove polygons < 2.5 ha<br/>(connected components)"]
         R3["3. Fill holes (k-NN)"]
         R4["4. Morphological closure"]
         R5["5. Add buffered roads/rail"]
@@ -173,11 +208,15 @@ flowchart LR
     DEDUP --> JSON
 ```
 
+
+
+
+
 ### 5.2 Reference rasterization (detail)
 
 **Step 1 — Resampling:** Vector OCSGE level-3 classes semantically merged → **14-class** typology (§6).
 
-**Step 2 — Small polygon removal:** Connected-component filtering per class. Polygons **&lt; 2.5 ha (250 pixels @ 10 m)** set to **no-label / blank** — removes noise invisible at 10 m (stricter than CORINE MMU).
+**Step 2 — Small polygon removal:** Connected-component filtering per class. Polygons **< 2.5 ha (250 pixels @ 10 m)** set to **no-label / blank** — removes noise invisible at 10 m (stricter than CORINE MMU).
 
 **Step 3 — Hole filling:** k-nearest-neighbor imputation (Troyanskaya et al., 2001) with distance-weighted neighbors.
 
@@ -187,23 +226,31 @@ flowchart LR
 
 ### 5.3 Sentinel-2 processing
 
-| Setting | Detail |
-|---|---|
-| Product | L2A surface reflectance (atmospherically corrected) |
-| Year | **2020** |
-| Cloud filter | **&lt; 10%** cloud cover per scene |
-| Download | THEIA `theia_download` (Hagolle, 2021) |
-| Bands kept | **10 bands** @ unified 10 m: B2, B3, B4, B8 (native 10 m) + B5, B6, B7, B8A, B11, B12 (20 m → **cubic resample** to 10 m) |
+
+| Setting      | Detail                                                                                                                    |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Product      | L2A surface reflectance (atmospherically corrected)                                                                       |
+| Year         | **2020**                                                                                                                  |
+| Cloud filter | **< 10%** cloud cover per scene                                                                                           |
+| Download     | THEIA `theia_download` (Hagolle, 2021)                                                                                    |
+| Bands kept   | **10 bands** @ unified 10 m: B2, B3, B4, B8 (native 10 m) + B5, B6, B7, B8A, B11, B12 (20 m → **cubic resample** to 10 m) |
+
+
+
 
 ### 5.4 Sentinel-1 processing (S1-Tiling / CNES)
 
-| Step | Operation |
-|---|---|
-| 1 | Auto-download S1 GRD via **EODAG** (multi-server) |
-| 2 | **Slice** SAR scenes to **Sentinel-2 tile grid** |
-| 3 | **Orthorectify** sliced scenes |
-| 4 | **Multi-temporal speckle filter** (preserves spatial structure) |
-| Output per patch | **VV + VH stacked** (2 channels), 256×256, 10 m GRD |
+
+| Step             | Operation                                                       |
+| ---------------- | --------------------------------------------------------------- |
+| 1                | Auto-download S1 GRD via **EODAG** (multi-server)               |
+| 2                | **Slice** SAR scenes to **Sentinel-2 tile grid**                |
+| 3                | **Orthorectify** sliced scenes                                  |
+| 4                | **Multi-temporal speckle filter** (preserves spatial structure) |
+| Output per patch | **VV + VH stacked** (2 channels), 256×256, 10 m GRD             |
+
+
+
 
 ### 5.5 Triplet patch construction
 
@@ -224,7 +271,11 @@ One spatial patch (256×256 px, 2.56 km × 2.56 km on ground):
 
 ---
 
+
+
 ## 6. Class taxonomy — 14 classes and hierarchy
+
+
 
 ### 6.1 Final 14-class typology (pixel values 1–14)
 
@@ -232,27 +283,35 @@ Paper Table 1 + Figure 4 color legend.
 
 #### Urban fabric — 5 subclasses (IDs 1–5)
 
-| ID | Class name | OCSGE level-1 parent | Description (for DL) |
-|---|---|---|---|
-| **1** | Dense Built-Up | Urban (1) | Compact urban blocks, high impervious fraction |
-| **2** | Sparse Built-Up | Urban (1) | Lower density housing / mixed urban |
-| **3** | Specialized Built-Up Areas | Urban (1) | Industrial, commercial, special urban zones |
-| **4** | Specialized but Vegetative Areas | Urban (1) | Urban green / vegetated specialized zones |
-| **5** | Large Scale Networks | Urban (1) | Major roads, highways, railways (buffered vectors) |
+
+| ID    | Class name                       | OCSGE level-1 parent | Description (for DL)                               |
+| ----- | -------------------------------- | -------------------- | -------------------------------------------------- |
+| **1** | Dense Built-Up                   | Urban (1)            | Compact urban blocks, high impervious fraction     |
+| **2** | Sparse Built-Up                  | Urban (1)            | Lower density housing / mixed urban                |
+| **3** | Specialized Built-Up Areas       | Urban (1)            | Industrial, commercial, special urban zones        |
+| **4** | Specialized but Vegetative Areas | Urban (1)            | Urban green / vegetated specialized zones          |
+| **5** | Large Scale Networks             | Urban (1)            | Major roads, highways, railways (buffered vectors) |
+
+
+
 
 #### Natural / agricultural — 9 subclasses (IDs 6–14)
 
-| ID | Class name | OCSGE level-1 parent | Bare-soil relevance for your thesis |
-|---|---|---|---|
-| **6** | Arable Lands | Agricultural (2) | **High** — ploughed / bare fields, fallow |
-| **7** | Vineyards | Agricultural (2) | Medium — seasonal bare soil between rows |
-| **8** | Orchards | Agricultural (2) | Medium — partial canopy, exposed soil |
-| **9** | Grasslands | Semi-natural (3) | Medium — sparse vegetation / dry grass |
-| **10** | Groves and Hedges | Semi-natural (3) | Low |
-| **11** | Forests | Semi-natural (3) | None (dense vegetation) |
-| **12** | **Open Spaces, Mineral** | Semi-natural (3) | **Highest** — quarries, bare mineral, open ground |
-| **13** | Wetlands | Wetlands (4) | Low (wet, not bare) |
-| **14** | Water Surfaces | Water (5) | None |
+
+| ID     | Class name               | OCSGE level-1 parent | Bare-soil relevance for your thesis               |
+| ------ | ------------------------ | -------------------- | ------------------------------------------------- |
+| **6**  | Arable Lands             | Agricultural (2)     | **High** — ploughed / bare fields, fallow         |
+| **7**  | Vineyards                | Agricultural (2)     | Medium — seasonal bare soil between rows          |
+| **8**  | Orchards                 | Agricultural (2)     | Medium — partial canopy, exposed soil             |
+| **9**  | Grasslands               | Semi-natural (3)     | Medium — sparse vegetation / dry grass            |
+| **10** | Groves and Hedges        | Semi-natural (3)     | Low                                               |
+| **11** | Forests                  | Semi-natural (3)     | None (dense vegetation)                           |
+| **12** | **Open Spaces, Mineral** | Semi-natural (3)     | **Highest** — quarries, bare mineral, open ground |
+| **13** | Wetlands                 | Wetlands (4)         | Low (wet, not bare)                               |
+| **14** | Water Surfaces           | Water (5)            | None                                              |
+
+
+
 
 ### 6.2 Hierarchy diagram
 
@@ -279,15 +338,15 @@ mindmap
       14 Water
 ```
 
-### 6.3 Important: no class literally named “bare soil”
 
-MultiSenGE does **not** use the English label “bare soil.” Closest official class is **12 Open Spaces, Mineral**; arable/grass may show seasonal soil.  
-
-**LULCDial-S1 policy (locked):** keep **all 14 OCSGE names** in QA answers — do **not** collapse to a custom 7-class bare taxonomy. Document class 12 / 6 / 9 as bare-*related* discussion in the thesis, not as remapped training labels.
 
 ---
 
+
+
 ## 7. Dataset structure on disk
+
+
 
 ### 7.1 Four folders (official AI4LCC / MultiSenGE)
 
@@ -298,6 +357,8 @@ MultiSenGE/
 ├── s1/                  # ~1M files — {tile}_{date}_S1_{x}_{y}.tif
 └── s2/                  # ~72k files — {tile}_{date}_S2_{x}_{y}.tif
 ```
+
+
 
 ### 7.2 JSON label file schema (real example)
 
@@ -312,37 +373,49 @@ MultiSenGE/
 }
 ```
 
-| Field | Meaning |
-|---|---|
-| `corresponding_s1` | All S1 filenames for this patch (`;`-separated) |
-| `corresponding_s2` | All S2 filenames for this patch |
-| `projection` | WKT — patch CRS (UTM zone depends on tile) |
-| `labels` | **Class IDs present** in patch (multi-label), e.g. `2;5;6;9;11` = Sparse Built-Up + Roads + Arable + Grassland + Forest |
+
+| Field              | Meaning                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| `corresponding_s1` | All S1 filenames for this patch (`;`-separated)                                                                         |
+| `corresponding_s2` | All S2 filenames for this patch                                                                                         |
+| `projection`       | WKT — patch CRS (UTM zone depends on tile)                                                                              |
+| `labels`           | **Class IDs present** in patch (multi-label), e.g. `2;5;6;9;11` = Sparse Built-Up + Roads + Arable + Grassland + Forest |
+
+
+
 
 ### 7.3 S1 GeoTIFF format (per patch-date)
 
-| Property | Value |
-|---|---|
-| Size | **256 × 256** pixels |
-| GSD | **10 m** |
-| Bands | **2** — Band 1 = **VV**, Band 2 = **VH** |
-| Values | Sigma0 **backscatter in dB** (GRD preprocessed) |
-| Pol | Dual-pol GRD |
+
+| Property | Value                                           |
+| -------- | ----------------------------------------------- |
+| Size     | **256 × 256** pixels                            |
+| GSD      | **10 m**                                        |
+| Bands    | **2** — Band 1 = **VV**, Band 2 = **VH**        |
+| Values   | Sigma0 **backscatter in dB** (GRD preprocessed) |
+| Pol      | Dual-pol GRD                                    |
+
+
+
 
 ### 7.4 Download URLs (AI4LCC / MultiSenGE)
 
-| Asset | URL |
-|---|---|
-| Portal | https://doi.theia.data-terra.org/ai4lcc/?lang=en |
-| Labels | https://s3.unistra.fr/a2s_datasets/MultiSenGE/labels.tgz (~4 MB) |
-| S1 | https://s3.unistra.fr/a2s_datasets/MultiSenGE/s1.tgz (~110 GB) |
-| S2 | https://s3.unistra.fr/a2s_datasets/MultiSenGE/s2.tgz (large) |
-| Ground ref | https://s3.unistra.fr/a2s_datasets/MultiSenGE/ground_reference.tgz (~25 MB) |
-| Tools | https://github.com/r-wenger/MultiSenGE-Tools |
 
-**MultiSenNA** (eval only for you): https://s3.unistra.fr/a2s_datasets/MultiSenNA/s1.tgz
+| Asset      | URL                                                                                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Portal     | [https://doi.theia.data-terra.org/ai4lcc/?lang=en](https://doi.theia.data-terra.org/ai4lcc/?lang=en)                                              |
+| Labels     | [https://s3.unistra.fr/a2s_datasets/MultiSenGE/labels.tgz](https://s3.unistra.fr/a2s_datasets/MultiSenGE/labels.tgz) (~4 MB)                      |
+| S1         | [https://s3.unistra.fr/a2s_datasets/MultiSenGE/s1.tgz](https://s3.unistra.fr/a2s_datasets/MultiSenGE/s1.tgz) (~110 GB)                            |
+| S2         | [https://s3.unistra.fr/a2s_datasets/MultiSenGE/s2.tgz](https://s3.unistra.fr/a2s_datasets/MultiSenGE/s2.tgz) (large)                              |
+| Ground ref | [https://s3.unistra.fr/a2s_datasets/MultiSenGE/ground_reference.tgz](https://s3.unistra.fr/a2s_datasets/MultiSenGE/ground_reference.tgz) (~25 MB) |
+| Tools      | [https://github.com/r-wenger/MultiSenGE-Tools](https://github.com/r-wenger/MultiSenGE-Tools)                                                      |
+
+
+**MultiSenNA** (eval only for you): [https://s3.unistra.fr/a2s_datasets/MultiSenNA/s1.tgz](https://s3.unistra.fr/a2s_datasets/MultiSenNA/s1.tgz)
 
 ---
+
+
 
 ## 8. Image examples (from paper figures)
 
@@ -353,13 +426,17 @@ The PDF contains the canonical visual references. Open `multiSenge_AI4LCC.pdf` a
 - Grand-Est region outline with **14 Sentinel-2 tile footprints**.
 - Use to understand geographic coverage and tile IDs (`31TFN`, `31UGQ`, etc.).
 
+
+
 ### Figure 3 — Label cleaning effect
 
-| Panel | Content |
-|---|---|
-| **(a)** | Sentinel-2 **RGB** (true-color style) |
-| **(b)** | Reference **before** small-polygon removal (noisy boundaries) |
+
+| Panel   | Content                                                                            |
+| ------- | ---------------------------------------------------------------------------------- |
+| **(a)** | Sentinel-2 **RGB** (true-color style)                                              |
+| **(b)** | Reference **before** small-polygon removal (noisy boundaries)                      |
 | **(c)** | Reference **after** connected-components + hole fill + closure (clean 10 m labels) |
+
 
 **Lesson:** Always train on **processed** `ground_reference` rasters, not raw OCSGE vectors.
 
@@ -368,13 +445,17 @@ The PDF contains the canonical visual references. Open `multiSenge_AI4LCC.pdf` a
 - Official **14-class color map** for segmentation masks.
 - Required when visualizing `*_GR_*.tif` or overlaying predictions.
 
+
+
 ### Figure 5 — Triplet example (most important for your work)
 
-| Panel | Modality | Visualization |
-|---|---|---|
-| **(a)** | Sentinel-2 | **RGB** (mono-temporal example) |
-| **(b)** | Sentinel-1 | **VV=Red, VH=Green** composite (SAR is **not** natural color) |
-| **(c)** | Ground reference | **14-class color-coded** label raster |
+
+| Panel   | Modality         | Visualization                                                 |
+| ------- | ---------------- | ------------------------------------------------------------- |
+| **(a)** | Sentinel-2       | **RGB** (mono-temporal example)                               |
+| **(b)** | Sentinel-1       | **VV=Red, VH=Green** composite (SAR is **not** natural color) |
+| **(c)** | Ground reference | **14-class color-coded** label raster                         |
+
 
 ```
 ┌─────────────────┬─────────────────┬─────────────────┐
@@ -384,10 +465,14 @@ The PDF contains the canonical visual references. Open `multiSenge_AI4LCC.pdf` a
 └─────────────────┴─────────────────┴─────────────────┘
 ```
 
+
+
 ### Figure 6 — Baseline segmentation (Metz)
 
 - Compares U-Net-IRRG prediction vs ground truth on urban test tiles.
 - Shows baseline **F1 ≈ 0.52–0.66** on urban subclasses — hard problem.
+
+
 
 ### Local preview tip (S1 only)
 
@@ -395,30 +480,42 @@ After downloading one S1 patch, **do not** open raw float TIFF in Windows Photos
 
 ---
 
+
+
 ## 9. Baseline experiments in the paper
+
+
 
 ### 9.1 Setup
 
-| Item | Choice |
-|---|---|
-| Task | Urban **semantic segmentation** (classes 1–5 + aggregated “other” as class 6) |
-| Area | **Metz**, tile **T31UGQ** |
-| Split | 80% train / 20% val (spatial split per Saraiva et al., 2020) |
-| Models | U-Net + VGG-16 backbone (ImageNet pretrained vs random) |
-| Input | Single-date **S2 IRRG** ± NDVI, NDBI, eNDVI indices |
-| Loss | Weighted categorical cross-entropy (class imbalance) |
+
+| Item   | Choice                                                                        |
+| ------ | ----------------------------------------------------------------------------- |
+| Task   | Urban **semantic segmentation** (classes 1–5 + aggregated “other” as class 6) |
+| Area   | **Metz**, tile **T31UGQ**                                                     |
+| Split  | 80% train / 20% val (spatial split per Saraiva et al., 2020)                  |
+| Models | U-Net + VGG-16 backbone (ImageNet pretrained vs random)                       |
+| Input  | Single-date **S2 IRRG** ± NDVI, NDBI, eNDVI indices                           |
+| Loss   | Weighted categorical cross-entropy (class imbalance)                          |
+
+
+
 
 ### 9.2 Results (Metz test)
 
-| Metric | U-Net-IRRG | U-Net-Index |
-|---|---|---|
-| Weighted F1 | **0.7364** | 0.7214 |
-| Class 1 F1 | 0.5199 | 0.4822 |
-| Class 5 (roads) F1 | 0.5862 | 0.4295 |
+
+| Metric             | U-Net-IRRG | U-Net-Index |
+| ------------------ | ---------- | ----------- |
+| Weighted F1        | **0.7364** | 0.7214      |
+| Class 1 F1         | 0.5199     | 0.4822      |
+| Class 5 (roads) F1 | 0.5862     | 0.4295      |
+
 
 **Takeaway:** Even with **optical** single-date S2, urban subclasses are hard. **Multitemporal S1+S2** (the main value of MultiSenGE) was left to follow-up PhD work — **your VLM + S1 dialogue work fills a different gap**.
 
 ---
+
+
 
 ## 10. AI4LCC collection today (beyond this paper)
 
@@ -434,116 +531,13 @@ flowchart TB
     PORTAL --> NA
 ```
 
-| Collection | Region | Patches | Your use |
-|---|---|---:|---|
-| **MultiSenGE** | Grand-Est (east) | 8,157 | **Training** + val |
-| **MultiSenNA** | Nouvelle-Aquitaine (west) | 12,258 | **Held-out regional eval** |
+
+
+
+| Collection     | Region                    | Patches | Your use                   |
+| -------------- | ------------------------- | ------- | -------------------------- |
+| **MultiSenGE** | Grand-Est (east)          | 8,157   | **Training** + val         |
+| **MultiSenNA** | Nouvelle-Aquitaine (west) | 12,258  | **Held-out regional eval** |
+
 
 Same file naming, JSON schema, and 14-class typology.
-
----
-
-## 11. Workflow for LULCDial-S1 (your project)
-
-```mermaid
-flowchart TB
-    subgraph DOWNLOAD["1. Download official AI4LCC"]
-        L["labels.tgz ✓"]
-        S1["s1.tgz / packed val bench ✓"]
-    end
-
-    subgraph BUILD["2. baresoil/ pipeline"]
-        PICK["Pick median S1 date per patch"]
-        VH["Extract VH band → float dB PIL"]
-        TAX["taxonomy.py → official 14 OCSGE names"]
-        QA["instruct_templates.py → classify + 2-turn dialogue"]
-        SHARD["build_instruct_s1.py → HF shards"]
-    end
-
-    subgraph TRAIN["3. EarthDial Stage 4 on PARAM"]
-        CFG["Stage4_BareSoil_S1_*.json"]
-        FT["Fine-tune EarthDial_4B_MS<br/>p25 / p50 / v0.1 · [baresoil] [s1_vh_10]"]
-    end
-
-    subgraph EVAL["4. Evaluation"]
-        VAL["MultiSenGE val 801 · example F1 ✅"]
-        NA["MultiSenNA transfer · NEXT"]
-    end
-
-    L --> PICK
-    S1 --> PICK
-    PICK --> VH --> TAX --> QA --> SHARD
-    SHARD --> CFG --> FT
-    FT --> VAL
-    FT --> NA
-```
-
-### 11.1 What you use vs ignore
-
-| Use | Ignore (for S1 LULC VLM Stage 1) |
-|---|---|
-| `s1/` VV+VH patches (VH band) | `s2/` (unless ablation) |
-| `labels/*.json` | HF `wtr001/S1_AI4LCC` tile mosaics |
-| Official **14 OCSGE** names in answers | Custom 7-class bare remapping |
-| MultiSenNA for **transfer eval only** | Training on MultiSenNA |
-
-### 11.2 Expected training scale (actual Stage 1)
-
-| Item | Count |
-|---|---|
-| Spatial patches | 8,157 |
-| QA templates per patch | **2** (classify + 2-turn dialogue) |
-| Train QA rows (full) | ~14,710 |
-| GE val bench | **801** |
-| Achieved GE example F1 | ZS ≈ 0.019 → 100% FT ≈ **0.799** |
-
----
-
-## 12. Limitations you must know
-
-1. **Regional bias:** France only — not global bare-soil diversity (pair with SEN12MS or DW+ later if needed).
-2. **No bare-soil class name:** Map class 12 + arable/grass carefully; document in thesis.
-3. **Label year vs S1 dates:** Reference from 2019/2020 photo-interpretation; S1 is 2020 time series — minor temporal mismatch possible.
-4. **Multi-label JSON:** `labels` field lists **presence**, not **dominance** — use `*_GR_*.tif` for scene-level dominant class QA.
-5. **Class imbalance:** Arable + forest dominate; oversample classes 12, 6, 9 for bare-soil tasks.
-6. **License:** CC-BY-NC 4.0 — confirm commercial use restrictions for your deployment context.
-7. **Storage:** Full S1 archive ~110 GB; plan extract path and shard export to ~10 GB PNG/float shards.
-
----
-
-## 13. Key citations
-
-```bibtex
-@article{wenger2022multisenge,
-  author  = {Wenger, Romain and Puissant, Anne and Weber, Jonathan and Idoumghar, Lhassane and Forestier, Germain},
-  title   = {{MULTISENGE}: A Multimodal and Multitemporal Benchmark Dataset for Land Use/Land Cover Remote Sensing Applications},
-  journal = {ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial Information Sciences},
-  volume  = {V-3-2022},
-  pages   = {635--640},
-  year    = {2022},
-  doi     = {10.5194/isprs-annals-V-3-2022-635-2022}
-}
-```
-
-**Follow-up (deeper DL on same data):** Wenger et al., Remote Sensing, 15(1), 151, 2022 — ConvLSTM + multimodal segmentation.  
-**Cross-region extension:** Wenger et al., Remote Sensing Letters, 2025 — MultiSenNA + fine-tuning.
-
----
-
-## 14. Quick reference card
-
-| Question | Answer |
-|---|---|
-| What is MultiSenGE? | S1+S2+LULC benchmark, Grand-Est, 2020, 10 m, 256² patches |
-| How many spatial patches? | **8,157** |
-| How many classes? | **14** (5 urban + 9 natural) |
-| S1 format? | 256×256 GeoTIFF, **VV+VH**, dB, many dates per patch |
-| Where are labels? | JSON + `*_GR_*.tif` per patch |
-| Best bare-related classes? | **12** (mineral/open), **6** (arable), **9** (grassland) |
-| Official download? | https://doi.theia.data-terra.org/ai4lcc/ |
-| Your conversion code? | `LULCDial-s1/baresoil/build_instruct_s1.py` |
-| EarthDial token? | `[baresoil] [s1_vh_10] [classify] <image>` |
-
----
-
-*Document created for LULCDial-S1 / `e:\MTP\earth2\` workspace. Figures 1–6 refer to panels in `BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf`.*

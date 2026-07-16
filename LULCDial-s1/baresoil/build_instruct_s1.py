@@ -21,8 +21,11 @@ from .instruct_templates import build_classify_qa, build_dialogue_turns
 from .patch_meta import iter_patches, pick_available_s1_file, pick_s1_path
 from .s1_vh_io import read_s1_vh_db, vh_db_to_pil
 
-#train/val split (90/10)
-def _split_bucket(stem: str, train_ratio: float = 0.9) -> str:
+# Default: 70% train / 30% test (MD5 of patch stem).
+DEFAULT_TRAIN_RATIO = 0.7
+
+
+def _split_bucket(stem: str, train_ratio: float = DEFAULT_TRAIN_RATIO) -> str:
     h = int(hashlib.md5(stem.encode()).hexdigest(), 16) % 1000
     threshold = int(train_ratio * 1000)
     return "train" if h < threshold else "val"
@@ -31,7 +34,7 @@ def _split_bucket(stem: str, train_ratio: float = 0.9) -> str:
 #   → md5 → hex string like "c4a1..."
 #   → int(hex, 16) → huge number
 #   → % 1000 → e.g. 342
-#   → 342 < 900 → train
+#   → 342 < 700 → train (with train_ratio=0.7)
 
 _SHARD_FEATURES = Features(
     {
@@ -109,10 +112,11 @@ def build_shard(
     split: str, #{train/val only}
     max_patches: int | None,
     skip_missing_s1: bool,
+    train_ratio: float = DEFAULT_TRAIN_RATIO,
 ) -> dict:
     patches = iter_patches(labels_dir) #iterate 8157
     if split in ("train", "val"):
-        patches = [p for p in patches if _split_bucket(p.stem) == split]
+        patches = [p for p in patches if _split_bucket(p.stem, train_ratio) == split]
     if max_patches is not None:
         patches = patches[:max_patches]
 
@@ -130,6 +134,7 @@ def build_shard(
 
     manifest = {
         "split": split,
+        "train_ratio": train_ratio,
         "num_samples": len(ds),
         "num_patches": gen.patch_count,
         "skipped": gen.skipped,
@@ -148,6 +153,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--s1-dir", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True) #write shard
     parser.add_argument("--split", choices=["train", "val", "all"], default="train")
+    parser.add_argument(
+        "--train-ratio",
+        type=float,
+        default=DEFAULT_TRAIN_RATIO,
+        help="Train fraction (default 0.7 = 70%% train / 30%% test)",
+    )
     parser.add_argument("--max-patches", type=int, default=None, help="Cap number of patches (each -> 2 QA)")
     parser.add_argument("--fail-on-missing-s1", action="store_true")
     args = parser.parse_args(argv)
@@ -171,6 +182,7 @@ def main(argv: list[str] | None = None) -> int:
             split=sp,
             max_patches=args.max_patches,
             skip_missing_s1=not args.fail_on_missing_s1,
+            train_ratio=args.train_ratio,
         )
         print(json.dumps(manifest, indent=2))
 

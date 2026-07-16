@@ -122,16 +122,96 @@ So MultiSenNA **is** used in literature — as a **CNN fine-tuning** target — 
 
 ---
 
-## 6. Any VLM papers on MultiSenGE / MultiSenNA?
+## 6. EarthDial (CVPR 2025) S1 metrics — vs your DataSET tables
 
-**Public search (Jul 2026):** no established paper found that:
+**Sources:**  
+- Main paper: *EarthDial: Turning Multi-sensory Earth Observations to Interactive Dialogues* (CVPR 2025)  
+- Supplemental: same title, supplemental PDF  
 
-- builds an **instruction / dialogue** benchmark on AI4LCC OCSGE, or  
-- reports EarthDial / LLaVA / GeoChat-style results on **MultiSenGE/NA** as the main LULC chat task.
+**Bottom line:** EarthDial **does** publish S1/SAR numbers, but on **ships (+ QuakeSet prompts)** — **not** AI4LCC MultiSenGE/NA OCSGE LULC. Its **LULC classification** metrics are mainly **RGB** (BigEarthNet **68.82%**) and **S2/MS** (BigEarthNet **69.94%**, LCZ **60.72%**, TreeSatAI **56.61%**). Do **not** put those Acc % or Table 5 ship mAP in the same scoreboard row as your example F1 **0.799**.
 
-**EarthDial (CVPR 2025)** uses many RS tasks and **SAR** (ships, change, etc.) and **BigEarthNet-style** optical LULC — **not** this French OCSGE MultiSenGE dialogue protocol.
+### 6.1 What S1 tasks EarthDial reports
 
-→ Your **N1** (first VLM instruction + eval protocol on AI4LCC S1 VH + 14-class OCSGE) remains a **defensible gap claim**, with the usual caveat: “to the best of our knowledge.”
+| EarthDial S1 / SAR use | Task type | In MultiSenGE/NA? |
+| ---------------------- | --------- | ----------------- |
+| SAR-Ship [47] | Referred detection + region captioning | No |
+| SRSDD-v1.0 [25] | Region captioning (SAR ships) | No |
+| QuakeSet [8] | Bi-temporal S1: earthquake? + magnitude (prompts; no clear accuracy table like Table 5) | No |
+| Satlas / pretrain S1 | Pretraining QA | No |
+| BigEarthNet | Land-cover **classification** | Optical / MS — **not** S1 OCSGE |
+
+Supplemental dataset list confirms S1 downstream sets = **SAR-Ship, SRSDD, QuakeSet** — no MultiSenGE / MultiSenNA.
+
+### 6.2 EarthDial Table 5 — Ship Dataset (SAR), referred object detection
+
+Numbers are **mAP@0.5-style** columns (size / count splits), not example F1.
+
+| Model | Small | Medium | Large | Single | Multiple |
+| ----- | ----: | -----: | ----: | -----: | -------: |
+| GPT-4o | 0.70 | 0.90 | 3.20 | 1.20 | 0 |
+| **EarthDial** | **12.14** | **26.02** | **35.56** | **26.03** | **6.06** |
+
+### 6.3 EarthDial Table 7 — region captioning on SAR (R-1 / R-L / METEOR)
+
+| Dataset | Model | Rouge-1 | Rouge-L | Meteor |
+| ------- | ----- | ------: | ------: | -----: |
+| SAR-Ship | GPT-4o | 17.68 | 11.81 | 9.63 |
+| SAR-Ship | GeoChat | 57.15 | 57.15 | 52.2 |
+| SAR-Ship | **EarthDial** | **63.1** | **63.1** | **54.83** |
+| SRSDD-v1.0 | GPT-4o | 7.49 | 7.24 | 7.07 |
+| SRSDD-v1.0 | GeoChat | 63.72 | 63.72 | 57.31 |
+| SRSDD-v1.0 | **EarthDial** | **68.8** | **68.8** | **62.45** |
+
+### 6.4 EarthDial LULC / scene **classification** — mainly **RGB** and **S2** (not AI4LCC S1)
+
+EarthDial’s land-cover / scene understanding for **classification** is built on **optical RGB** and **Sentinel-2 multispectral** datasets (BigEarthNet, LCZ, TreeSatAI, etc.). That is where their LULC numbers live — **not** on MultiSenGE/NA OCSGE with Sentinel-1.
+
+**Do not equate** these accuracies with your S1 patch **example F1**. Different datasets, labels (CORINE / LCZ / scene names ≠ 14 OCSGE), and often single-label vs your multi-label set + dialogue.
+
+#### 6.4a Table 4 — RGB / optical classification (Accuracy %)
+
+| Model | AID | UCM | WHU-19 | **BigEarthNet (RGB)** | xBD Set-1 | FMoW |
+| ----- | --: | --: | -----: | --------------------: | --------: | ----: |
+| GPT-4o | 74.73 | 88.76 | 91.14 | 49.0 | 67.95 | 21.43 |
+| InternVL-8B | 60.40 | 58.23 | 79.30 | 19.73 | 51.44 | 21.04 |
+| GeoChat | 72.03 | 84.43 | 80.09 | 20.35 | 53.32 | 59.20 |
+| **EarthDial** | **88.76** | **92.42** | **96.21** | **68.82** | **96.37** | **70.03** |
+
+- **BigEarthNet RGB** = EarthDial’s main published **land-cover multi-label** optical number (**68.82%** Acc).  
+- AID / UCM / WHU-19 = **aerial scene** classification (not French OCSGE).  
+- xBD / FMoW = disaster / functional land-use style tasks — still **not** S1 OCSGE dialogue.
+
+#### 6.4b Table 5 — multispectral / S2-family classification (Accuracy %)
+
+| Task | Input | GPT-4o | **EarthDial** | Δ vs GPT-4o |
+| ---- | ----- | -----: | ------------: | ----------: |
+| **BigEarthNet (MS)** | Sentinel-2 multispectral | 49.0 | **69.94** | +20.94 |
+| **LCZ42** | S2 local climate zones | 15.53 | **60.72** | +45.19 |
+| **TreeSatAI (RGBI)** | RGB + NIR tree species | 16.73 | **56.61** | +39.88 |
+
+| Dataset in EarthDial pipeline | Modality | Role |
+| ----------------------------- | -------- | ---- |
+| `BigEarthNet_FINAL_RGB` / BigEarthNet RGB | Optical RGB | Multi-label LC classify (Table 4) |
+| `BigEarthNet_S2` / BigEarthNet MS | **S2** (up to 12 bands) | Multi-label LC classify (Table 5) |
+| `LCZs_S2` | **S2** | Local climate zone classify |
+| `TreeSatAI` | RGBI | Tree species classify |
+
+**Takeaway for novelty talk:** EarthDial already “does LULC classification” — but on **RGB/S2 BigEarthNet-style** data. Your contribution is **S1 VH + official OCSGE + dialogue + GE→NA**, where EarthDial ZS collapses (**example F1 0.019**).
+
+### 6.5 Your DataSET / AI4LCC numbers (same protocol family)
+
+| Dataset | Setting | Test N | example F1 | Dial T1 | Dial T2 |
+| ------- | ------- | -----: | ---------: | ------: | ------: |
+| MultiSenGE | EarthDial ZS | 801 | **0.019** | 0 | 0 |
+| MultiSenGE | LULCDial ~25% | 801 | **0.782** | ~0.10 | ~0.38 |
+| MultiSenGE | LULCDial ~50% | 801 | **0.783** | ~0.12 | ~0.38 |
+| MultiSenGE | LULCDial 100% | 801 | **0.799** | ~0.12 | ~0.37 |
+| MultiSenNA | GE→NA transfer (no NA FT) | 12115 | **0.670** | 0.018 | 0.081 |
+
+**One-line for professor:**  
+> EarthDial’s LULC classification is **RGB/S2 BigEarthNet** (~**69%** Acc); its S1 metrics are ships/captions — not French OCSGE. On MultiSenGE S1 LULC dialogue, EarthDial ZS is near floor (**0.019**); after LULCDial-S1 FT → **~0.80**.
+
+**Public search (Jul 2026):** no paper found that builds an instruction/dialogue bench on AI4LCC OCSGE or reports VLM results on MultiSenGE/NA as the main LULC chat task → supports **N1** (with “to the best of our knowledge”).
 
 ---
 
@@ -142,6 +222,11 @@ So MultiSenNA **is** used in literature — as a **CNN fine-tuning** target — 
 | ISPRS 2022 U-Net-IRRG | Urban seg (Metz) | S2 IRRG | Weighted F1 | **0.74** | **No** |
 | RS 2023 ConvLSTM+Inception | LULC seg (6-cls highlight) | S1+S2 multi-date | Weighted F1 | ~**0.90** | **No** |
 | RSL 2025 FT on NA | LULC seg | S1+S2 multi-date | Acc / wF1 | **81.9% / 83.2%** | **No** (and they **train on NA**) |
+| EarthDial CVPR 2025 Table 5 | SAR ship referred det. | SAR ships | mAP-style | e.g. Large **35.56** | **No** (ships ≠ OCSGE) |
+| EarthDial Table 4 BigEarthNet | LC multi-label classify | **RGB** | Acc % | **68.82** | **No** (optical CORINE-style ≠ OCSGE S1) |
+| EarthDial Table 5 BigEarthNet MS | LC multi-label classify | **S2 MS** | Acc % | **69.94** | **No** |
+| EarthDial Table 5 LCZ42 | Climate-zone classify | **S2** | Acc % | **60.72** | **No** |
+| EarthDial Table 5 TreeSatAI | Tree species classify | RGBI | Acc % | **56.61** | **No** |
 | **LULCDial-S1 GE** | Patch multi-label + dialogue | **S1 VH** | example F1 | **0.799** | Your primary |
 | **LULCDial-S1 NA** | Same, **no NA FT** | **S1 VH** | example F1 | **0.670** | Your transfer |
 
@@ -166,9 +251,9 @@ compare **within your protocol** (ZS vs FT vs NA), and say CNNs are **complement
 
 ## 9. Suggested 45-second reply in the meeting
 
-> “MultiSenGE/NA are already used for **CNN semantic segmentation** — U-Net about **0.74** weighted F1 on urban Metz with S2, and later ConvLSTM S1+S2 papers report much higher pixel F1, and RSL 2025 fine-tunes CNNs **on** MultiSenNA.  
-> I am **not** competing on that pixel leaderboard. I built the first **VLM instruction benchmark** on the same OCSGE labels with **S1-only** dialogue, raised EarthDial from **0.02 → 0.80** example F1 on GE val, and got **0.67** on MultiSenNA **without** NA training.  
-> So the novelty is **interactive SAR LULC understanding and transfer**, complementary to existing CNN mappers.”
+> “MultiSenGE/NA are already used for **CNN semantic segmentation** — U-Net about **0.74** weighted F1 on urban Metz with S2, and later ConvLSTM S1+S2 papers report much higher pixel F1, and RSL 2025 fine-tunes CNNs **on** MultiSenNA. EarthDial’s LULC classification is mainly **RGB / S2 BigEarthNet** (~**69%** Acc), and its published S1 numbers are **ships/captions** — not OCSGE. On our MultiSenGE S1 LULC dialogue, EarthDial ZS is ~**0.02**, then LULCDial FT ~**0.80**.  
+> I am **not** competing on that pixel or BigEarthNet leaderboard. I built the first **VLM instruction benchmark** on the same OCSGE labels with **S1-only** dialogue, raised EarthDial from **0.02 → 0.80** example F1 on GE val, and got **0.67** on MultiSenNA **without** NA training.  
+> So the novelty is **interactive SAR LULC understanding and transfer**, complementary to optical/S2 classifiers and CNN mappers.”
 
 ---
 
@@ -178,7 +263,7 @@ compare **within your protocol** (ZS vs FT vs NA), and say CNNs are **complement
 2. Wenger et al. (2023) ConvLSTM+Inception on MultiSenGE — Remote Sensing 15(1):151.  
 3. Wenger et al. (2025) MultiSenGE ↔ MultiSenNA CNN fine-tuning — Remote Sensing Letters.  
 4. AI4LCC portal — https://doi.theia.data-terra.org/ai4lcc/  
-5. EarthDial (CVPR 2025) — RS VLM; **not** AI4LCC OCSGE dialogue.  
+5. EarthDial (CVPR 2025) — LULC **classify** mainly **RGB / S2** (BigEarthNet Acc **68.82** / **69.94**; LCZ **60.72**; TreeSatAI **56.61**); S1 = ships / captions / QuakeSet; **not** AI4LCC OCSGE dialogue.  
 6. Your metrics — `LULCDial-s1/data/baresoil_s1/metrics/v0.1/`
 
 ---
