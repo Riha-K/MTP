@@ -170,6 +170,7 @@ def main(argv: list[str] | None = None) -> int:
     mode = "a" if args.resume and args.out_pred_jsonl.is_file() else "w"
     written = 0
     skipped_missing = 0
+    skipped_bad_tif = 0
 
     with args.out_pred_jsonl.open(mode, encoding="utf-8") as out_f:
         for row in tqdm(rows, desc="zs-infer"):
@@ -186,13 +187,18 @@ def main(argv: list[str] | None = None) -> int:
             classify_q = str(row.get("classify_question", ""))
             turn1_q, turn2_q = _dialogue_questions(row)
 
-            with torch.no_grad():
-                pixel_values = _prepare_pixel_values(model, s1_path, image_size)
-                pred_classify, _ = _chat(model, tokenizer, pixel_values, classify_q, generation_config)
-                pred_turn1, history = _chat(model, tokenizer, pixel_values, turn1_q, generation_config)
-                pred_turn2, _ = _chat(
-                    model, tokenizer, pixel_values, turn2_q, generation_config, history=history
-                )
+            try:
+                with torch.no_grad():
+                    pixel_values = _prepare_pixel_values(model, s1_path, image_size)
+                    pred_classify, _ = _chat(model, tokenizer, pixel_values, classify_q, generation_config)
+                    pred_turn1, history = _chat(model, tokenizer, pixel_values, turn1_q, generation_config)
+                    pred_turn2, _ = _chat(
+                        model, tokenizer, pixel_values, turn2_q, generation_config, history=history
+                    )
+            except Exception as exc:  # noqa: BLE001 — keep long jobs alive on corrupt uploads
+                skipped_bad_tif += 1
+                print(f"bad S1 (skip): {s1_path} ({type(exc).__name__}: {exc})", file=sys.stderr)
+                continue
 
             out_f.write(
                 json.dumps(
@@ -214,6 +220,7 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "wrote": written,
                 "skipped_missing_s1": skipped_missing,
+                "skipped_bad_tif": skipped_bad_tif,
                 "out_pred_jsonl": str(args.out_pred_jsonl),
             },
             indent=2,

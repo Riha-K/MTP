@@ -1,0 +1,16 @@
+﻿{
+  "num_bench_rows": 2497,
+  "num_scored_rows": 2497,
+  "missing_predictions": 0,
+  "classification": {
+    "example_f1": 0.01865682708694322
+  },
+  "dialogue": {
+    "turn1_set_match_accuracy": 0.0,
+    "turn2_set_match_accuracy": 0.0
+  },
+  "split": "70/30",
+  "bench": "bench/v0.2/ai4lcc_test.jsonl",
+  "model": "EarthDial_4B_MS zero-shot",
+  "note": "Synced from PARAM after job zs_v02; all 2497 scored"
+}

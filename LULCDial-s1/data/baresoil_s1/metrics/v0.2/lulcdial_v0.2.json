@@ -1,0 +1,16 @@
+{
+  "num_bench_rows": 2497,
+  "num_scored_rows": 2497,
+  "missing_predictions": 0,
+  "classification": {
+    "example_f1": 0.7996150187268404
+  },
+  "dialogue": {
+    "turn1_set_match_accuracy": 0.12134561473768522,
+    "turn2_set_match_accuracy": 0.3644373247897477
+  },
+  "split": "70/30",
+  "bench": "bench/v0.2/ai4lcc_test.jsonl",
+  "model": "LULCDial_S1_v0.2 (EarthDial_4B_MS fine-tuned, job 89647, 1 epoch, 127 steps)",
+  "note": "Synced from PARAM after pred job; all 2497 scored"
+}

@@ -15,7 +15,9 @@ module purge
 module load MLDL/Pytorch-gpu
 cd /home/rihak_iitp/MTP/earth2/LULCDial-s1
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
-export CUDA_VISIBLE_DEVICES=0
+# Do NOT force CUDA_VISIBLE_DEVICES=0 — let Slurm assign the free GPU.
+echo "=== CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-<unset>} ==="
+nvidia-smi || true
 
 mkdir -p data/baresoil_s1/bench/v0.2/preds/lulcdial_v0.2
 
