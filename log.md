@@ -10,6 +10,18 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-18 — ResNet multi-label codebase (GPU run pending)
+
+**Why:** Fair CNN vs LULCDial on same patch classify exam (Method A).
+
+**Added:** `baresoil/cnn/` — `train.py`, `predict.py`, dataset/model/split; PARAM `train_resnet_v0.2.sbatch` / `pred_resnet_v0.2.sbatch`.
+
+**Spec:** ResNet-18, BCE multi-label (14), same MD5 70/30, dB clip [-50,10], thresh 0.5 → `pred_classify` → `eval_zero_shot`.
+
+**Next (GPU):** train on full `labels/`+`s1/` → pred on `ai4lcc_test.jsonl` → `metrics/v0.2/resnet18_s1.json`. Then U-Net.
+
+---
+
 ### 2026-07-16 / 07-17 — v0.2 70/30 DONE (LULCDial example F1 ≈ 0.800)
 
 **Why:** Professor rejected comparing LULCDial’s old **90/10 val** F1 (0.799) to MultiSenGE paper U-Net **pixel wF1**. Need a fair shared split + same patch metric; then CNN baselines.

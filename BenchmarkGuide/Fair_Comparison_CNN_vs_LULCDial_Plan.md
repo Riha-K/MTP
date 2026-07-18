@@ -2,24 +2,26 @@
 
 ---
 
-## 1. Target table 
+## 1. Target table
 
 
-| Method               | Task                             | Sensor               | Pixel wF1 | Patch example F1           | Dialogue T1 / T2 |
-| -------------------- | -------------------------------- | -------------------- | --------- | -------------------------- | ---------------- |
-| U-Net (Wenger-style) | pixel seg → optional tags        | S2 IRRG and/or S1 VH | **?**     | **?** (from map)           | —                |
-| ResNet multi-label   | patch classify                   | S1 VH                | —         | **?**                      | —                |
-| EarthDial ZS         | patch classify + dialogue (text) | S1 VH                | —         | **0.0187** (v0.2 / 2497)   | **0 / 0**                |
-| **LULCDial-S1 v0.2** | patch classify + dialogue (text) | S1 VH                | —         | **0.7996** (v0.2 / 2497)   | **0.121 / 0.364**        |
+| Method               | Task                             | Sensor               | Pixel wF1 | Patch example F1         | Dialogue T1 / T2  |
+| -------------------- | -------------------------------- | -------------------- | --------- | ------------------------ | ----------------- |
+| U-Net (Wenger-style) | pixel seg → optional tags        | S2 IRRG and/or S1 VH | **?**     | **?** (from map)         | —                 |
+| ResNet multi-label   | patch classify                   | S1 VH                | —         | **?**                    | —                 |
+| EarthDial ZS         | patch classify + dialogue (text) | S1 VH                | —         | **0.0187** (v0.2 / 2497) | **0 / 0**         |
+| **LULCDial-S1 v0.2** | patch classify + dialogue (text) | S1 VH                | —         | **0.7996** (v0.2 / 2497) | **0.121 / 0.364** |
 
 
 ---
 
-## 3. Shared rules 
+
+
+## 2. Shared rules
 
 Everyone uses the **same MultiSenGE geography and OCSGE labels**, but not every model does every output.
 
-### 3.1 Data
+### 2.1 Data
 
 
 | Item      | Choice                                                          |
@@ -33,7 +35,7 @@ Everyone uses the **same MultiSenGE geography and OCSGE labels**, but not every 
 
 
 
-### 3.2 Two metrics (two worlds)
+### 2.2 Two metrics (two worlds)
 
 
 | Metric                | What it measures                                          | Who reports it                                                           |
@@ -44,7 +46,7 @@ Everyone uses the **same MultiSenGE geography and OCSGE labels**, but not every 
 
 **Patch example F1** = same formula as `eval_zero_shot.py` (mean of per-patch set F1 on class names).
 
-### 3.3 How U-Net gets a patch example F1
+### 2.3 How U-Net gets a patch example F1
 
 ```text
 U-Net predicts H×W class map
@@ -60,7 +62,7 @@ Suggested threshold: **τ = 0.01 or 0.05** (report which one; sensitivity check 
 
 
 
-## 4. Method A — ResNet multi-label (do first)
+## 3. Method A — ResNet multi-label (do first)
 
 **Goal:** Same *classify* exam as LULCDial, with a CNN instead of a VLM.
 
@@ -86,11 +88,11 @@ Suggested threshold: **τ = 0.01 or 0.05** (report which one; sensitivity check 
 
 
 
-## 5. Method B — U-Net Wenger-style (do second)
+## 4. Method B — U-Net Wenger-style (do second)
 
 **Goal:** Replicate *their kind of model* on *our labels/split*, then bridge to our patch metric.
 
-### 5.1 Train
+### 4.1 Train
 
 
 | Item                              | Spec                                                                                |
@@ -104,7 +106,7 @@ Suggested threshold: **τ = 0.01 or 0.05** (report which one; sensitivity check 
 
 
 
-### 5.2 Report
+### 4.2 Report
 
 
 | Output                    | Metric                              |
@@ -122,17 +124,18 @@ You show you *can* run their technique with your labels — without claiming Ear
 
 
 
-## 6. Method C — EarthDial ZS + LULCDial (already in progress)
+## 5. Method C — EarthDial ZS + LULCDial (already in progress)
 
 
-| Step                                                 | Status                                      |
-| ---------------------------------------------------- | ------------------------------------------- |
-| Rebuild 70/30 shards + bench v0.2                    | ✅ Done                                      |
-| Pack `s1_test_bench_v0.2` + upload PARAM             | ✅ Done                                      |
-| EarthDial ZS on 2497                                 | ✅ Done — example F1 **0.0187**, dial **0/0** |
-| Score ZS → `metrics/v0.2/earthdial_zs_baseline.json` | ✅ Done                                      |
-| Fine-tune `LULCDial_S1_v0.2`                         | ✅ Done — job **89647** (~2 h, 127 steps)    |
+| Step                                                 | Status                                                  |
+| ---------------------------------------------------- | ------------------------------------------------------- |
+| Rebuild 70/30 shards + bench v0.2                    | ✅ Done                                                  |
+| Pack `s1_test_bench_v0.2` + upload PARAM             | ✅ Done                                                  |
+| EarthDial ZS on 2497                                 | ✅ Done — example F1 **0.0187**, dial **0/0**            |
+| Score ZS → `metrics/v0.2/earthdial_zs_baseline.json` | ✅ Done                                                  |
+| Fine-tune `LULCDial_S1_v0.2`                         | ✅ Done — job **89647** (~2 h, 127 steps)                |
 | Predict + score LULCDial on same 2497                | ✅ Done — example F1 **0.7996**, T1/T2 **0.121 / 0.364** |
+
 
 VLM side of the fair table is filled. Next: ResNet (Method A), then U-Net (Method B).
 
@@ -140,7 +143,7 @@ VLM side of the fair table is filled. Next: ResNet (Method A), then U-Net (Metho
 
 
 
-## 7. What we will **not** claim
+## 6. What we will **not** claim
 
 1. **Do not** say LULCDial “beats” U-Net because example F1 > paper’s Metz pixel F1.
 2. **Do not** force Phi-3 to output a dense pixel map (not Stage 1 scope).
@@ -151,7 +154,7 @@ VLM side of the fair table is filled. Next: ResNet (Method A), then U-Net (Metho
 
 
 
-## 8. What we **will** claim (if numbers cooperate)
+## 7. What we **will** claim (if numbers cooperate)
 
 
 | Claim                                      | Evidence                                                                         |
@@ -168,13 +171,12 @@ Honest outcomes are fine: e.g. ResNet > LULCDial on tags, or U-Net >> both on pi
 
 
 
-## 9. Work order (recommended)
+## 8. Work order (recommended)
 
 ```text
-[Now]     Fine-tune LULCDial_S1_v0.2 (job 89631) → then pred + score
-[Done]    v0.2 EarthDial ZS example F1 ≈ **0.0187** (same floor as 90/10 ≈ 0.019)
-[Week+1]  ResNet S1 multi-label on same 70/30 → example F1
-[Week+2]  U-Net on ground_reference (S1 and/or S2)
+[Done]    LULCDial_S1_v0.2 + EarthDial ZS on 70/30 (example F1 0.800 / 0.019)
+[Now]     ResNet-18 code in baresoil/cnn/ — train+pred on GPU next
+[Next]    U-Net on ground_reference (S1 and/or S2)
             → pixel wF1 + aggregated example F1
 [Then]    Fill one table + short “apples vs oranges” paragraph for thesis/slides
 ```
@@ -185,7 +187,7 @@ Optional later: MultiSenNA row for LULCDial only (no NA train) — CNN baseline 
 
 
 
-## 10. Agree / disagree checklist
+## 9. Agree / disagree checklist
 
 Mark each item when you read this:
 
@@ -206,7 +208,7 @@ Mark each item when you read this:
 
 
 
-## 11. One paragraph for your professor
+## 10. One paragraph for your professor
 
 > We will not compare LULCDial example F1 to the MultiSenGE paper’s Metz U-Net pixel F1 as a single leaderboard. We will (1) run EarthDial ZS and LULCDial on our **70/30** MultiSenGE S1 dialogue bench with **example F1**; (2) train a **ResNet multi-label** baseline on the same patches and metric; (3) train a **U-Net** on the same OCSGE ground-reference maps, report **pixel weighted F1**, and convert maps to patch class sets for **example F1**. That gives one table covering mapping and interactive classify/dialogue without mixing incompatible scores.
 
@@ -214,7 +216,7 @@ Mark each item when you read this:
 
 
 
-## 12. Open questions for you
+## 11. Open questions for you
 
 1. Is **ResNet-first** OK, or does he insist **U-Net first**?
 2. For U-Net, must we use **S2** to match the PDF, or is **S1-only** enough for the thesis story?
