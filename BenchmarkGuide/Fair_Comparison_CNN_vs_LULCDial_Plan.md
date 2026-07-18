@@ -9,8 +9,8 @@
 | -------------------- | -------------------------------- | -------------------- | --------- | -------------------------- | ---------------- |
 | U-Net (Wenger-style) | pixel seg → optional tags        | S2 IRRG and/or S1 VH | **?**     | **?** (from map)           | —                |
 | ResNet multi-label   | patch classify                   | S1 VH                | —         | **?**                      | —                |
-| EarthDial ZS         | patch classify + dialogue (text) | S1 VH                | —         | **0.0187** (v0.2 / 2497)   | **0 / 0**        |
-| **LULCDial-S1**      | patch classify + dialogue (text) | S1 VH                | —         | **?** (was 0.799 on 90/10) | **?**            |
+| EarthDial ZS         | patch classify + dialogue (text) | S1 VH                | —         | **0.0187** (v0.2 / 2497)   | **0 / 0**                |
+| **LULCDial-S1 v0.2** | patch classify + dialogue (text) | S1 VH                | —         | **0.7996** (v0.2 / 2497)   | **0.121 / 0.364**        |
 
 
 ---

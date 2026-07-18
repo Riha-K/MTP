@@ -10,6 +10,28 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-16 / 07-17 — v0.2 70/30 DONE (LULCDial example F1 ≈ 0.800)
+
+**Why:** Professor rejected comparing LULCDial’s old **90/10 val** F1 (0.799) to MultiSenGE paper U-Net **pixel wF1**. Need a fair shared split + same patch metric; then CNN baselines.
+
+**Split change:** builders `DEFAULT_TRAIN_RATIO = 0.7` → train **5660** / test **2497**; bench `bench/v0.2/ai4lcc_test.jsonl`; TIFF pack `s1_test_bench_v0.2/`.
+
+**EarthDial ZS (v0.2):** all **2497** scored → `metrics/v0.2/earthdial_zs_baseline.json`  
+**LULCDial_S1_v0.2 FT:** job **89647** on `ragpu004` (`CUDA_VISIBLE_DEVICES=1`; GPU0 held by another user). 1 epoch, 127 steps, ~2 h. Checkpoint `checkpoints/LULCDial_S1_v0.2/`. Preds → `preds/lulcdial_v0.2/`. Metrics → `metrics/v0.2/lulcdial_v0.2.json`.
+
+| Eval (70/30 test, n=2497) | example F1 | turn1 set-match | turn2 set-match |
+|---------------------------|------------|-----------------|-----------------|
+| EarthDial ZS              | 0.019      | 0.000           | 0.000           |
+| **LULCDial_S1_v0.2**      | **0.800**  | 0.121           | 0.364           |
+
+**Ops notes:** Forced `CUDA_VISIBLE_DEVICES=0` caused OOM when GPU0 was full; use free GPU index or let Slurm assign. `predict_zero_shot.py` now **skips corrupt TIFFs** instead of dying. Train/pred `*_v0.2.sbatch` no longer hard-pin GPU 0.
+
+**Plan doc:** `BenchmarkGuide/Fair_Comparison_CNN_vs_LULCDial_Plan.md` — next: ResNet S1 multi-label, then U-Net on `ground_reference` (pixel wF1 + map→tags example F1).
+
+**Git:** `69ed2b7` (70/30 builders + launchers), `80a3050` (metrics + preds + sbatch harden).
+
+---
+
 ### 2026-07-13 — E4 MultiSenNA transfer DONE (F1 ≈ 0.670)
 
 **Why:** Regional transfer claim — GE-trained `LULCDial_S1_v0.1` on MultiSenNA, no NA fine-tune.
