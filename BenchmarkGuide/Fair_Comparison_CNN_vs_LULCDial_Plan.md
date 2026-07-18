@@ -131,11 +131,10 @@ You show you *can* run their technique with your labels — without claiming Ear
 | Pack `s1_test_bench_v0.2` + upload PARAM             | ✅ Done                                      |
 | EarthDial ZS on 2497                                 | ✅ Done — example F1 **0.0187**, dial **0/0** |
 | Score ZS → `metrics/v0.2/earthdial_zs_baseline.json` | ✅ Done                                      |
-| Fine-tune `LULCDial_S1_v0.2`                         | 🔄 Job **89631** (`train_v0.2.sbatch`)       |
-| Predict + score LULCDial on same 2497                | ⏳ After FT                                  |
+| Fine-tune `LULCDial_S1_v0.2`                         | ✅ Done — job **89647** (~2 h, 127 steps)    |
+| Predict + score LULCDial on same 2497                | ✅ Done — example F1 **0.7996**, T1/T2 **0.121 / 0.364** |
 
-
-Fill table cells for **example F1** + dialogue set-match from these runs.
+VLM side of the fair table is filled. Next: ResNet (Method A), then U-Net (Method B).
 
 ---
 
