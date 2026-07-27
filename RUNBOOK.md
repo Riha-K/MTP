@@ -3,7 +3,8 @@
 > **One file for the full pipeline:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
-> **Status (2026-07-12):** **Stage 1 scaling DONE** — ZS **0.019** · p25 **0.782** · p50 **0.783** · **100% 0.799** · **next = MultiSenNA**
+> **Plan / next steps:** [`ROADMAP.md`](ROADMAP.md)  
+> **Status (2026-07-27):** v0.2 **DONE** — ZS **0.019** · LULCDial v0.2 **0.800** (2497 test) · **Next:** P1 write-up + SAR-LC-Bench package
 
 ---
 
@@ -12,12 +13,11 @@
 
 | File | What it is |
 |------|------------|
-| **`RUNBOOK.md`** (this file) | **All commands** — 1A/1B/1C/1D + **PARAM GPU env pins** |
-| **`log.md`** | What changed / when / results (newest first) |
-| **`README.md`** | Reading order + current status pointer |
-| **`Stage1_Summer_Intern_Guide.md`** | Stage goals, glossary, timeline |
-| **`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`** | Full thesis plan (3 stages) |
-| **`LULCDial-s1/baresoil/README.md`** | Data-prep folder layout + short commands |
+| **`ROADMAP.md`** | **Plan** — papers, gaps, P1/P2/P3 steps |
+| **`RUNBOOK.md`** (this file) | **All commands** — PARAM GPU env pins |
+| **`log.md`** | What changed / when / results |
+| **`README.md`** | Quick pointer |
+| **`LULCDial-s1/baresoil/README.md`** | Data-prep + short commands |
 | **`LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`** | Fine-tune shard paths (p25) |
 | **`…/Stage4_BareSoil_S1_p50.json`** | Fine-tune shard paths (p50 / 1C-b) |
 | **`…/shell/train_p50.sbatch`** | 1C-b `sbatch` launcher |
@@ -62,8 +62,8 @@
 
 ```text
 e:\MTP\earth2\
+├── ROADMAP.md                          ← plan + P1/P2/P3 steps
 ├── RUNBOOK.md                          ← this file (commands + PARAM env)
-├── Stage1_Summer_Intern_Guide.md       ← stage goals + glossary
 ├── log.md                              ← change history
 └── LULCDial-s1\
     ├── baresoil\                       ← data-prep + eval scripts
@@ -731,12 +731,12 @@ bash earthdial_demo.sh
 ## Related docs (deeper reading)
 
 
-| File                                                                                                                 | Purpose                            |
-| -------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| [`Stage1_Summer_Intern_Guide.md`](Stage1_Summer_Intern_Guide.md)                                                     | Stage goals, glossary, timeline    |
-| [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md)                                                   | Data-prep commands + folder layout |
-| [`BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`](BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md) | PI-level workflow explanation      |
-| [`AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`](AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md)                                     | Full thesis roadmap (3 stages)     |
-| [`log.md`](log.md)                                                                                                   | What changed in repo and when      |
+| File | Purpose |
+|------|---------|
+| [`ROADMAP.md`](ROADMAP.md) | Plan, paper reading order, next steps |
+| [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md) | Data-prep commands |
+| [`BenchmarkGuide/MultiSenGE_CNN_and_EarthDial_SAR_Research_Brief_2026.md`](BenchmarkGuide/MultiSenGE_CNN_and_EarthDial_SAR_Research_Brief_2026.md) | SAR research gaps |
+| [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) | Dataset facts |
+| [`log.md`](log.md) | Change history |
 
 

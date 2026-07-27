@@ -10,6 +10,14 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-27 — ROADMAP simplified (one project, 3 phases only)
+
+**Why:** User asked to drop extra “gap” items (speckle, masks, cross-sensor, etc.) — stick to Phase 1–3 only.
+
+**Changed:** `ROADMAP.md` rewritten — single project objective, paper objectives, contradictions table, Phase 1/2/3 steps only.
+
+---
+
 ### 2026-07-16 / 07-17 — v0.2 70/30 DONE (LULCDial example F1 ≈ 0.800)
 
 **Why:** Professor rejected comparing LULCDial’s old **90/10 val** F1 (0.799) to MultiSenGE paper U-Net **pixel wF1**. Need a fair shared split + same patch metric; then CNN baselines.
