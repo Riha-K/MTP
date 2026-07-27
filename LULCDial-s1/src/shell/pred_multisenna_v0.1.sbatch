@@ -8,7 +8,7 @@
 #SBATCH -o /home/rihak_iitp/pred_na_%j.out
 #SBATCH -e /home/rihak_iitp/pred_na_%j.err
 #
-# MultiSenNA full transfer predict (~12k) with LULCDial_S1_v0.1.
+# MultiSenNA full transfer predict (~12k) with LULCDial_S1_v0.1 (70/30 GE FT).
 # ETA ~8–12 h (scale from ~45 min / 801 GE). Run smoke first.
 # sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_multisenna_v0.1.sbatch
 

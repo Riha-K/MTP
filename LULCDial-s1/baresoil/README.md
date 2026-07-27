@@ -1,6 +1,6 @@
 # BareSoil S1 — AI4LCC data prep
 
-> **Status (2026-07):** Stage 1 GE pipeline + ZS + FT scaling **done**. This README is the **data-prep** reference; live FT/eval commands are in root [`RUNBOOK.md`](../../RUNBOOK.md).
+> **Status (2026-07):** v0.1 bench (70/30, 2497 test) + ZS + FT **done**. Commands: root [`RUNBOOK.md`](../../RUNBOOK.md) · plan [`ROADMAP.md`](../../ROADMAP.md).
 
 ## What you download (official AI4LCC — **not** the HF tile clips)
 
@@ -53,7 +53,7 @@ LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/
 |--------|------|----------|
 | Train shard | `data/baresoil_s1/shards/ai4lcc_ge_train_train/` | ~14.7k QA (8157 patches × 2 templates) |
 | Val shard | `data/baresoil_s1/shards/ai4lcc_ge_train_val/` | ~10% held-out |
-| Bench JSONL | `data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl` | Classify + 2-turn dialogue |
+| Bench JSONL | `data/baresoil_s1/bench/v0.1/ai4lcc_test.jsonl` | 2497 test (70/30) |
 | Stage 4 config | `src/shell/data/Stage4_BareSoil_S1.json` | Points EarthDial to shards |
 
 Each training sample:
@@ -66,9 +66,9 @@ Each training sample:
 1) Pack only val S1 TIFFs referenced by the bench (laptop / remote CPU):
 ```powershell
 python -m baresoil.pack_bench_s1 ^
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
+  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_test.jsonl ^
   --src-s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
-  --out-dir data/baresoil_s1/ai4lcc/multisenge/s1_val_bench
+  --out-dir data/baresoil_s1/ai4lcc/multisenge/s1_test_bench_v0.1
 ```
 
 2) On PARAM GPU — run EarthDial_4B_MS inference (full env pins in root `RUNBOOK.md`):
@@ -89,9 +89,9 @@ python -m baresoil.eval_zero_shot ^
   --out-metrics data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json
 ```
 
-**1B–1D DONE** (ZS F1 ≈ 0.019 → p25 **0.782** → p50 **0.783** → 100% **0.799**).  
-Metrics: `data/baresoil_s1/metrics/v0.1/`. Full PARAM commands: root `RUNBOOK.md`.  
-**Next:** MultiSenNA transfer with `LULCDial_S1_v0.1` (never train on NA).
+**v0.1 DONE** (ZS F1 ≈ 0.019 → FT **0.800** on 2497 test).  
+Metrics: `data/baresoil_s1/metrics/v0.1/`.  
+**Next:** MultiSenNA transfer with `LULCDial_S1_v0.1` (70/30 checkpoint; never train on NA).
 
 ## MultiSenNA prep (Stage 2 transfer eval) — NEXT
 

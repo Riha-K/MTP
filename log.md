@@ -10,11 +10,13 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
-### 2026-07-27 — ROADMAP simplified (one project, 3 phases only)
+### 2026-07-27 — Rename v0.2 → v0.1; drop old 90/10 v0.1 artifacts
 
-**Why:** User asked to drop extra “gap” items (speckle, masks, cross-sensor, etc.) — stick to Phase 1–3 only.
+**Why:** Single version line for thesis (70/30 only).
 
-**Changed:** `ROADMAP.md` rewritten — single project objective, paper objectives, contradictions table, Phase 1/2/3 steps only.
+**Changed:** `bench/v0.2` → `bench/v0.1`, `metrics/v0.2` → `metrics/v0.1`, checkpoint name `LULCDial_S1_v0.1`, sbatch paths `s1_test_bench_v0.1`. Old scaling / 801-val results removed from repo.
+
+**Next:** Re-run MultiSenNA with 70/30 `LULCDial_S1_v0.1` on PARAM (rename checkpoint folder after `git pull`).
 
 ---
 

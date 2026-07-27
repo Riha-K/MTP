@@ -8,7 +8,7 @@
 #SBATCH -o /home/rihak_iitp/pred_na_smoke_%j.out
 #SBATCH -e /home/rihak_iitp/pred_na_smoke_%j.err
 #
-# MultiSenNA smoke (100 samples) with LULCDial_S1_v0.1 — verify S1 paths before full ~12k.
+# MultiSenNA smoke (100 samples) with LULCDial_S1_v0.1 (70/30 GE FT).
 # sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_multisenna_smoke.sbatch
 
 module purge

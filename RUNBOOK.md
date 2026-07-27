@@ -4,7 +4,7 @@
 > **Workspace:** `e:\MTP\earth2\`  
 > **Code root:** `LULCDial-s1\`  
 > **Plan / next steps:** [`ROADMAP.md`](ROADMAP.md)  
-> **Status (2026-07-27):** v0.2 **DONE** — ZS **0.019** · LULCDial v0.2 **0.800** (2497 test) · **Next:** P1 write-up + SAR-LC-Bench package
+> **Status (2026-07-27):** v0.1 **DONE** — ZS **0.019** · LULCDial v0.1 **0.800** (2497 test, 70/30) · **Next:** MultiSenNA + write-up
 
 ---
 
