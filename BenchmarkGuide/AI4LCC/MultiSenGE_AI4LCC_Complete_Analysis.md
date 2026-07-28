@@ -476,7 +476,7 @@ The PDF contains the canonical visual references. Open `multiSenge_AI4LCC.pdf` a
 
 ### Local preview tip (S1 only)
 
-After downloading one S1 patch, **do not** open raw float TIFF in Windows Photos. Use percentile stretch (see `LULCDial-s1/baresoil/s1_vh_io.py`).
+After downloading one S1 patch, **do not** open raw float TIFF in Windows Photos. Use percentile stretch (see `LULCDial-s1/lulcdial/s1_vh_io.py`).
 
 ---
 

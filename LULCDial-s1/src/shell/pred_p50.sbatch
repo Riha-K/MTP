@@ -17,11 +17,11 @@ cd /home/rihak_iitp/MTP/earth2/LULCDial-s1
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 export CUDA_VISIBLE_DEVICES=0
 
-mkdir -p data/baresoil_s1/bench/v0.1/preds/lulcdial_p50
+mkdir -p data/lulcdial_s1/bench/v0.1/preds/lulcdial_p50
 
-python -m baresoil.predict_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
-  --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
+python -m lulcdial.predict_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --s1-root data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench \
   --checkpoint /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p50 \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/lulcdial_p50/ai4lcc_val_predictions.jsonl \
+  --out-pred-jsonl data/lulcdial_s1/bench/v0.1/preds/lulcdial_p50/ai4lcc_val_predictions.jsonl \
   --resume

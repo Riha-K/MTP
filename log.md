@@ -10,13 +10,38 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-28 — Rename baresoil → lulcdial (project-aligned naming)
+
+**Why:** “BareSoil” was not part of this project scope; align names with LULCDial-S1 / SAR-LC-Bench.
+
+**Changed:**
+- Package `LULCDial-s1/baresoil/` → `lulcdial/`
+- Data `data/baresoil_s1/` → `data/lulcdial_s1/`
+- Stage4 configs `Stage4_LULCDial_S1*.json`; keys `LULCDial_AI4LCC_GE_*`
+- Task token `[baresoil]` → `[lulc]` in templates/bench; `LULCDial_S1_v0.1` checkpoint still uses legacy `[baresoil]` via auto shim in `predict_zero_shot.py`
+- Commands: `python -m lulcdial.*`
+
+**PARAM after pull:** rename or symlink `data/baresoil_s1` → `data/lulcdial_s1`; MultiSenNA job with old bench paths still works if bench JSONL still has `[baresoil]` (no shim needed).
+
+---
+
+### 2026-07-28 — Phase 1 write-up pack (MultiSenNA row blank)
+
+**Why:** Complete paper draft materials while MultiSenNA GPU job runs.
+
+**Added:** `writeup/` — Table 1, bench spec, 10 figure patch IDs, 5 failure-case templates, Intro/Method/Results draft; scripts `export_figure_previews.py`, `rank_failures.py`. ROADMAP §6 updated.
+
+**Pending:** Fill MultiSenNA row + §4.4 in draft after `lulcdial_v0.1_multisenna.json` eval.
+
+---
+
 ### 2026-07-27 — Rename v0.2 → v0.1; drop old 90/10 v0.1 artifacts
 
 **Why:** Single version line for thesis (70/30 only).
 
 **Changed:** `bench/v0.2` → `bench/v0.1`, `metrics/v0.2` → `metrics/v0.1`, checkpoint name `LULCDial_S1_v0.1`, sbatch paths `s1_test_bench_v0.1`. Old scaling / 801-val results removed from repo.
 
-**Next:** Re-run MultiSenNA with 70/30 `LULCDial_S1_v0.1` on PARAM (rename checkpoint folder after `git pull`).
+**Next:** MultiSenNA — use `multisenna/s1` if `s1_na_bench` is empty (sbatch auto-fallback).
 
 ---
 
@@ -72,7 +97,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Why:** Align roadmap, workflow guide, Stage1 guide, MultiSenGE §11, baresoil README with locked **14-class** policy and Jul 2026 metrics.
 
-**Updated:** `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`, `BareSoil_AI4LCC_Workflow_Guide.md` (Phase 4 + taxonomy), `MultiSenGE_AI4LCC_Complete_Analysis.md` §6.3/§11, `Stage1_Summer_Intern_Guide.md`, `baresoil/README.md`, `demo/README.md` note, `EarthDial_Complete_Analysis.md` novelty pointer.
+**Updated:** `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`, `LULCDial_AI4LCC_Workflow_Guide.md` (Phase 4 + taxonomy), `MultiSenGE_AI4LCC_Complete_Analysis.md` §6.3/§11, `Stage1_Summer_Intern_Guide.md`, `baresoil/README.md`, `demo/README.md` note, `EarthDial_Complete_Analysis.md` novelty pointer.
 
 ---
 
@@ -100,7 +125,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Why:** Complete data-scaling curve with full MultiSenGE train shard (same 1-epoch recipe as p25/p50).
 
-**Repo:** `Stage4_BareSoil_S1_v0.1.json` → `ai4lcc_ge_train_train`; `train_v0.1.sbatch` / `pred_v0.1.sbatch` → `checkpoints/LULCDial_S1_v0.1/`.  
+**Repo:** `Stage4_LULCDial_S1_v0.1.json` → `ai4lcc_ge_train_train`; `train_v0.1.sbatch` / `pred_v0.1.sbatch` → `checkpoints/LULCDial_S1_v0.1/`.  
 **ETA:** ~**4–6 h** (~127 steps). Wall limit 8 h. Fresh from `EarthDial_4B_MS`.
 
 **PARAM:** `git pull` then `sbatch …/train_v0.1.sbatch`.
@@ -141,7 +166,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Done on PARAM:**
 - Built `shards/ai4lcc_ge_train_p50` (**7355** rows)
-- `git pull` brought `Stage4_BareSoil_S1_p50.json`, `train_p50.sbatch`, `pred_p50.sbatch`
+- `git pull` brought `Stage4_LULCDial_S1_p50.json`, `train_p50.sbatch`, `pred_p50.sbatch`
 
 **Then:** training started same night (see entry above).
 
@@ -173,7 +198,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Result:** Slurm job **88440** (`sbatch ~/train_p25.sh`) → **COMPLETED** `0:0`, elapsed ~46 min (train ~41:42).
 - Out (PARAM): `~/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25/` (+ `checkpoint-41`, safetensors)
-- Metrics (git): `LULCDial-s1/data/baresoil_s1/metrics/v0.1/train_p25/`
+- Metrics (git): `LULCDial-s1/data/lulcdial_s1/metrics/v0.1/train_p25/`
   - `train_loss` ≈ **0.2431**, `epoch` ≈ 0.99, `train_samples` = 5280
   - step loss: ~2.40 → ~0.14 (healthy; token length 1024)
 - Also: `all_results.json`, `trainer_state.json` (per-step history)
@@ -218,7 +243,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Done:**
 - Subsampled train shard → `shards/ai4lcc_ge_train_p25` (3678 / 14710)
-- `Stage4_BareSoil_S1.json` → PARAM p25 + val paths (commit `f6c02ba`)
+- `Stage4_LULCDial_S1.json` → PARAM p25 + val paths (commit `f6c02ba`)
 - Code: optional `flash_attn` (`0d5bb03`), optional `decord` (`016ab2f`)
 - Installed train deps under **Pytorch-gpu / Python 3.10** (`deepspeed`, `cv2`, `imageio`, `decord`, …)
 
@@ -243,7 +268,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Done till now:** 1A (shards+bench) · 1B ZS (801, F1≈0.0194) · artifacts on PARAM + git (`e3ab205`).
 
-**Next:** On PARAM, subsample train → `ai4lcc_ge_train_p25` (~25%), edit `Stage4_BareSoil_S1.json`, fine-tune from `EarthDial_4B_MS` → `LULCDial_S1_p25`, eval same 801 bench.
+**Next:** On PARAM, subsample train → `ai4lcc_ge_train_p25` (~25%), edit `Stage4_LULCDial_S1.json`, fine-tune from `EarthDial_4B_MS` → `LULCDial_S1_p25`, eval same 801 bench.
 
 **PARAM env (reuse — do not reinstall blindly):**
 - Module: `MLDL/Pytorch-gpu` after `salloc` + `srun --pty bash`
@@ -263,8 +288,8 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 - dialogue turn1 / turn2 set-match: **0.0** / **0.0**
 
 **Artifacts (committed `e3ab205`):**
-- `data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl` (801 lines)
-- `data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json`
+- `data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl` (801 lines)
+- `data/lulcdial_s1/metrics/v0.1/earthdial_zs_baseline.json`
 
 **PARAM commands used (purpose):**
 - `pack_bench_s1` — copy only 801 val TIFFs (not full S1)
@@ -284,7 +309,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Docs updated:**
 - `RUNBOOK.md` — 1B notes (keep clean class-list GT; strict F1); new **1C scaling** block (25→50→100%, separate runs from `EarthDial_4B_MS`); checklist
-- `LULCDial-s1/baresoil/README.md` — post-1B plan
+- `LULCDial-s1/lulcdial/README.md` — post-1B plan
 - `Stage1_Summer_Intern_Guide.md` — 1C scaling wording
 
 **Do not:** treat 8 `.arrow` files as 8 datasets; change answer format mid-ZS; replace strict F1 with sentence metrics.
@@ -352,7 +377,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 - `LULCDial-s1/demo/earthdial_demo.sh` — env-based GPU/model path defaults (`EARTHDIAL_GPU`, `EARTHDIAL_MODEL_PATH`)
 - `RUNBOOK.md` — added PARAM demo startup block
 
-**Not changed:** `baresoil/*`, `finetune.py`, `Stage4_BareSoil_S1.json`, training/eval logic.
+**Not changed:** `baresoil/*`, `finetune.py`, `Stage4_LULCDial_S1.json`, training/eval logic.
 
 ---
 
@@ -372,15 +397,15 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Changed:**
 - Added folder placeholders:
-  - `LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/labels/.gitkeep`
-  - `LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/s1/.gitkeep`
-  - `LULCDial-s1/data/baresoil_s1/bench/multisenna/v0.1/.gitkeep`
-- Added `LULCDial-s1/baresoil/multisenna/build_bench_multisenna.py`
+  - `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/labels/.gitkeep`
+  - `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/s1/.gitkeep`
+  - `LULCDial-s1/data/lulcdial_s1/bench/multisenna/v0.1/.gitkeep`
+- Added `LULCDial-s1/lulcdial/multisenna/build_bench_multisenna.py`
   - Builds MultiSenNA classify + 2-turn dialogue bench JSONL
   - Supports `--max-samples` smoke run
   - Writes summary JSON with counts and skipped missing-S1 rows
-- Added `LULCDial-s1/baresoil/multisenna/__init__.py`
-- Updated `LULCDial-s1/baresoil/README.md` with MultiSenNA storage paths and commands
+- Added `LULCDial-s1/lulcdial/multisenna/__init__.py`
+- Updated `LULCDial-s1/lulcdial/README.md` with MultiSenNA storage paths and commands
 
 **Not changed:** fine-tune config and Stage 4 training code.
 
@@ -391,13 +416,13 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 **Why:** Prepare zero-shot baseline workflow now, while waiting for the allocated system, without touching Stage 4 fine-tune path.
 
 **Changed:**
-- Added `LULCDial-s1/baresoil/eval_zero_shot.py`
+- Added `LULCDial-s1/lulcdial/eval_zero_shot.py`
   - Exports bench request rows (`--dump-requests-jsonl`)
   - Scores predictions JSONL against bench ground truth (`--pred-jsonl`)
   - Writes metrics JSON (`classification.example_f1`, dialogue turn-1/turn-2 set-match accuracy)
-- Updated `LULCDial-s1/baresoil/README.md` with Stage 1B command flow (request export + scoring)
+- Updated `LULCDial-s1/lulcdial/README.md` with Stage 1B command flow (request export + scoring)
 
-**Not changed:** `finetune.py`, `src/shell/data/Stage4_BareSoil_S1.json`, train shard pipeline.
+**Not changed:** `finetune.py`, `src/shell/data/Stage4_LULCDial_S1.json`, train shard pipeline.
 
 ---
 
@@ -406,9 +431,9 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 **Why:** Local folder is `e:\MTP\earth2\` (not `LULCDial\`). Caption task removed from code; roadmap and guides still mentioned it. `readGuide.md` duplicated `README.md`.
 
 **Changed:**
-- `Stage4_BareSoil_S1.json` — paths → `e:/MTP/earth2/LULCDial-s1/data/...`
+- `Stage4_LULCDial_S1.json` — paths → `e:/MTP/earth2/LULCDial-s1/data/...`
 - `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md` — caption removed; 2 tasks/patch (~16k QA); workspace `earth2`
-- `Stage1_Summer_Intern_Guide.md`, `BareSoil_AI4LCC_Workflow_Guide.md`, `baresoil/README.md` — same
+- `Stage1_Summer_Intern_Guide.md`, `LULCDial_AI4LCC_Workflow_Guide.md`, `baresoil/README.md` — same
 - Deleted `readGuide.md` (use root `README.md`)
 
 **Naming:** Workspace folder = `earth2`; thesis product = **LULCDial-S1**; code repo = `LULCDial-s1/`.
@@ -420,19 +445,19 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 **Why:** Add readable inline notes while learning the pipeline (`taxonomy` → `patch_meta` → `s1_vh_io`). No logic changes.
 
 **Changed:**
-- `LULCDial-s1/baresoil/taxonomy.py` — comment tweak in `ai4lcc_names_from_ids`
-- `LULCDial-s1/baresoil/patch_meta.py` — notes on JSON parsing, `iter_patches`, `pick_s1_path`
-- `LULCDial-s1/baresoil/s1_vh_io.py` — notes on rasterio, VH dB conversion, PIL float shard, preview PNG
+- `LULCDial-s1/lulcdial/taxonomy.py` — comment tweak in `ai4lcc_names_from_ids`
+- `LULCDial-s1/lulcdial/patch_meta.py` — notes on JSON parsing, `iter_patches`, `pick_s1_path`
+- `LULCDial-s1/lulcdial/s1_vh_io.py` — notes on rasterio, VH dB conversion, PIL float shard, preview PNG
 
 ---
 
 ### 2026-07-07 — Prune BenchmarkGuide; remove Bench2.0 duplicates
 
-**Why:** Project only needs AI4LCC guides under `BenchmarkGuide/`. BigEarthNet, DynamicWorld, OpenEarthMap, and old `BareSoil_S1_VLM_Dataset_Guide.md` (7-class plan) are out of scope. `Bench2.0/AI4LCC/` duplicated `BenchmarkGuide/AI4LCC/` with stale `earth2` / `EarthDial-main` paths.
+**Why:** Project only needs AI4LCC guides under `BenchmarkGuide/`. BigEarthNet, DynamicWorld, OpenEarthMap, and old `LULCDial_S1_VLM_Dataset_Guide.md` (7-class plan) are out of scope. `Bench2.0/AI4LCC/` duplicated `BenchmarkGuide/AI4LCC/` with stale `earth2` / `EarthDial-main` paths.
 
 **Kept (correct / latest):**
 
-- `BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md` — LULCDial paths, current pipeline
+- `BenchmarkGuide/AI4LCC/LULCDial_AI4LCC_Workflow_Guide.md` — LULCDial paths, current pipeline
 - `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md` — LULCDial-s1 module names
 - `BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf` — moved from `Bench2.0/AI4LCC/` (only copy)
 - `Stage1_Summer_Intern_Guide.md` (repo root) — 2 QA/patch, `patch_meta.py` / `s1_vh_io.py` names
@@ -441,7 +466,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 - `Bench2.0/` (entire folder)
 - `BenchmarkGuide/BigEarthnet/`, `DynamiWorld/`, `OpenEarthMap/`
-- `BenchmarkGuide/BareSoil_S1_VLM_Dataset_Guide.md`
+- `BenchmarkGuide/LULCDial_S1_VLM_Dataset_Guide.md`
 
 ---
 
@@ -467,8 +492,8 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Changed:**
 
-- Emptied `LULCDial-s1/data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl`
-- Removed all PNGs from `LULCDial-s1/data/baresoil_s1/bench/previews/` (folder kept)
+- Emptied `LULCDial-s1/data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl`
+- Removed all PNGs from `LULCDial-s1/data/lulcdial_s1/bench/previews/` (folder kept)
 
 ---
 
@@ -479,9 +504,9 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 **Changed:**
 
 - `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`, `readGuide.md`, `Stage1_Summer_Intern_Guide.md`, `EarthDial_Complete_Analysis.md`
-- `BenchmarkGuide/AI4LCC/BareSoil_AI4LCC_Workflow_Guide.md`, `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`
-- `LULCDial-s1/baresoil/README.md`, `build_instruct_s1.py`, `sample_qa.txt`, `requirements.txt`
-- `LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json` — shard paths now `e:/MTP/LULCDial/LULCDial-s1/data/...`
+- `BenchmarkGuide/AI4LCC/LULCDial_AI4LCC_Workflow_Guide.md`, `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`
+- `LULCDial-s1/lulcdial/README.md`, `build_instruct_s1.py`, `sample_qa.txt`, `requirements.txt`
+- `LULCDial-s1/src/shell/data/Stage4_LULCDial_S1.json` — shard paths now `e:/MTP/LULCDial/LULCDial-s1/data/...`
 - `log.md` — title + historical path references updated
 
 ---
@@ -504,11 +529,11 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Changed:**
 
-- `LULCDial-s1/baresoil/instruct_templates.py` — removed `build_caption_qa()` and `[caption]` token
-- `LULCDial-s1/baresoil/build_instruct_s1.py` — 2 QA rows per patch (classify + dialogue)
-- `LULCDial-s1/baresoil/build_bench.py` — removed caption_question/caption_answer fields
-- `LULCDial-s1/baresoil/sample_qa.txt` — marked D1 as active in code
-- `LULCDial-s1/baresoil/README.md` — ~14.7k QA count (8157 × 2)
+- `LULCDial-s1/lulcdial/instruct_templates.py` — removed `build_caption_qa()` and `[caption]` token
+- `LULCDial-s1/lulcdial/build_instruct_s1.py` — 2 QA rows per patch (classify + dialogue)
+- `LULCDial-s1/lulcdial/build_bench.py` — removed caption_question/caption_answer fields
+- `LULCDial-s1/lulcdial/sample_qa.txt` — marked D1 as active in code
+- `LULCDial-s1/lulcdial/README.md` — ~14.7k QA count (8157 × 2)
 
 **Scale:** 8,157 patches × 2 tasks ≈ 16,314 max instruction rows (before split).
 
@@ -518,9 +543,9 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Why:** Prompts were too technical ("official OCSGE", "Sentinel-1 VH backscatter"). Aligned with EarthDial AID-style short questions while keeping 14-class option list for classify.
 
-**Changed:** `LULCDial-s1/baresoil/instruct_templates.py` — shorter human questions; caption answer uses **verbatim** class names (pending professor choice vs natural sentence).
+**Changed:** `LULCDial-s1/lulcdial/instruct_templates.py` — shorter human questions; caption answer uses **verbatim** class names (pending professor choice vs natural sentence).
 
-**Review doc for PI:** `LULCDial-s1/baresoil/sample_qa.txt` (shows classify, caption A/B, dialogue samples).
+**Review doc for PI:** `LULCDial-s1/lulcdial/sample_qa.txt` (shows classify, caption A/B, dialogue samples).
 
 ---
 
@@ -528,7 +553,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Context:** User undid prior session changes (including accidental rebuild runs). Restored code and this log only — **no build commands run**.
 
-**Code restored** (`LULCDial-s1/baresoil/`):
+**Code restored** (`LULCDial-s1/lulcdial/`):
 
 
 | File                    | Purpose / change                                                                         |
@@ -560,15 +585,15 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Goal:** Switch from 7-class bare-soil remapping to official **14 OCSGE** names; install deps; first shard/bench attempt.
 
-**Dependencies:** `pip install -r LULCDial-s1/baresoil/requirements.txt`
+**Dependencies:** `pip install -r LULCDial-s1/lulcdial/requirements.txt`
 
 **First build (before S1 fix):** Only 1,666 patches matched (train 1,510, val 156) because median JSON date often missing on disk.
 
 **Partial outputs on disk (may be stale after undo/rebuild attempts):**
 
-- `data/baresoil_s1/shards/ai4lcc_ge_train_train/` — partial
-- `data/baresoil_s1/shards/ai4lcc_ge_train_val/` — partial
-- `data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl` — may contain 801 rows from one successful bench run
+- `data/lulcdial_s1/shards/ai4lcc_ge_train_train/` — partial
+- `data/lulcdial_s1/shards/ai4lcc_ge_train_val/` — partial
+- `data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl` — may contain 801 rows from one successful bench run
 
 **Next when user requests:** Re-run shard build on suitable machine with restored code.
 

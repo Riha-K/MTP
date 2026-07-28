@@ -9,7 +9,7 @@
 #SBATCH -e /home/rihak_iitp/ft50_%j.err
 #
 # 1C-b: 50% fine-tune from EarthDial_4B_MS (separate run, not continue from p25).
-# Prerequisites: shard ai4lcc_ge_train_p50 exists; Stage4_BareSoil_S1_p50.json in repo.
+# Prerequisites: shard ai4lcc_ge_train_p50 exists; Stage4_LULCDial_S1_p50.json in repo.
 # Submit from login01:  sbatch ~/MTP/earth2/LULCDial-s1/src/shell/train_p50.sbatch
 
 module purge
@@ -25,7 +25,7 @@ python -m torch.distributed.run \
   --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
   --conv_style "phi3-chat" \
   --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p50 \
-  --meta_path shell/data/Stage4_BareSoil_S1_p50.json \
+  --meta_path shell/data/Stage4_LULCDial_S1_p50.json \
   --overwrite_output_dir True \
   --force_image_size 448 --bf16 True --num_train_epochs 1 \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 128 \

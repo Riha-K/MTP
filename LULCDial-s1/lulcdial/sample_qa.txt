@@ -5,7 +5,7 @@ Context: We fine-tune EarthDial on AI4LCC MultiSenGE (Sentinel-1, 14 OCSGE land-
 Each patch gets 2 training tasks: classify + 2-turn dialogue.
 
 Hidden tokens (for the model, not shown to end users in a product):
-  [baresoil]  = LULC / land-cover task
+  [lulc]  = LULC / land-cover task
   [s1_vh_10] = Sentinel-1 VH input
   [classify]  = task type for single-turn classification
   <image>     = image placeholder (EarthDial convention)
@@ -22,7 +22,7 @@ Natural / agricultural subset for dialogue turn 2:
 ----------------------------------------------------------------------
 
 Human:
-  [baresoil] [s1_vh_10] [classify] <image>
+  [lulc] [s1_vh_10] [classify] <image>
   Classify the land cover in this image. Choose all that apply from: Dense Built-Up,
   Sparse Built-Up, Specialized Built-Up Areas, Specialized but Vegetative Areas,
   Large Scale Networks, Arable Lands, Vineyards, Orchards, Grasslands, Groves and Hedges,
@@ -41,7 +41,7 @@ contain several classes at once.
 ----------------------------------------------------------------------
 
 Turn 1 — Human:
-  [baresoil] [s1_vh_10] <image>
+  [lulc] [s1_vh_10] <image>
   What land cover classes do you see in this image?
 
 Turn 1 — GPT:
@@ -61,8 +61,8 @@ Turn 2 — GPT:
 Classify + 2-turn dialogue per patch.
 
 Implemented in:
-  LULCDial-s1/baresoil/instruct_templates.py
-  LULCDial-s1/baresoil/build_instruct_s1.py
-  LULCDial-s1/baresoil/build_bench.py
+  LULCDial-s1/lulcdial/instruct_templates.py
+  LULCDial-s1/lulcdial/build_instruct_s1.py
+  LULCDial-s1/lulcdial/build_bench.py
 
 Scale: 8,157 patches × 2 tasks ≈ 16,314 instruction rows (before train/val split).

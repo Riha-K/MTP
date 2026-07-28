@@ -45,7 +45,9 @@ UHI="[uhi]"
 L8_MS_30="[l8_ms_30]"
 
 HYPER_RGB_3="[hyper_rgb_3]"
-BARESOIL="[baresoil]"
+LULC="[lulc]"
+# v0.1 shards/checkpoint used this task token before rename to [lulc]
+LULC_V01_LEGACY="[baresoil]"
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 CLIP_MEAN = (0.4814546, 0.4578275, 0.40821073)

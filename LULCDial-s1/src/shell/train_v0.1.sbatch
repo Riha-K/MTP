@@ -28,7 +28,7 @@ python -m torch.distributed.run \
   --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
   --conv_style "phi3-chat" \
   --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_v0.1 \
-  --meta_path shell/data/Stage4_BareSoil_S1_v0.1.json \
+  --meta_path shell/data/Stage4_LULCDial_S1_v0.1.json \
   --overwrite_output_dir True \
   --force_image_size 448 --bf16 True --num_train_epochs 1 \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 128 \

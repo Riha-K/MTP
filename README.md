@@ -22,4 +22,4 @@
 | EarthDial ZS | 0.019 |
 | LULCDial_S1_v0.1 | **0.800** |
 
-Metrics: `LULCDial-s1/data/baresoil_s1/metrics/v0.1/`
+Metrics: `LULCDial-s1/data/lulcdial_s1/metrics/v0.1/`

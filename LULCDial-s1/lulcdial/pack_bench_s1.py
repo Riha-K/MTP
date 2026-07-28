@@ -2,10 +2,10 @@
 
 Example (laptop / remote CPU):
 
-  python -m baresoil.pack_bench_s1 \\
-    --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \\
-    --src-s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 \\
-    --out-dir data/baresoil_s1/ai4lcc/multisenge/s1_val_bench
+  python -m lulcdial.pack_bench_s1 \\
+    --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \\
+    --src-s1-dir data/lulcdial_s1/ai4lcc/multisenge/s1 \\
+    --out-dir data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench
 """
 
 from __future__ import annotations

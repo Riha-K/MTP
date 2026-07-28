@@ -6,11 +6,11 @@ Writes prediction rows for ``eval_zero_shot.py``:
 Example (PARAM GPU node, from LULCDial-s1):
 
   export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
-  python -m baresoil.predict_zero_shot \\
-    --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \\
-    --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \\
+  python -m lulcdial.predict_zero_shot \\
+    --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \\
+    --s1-root data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench \\
     --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \\
-    --out-pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \\
+    --out-pred-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val_predictions.jsonl \\
     --max-samples 20
 """
 
@@ -24,7 +24,21 @@ from typing import Any
 
 from tqdm import tqdm
 
+from .instruct_templates import LULC_TOKEN
 from .s1_vh_io import read_s1_vh_db, vh_db_to_pil
+
+# LULCDial_S1_v0.1 was fine-tuned with the legacy task token before [lulc] rename.
+LULC_V01_LEGACY_TOKEN = "[baresoil]"
+
+
+def _use_legacy_v01_task_token(checkpoint: str) -> bool:
+    return "LULCDial_S1_v0.1" in checkpoint.replace("\\", "/")
+
+
+def _adapt_task_token(text: str, use_legacy: bool) -> str:
+    if use_legacy and LULC_TOKEN in text:
+        return text.replace(LULC_TOKEN, LULC_V01_LEGACY_TOKEN)
+    return text
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -127,7 +141,15 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip patch_ids already present in --out-pred-jsonl.",
     )
+    parser.add_argument(
+        "--legacy-v01-task-token",
+        action="store_true",
+        default=False,
+        help="Map [lulc] -> [baresoil] in prompts (auto for LULCDial_S1_v0.1 checkpoint).",
+    )
     args = parser.parse_args(argv)
+
+    use_legacy_token = args.legacy_v01_task_token or _use_legacy_v01_task_token(args.checkpoint)
 
     # EarthDial lives under src/
     src_dir = Path(__file__).resolve().parents[1] / "src"
@@ -184,8 +206,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"missing S1: {s1_path}", file=sys.stderr)
                 continue
 
-            classify_q = str(row.get("classify_question", ""))
+            classify_q = _adapt_task_token(str(row.get("classify_question", "")), use_legacy_token)
             turn1_q, turn2_q = _dialogue_questions(row)
+            turn1_q = _adapt_task_token(turn1_q, use_legacy_token)
 
             try:
                 with torch.no_grad():

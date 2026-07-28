@@ -16,11 +16,11 @@ module load MLDL/Pytorch-gpu
 cd /home/rihak_iitp/MTP/earth2/LULCDial-s1
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 
-mkdir -p data/baresoil_s1/bench/v0.1/preds/earthdial_zs
+mkdir -p data/lulcdial_s1/bench/v0.1/preds/earthdial_zs
 
-python -m baresoil.predict_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_test.jsonl \
-  --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_test_bench_v0.1 \
+python -m lulcdial.predict_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_test.jsonl \
+  --s1-root data/lulcdial_s1/ai4lcc/multisenge/s1_test_bench_v0.1 \
   --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_test_predictions.jsonl \
+  --out-pred-jsonl data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_test_predictions.jsonl \
   --resume

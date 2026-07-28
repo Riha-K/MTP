@@ -101,7 +101,8 @@ from earthdial.train.constants import (
     L8_MS_30,
     HYPER_RGB_3,
     S1_VH_TEMP_10,
-    BARESOIL,
+    LULC,
+    LULC_V01_LEGACY,
     MB_TOKEN_START,
     MB_TOKEN_END,
 )
@@ -449,7 +450,7 @@ def main():
         CLASSIFY,
         IDENTIFY,
         CAPTION,
-        CHANGEDET,UHI,L8_MS_30,HYPER_RGB_3,S1_VH_TEMP_10,BARESOIL,MB_TOKEN_START,MB_TOKEN_END
+        CHANGEDET,UHI,L8_MS_30,HYPER_RGB_3,S1_VH_TEMP_10,LULC,LULC_V01_LEGACY,MB_TOKEN_START,MB_TOKEN_END
     ]
     num_new_tokens = tokenizer.add_tokens(token_list, special_tokens=True)
     img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)

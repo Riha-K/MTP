@@ -8,7 +8,7 @@ from .taxonomy import (
     natural_class_names_from_ids,
 )
 
-LULC_TOKEN = "[baresoil]"
+LULC_TOKEN = "[lulc]"
 S1_VH_10_TOKEN = "[s1_vh_10]"
 CLASSIFY_TOKEN = "[classify]"
 

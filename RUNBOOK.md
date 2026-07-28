@@ -17,9 +17,9 @@
 | **`RUNBOOK.md`** (this file) | **All commands** — PARAM GPU env pins |
 | **`log.md`** | What changed / when / results |
 | **`README.md`** | Quick pointer |
-| **`LULCDial-s1/baresoil/README.md`** | Data-prep + short commands |
-| **`LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`** | Fine-tune shard paths (p25) |
-| **`…/Stage4_BareSoil_S1_p50.json`** | Fine-tune shard paths (p50 / 1C-b) |
+| **`LULCDial-s1/lulcdial/README.md`** | Data-prep + short commands |
+| **`LULCDial-s1/src/shell/data/Stage4_LULCDial_S1.json`** | Fine-tune shard paths (p25) |
+| **`…/Stage4_LULCDial_S1_p50.json`** | Fine-tune shard paths (p50 / 1C-b) |
 | **`…/shell/train_p50.sbatch`** | 1C-b `sbatch` launcher |
 
 ---
@@ -66,7 +66,7 @@ e:\MTP\earth2\
 ├── RUNBOOK.md                          ← this file (commands + PARAM env)
 ├── log.md                              ← change history
 └── LULCDial-s1\
-    ├── baresoil\                       ← data-prep + eval scripts
+    ├── lulcdial\                       ← data-prep + eval scripts
     │   ├── build_instruct_s1.py        ← shards (train/val)
     │   ├── build_bench.py              ← MultiSenGE val bench
     │   ├── pack_bench_s1.py            ← pack ~801 val TIFFs for PARAM
@@ -74,7 +74,7 @@ e:\MTP\earth2\
     │   ├── eval_zero_shot.py           ← score predictions
     │   └── multisenna\
     │       └── build_bench_multisenna.py
-    ├── data\baresoil_s1\
+    ├── data\lulcdial_s1\
     │   ├── ai4lcc\multisenge\labels\   ← 8,157 JSON
     │   ├── ai4lcc\multisenge\s1\       ← full S1 (remote CPU only)
     │   ├── ai4lcc\multisenge\s1_val_bench\  ← ~801 TIFFs on PARAM
@@ -84,7 +84,7 @@ e:\MTP\earth2\
     │   │   └── preds\earthdial_zs\…   ← ZS preds (committed)
     │   └── metrics\v0.1\               ← earthdial_zs_baseline.json
     ├── src\earthdial\train\finetune.py
-    └── src\shell\data\Stage4_BareSoil_S1.json
+    └── src\shell\data\Stage4_LULCDial_S1.json
 ```
 
 ---
@@ -127,7 +127,7 @@ python -m torch.distributed.run \
   --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
   --conv_style "phi3-chat" \
   --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
-  --meta_path shell/data/Stage4_BareSoil_S1.json \
+  --meta_path shell/data/Stage4_LULCDial_S1.json \
   --overwrite_output_dir True \
   --force_image_size 448 --bf16 True --num_train_epochs 1 \
   --per_device_train_batch_size 1 --gradient_accumulation_steps 128 \
@@ -225,7 +225,7 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
 
 **ETA (p25, 41 steps):** about **60–80 min** wall (~60–100 s/step). First step slowest. Healthy first `loss` ≈ **2.4** (not ~0).
 
-`Stage4_BareSoil_S1.json` train path must be `.../shards/ai4lcc_ge_train_p25`.
+`Stage4_LULCDial_S1.json` train path must be `.../shards/ai4lcc_ge_train_p25`.
 
 Full launch command: see **Prefer `sbatch`** block above (same flags as the interactive copy used earlier).
 
@@ -240,14 +240,14 @@ cd e:\MTP\earth2
 git pull
 
 cd LULCDial-s1
-python -m pip install -r baresoil/requirements.txt
+python -m pip install -r lulcdial/requirements.txt
 ```
 
 **Quick label check (no S1 needed):**
 
 ```powershell
 cd e:\MTP\earth2\LULCDial-s1
-python -c "from baresoil.patch_meta import iter_patches; p=iter_patches('data/baresoil_s1/ai4lcc/multisenge/labels'); print(len(p), p[0].stem)"
+python -c "from lulcdial.patch_meta import iter_patches; p=iter_patches('data/lulcdial_s1/ai4lcc/multisenge/labels'); print(len(p), p[0].stem)"
 ```
 
 Expected: `8157` patches.
@@ -269,7 +269,7 @@ Expected: `8157` patches.
 
 
 ```powershell
-cd e:\MTP\earth2\LULCDial-s1\data\baresoil_s1\ai4lcc\multisenge
+cd e:\MTP\earth2\LULCDial-s1\data\lulcdial_s1\ai4lcc\multisenge
 tar -xzf s1.tgz
 ```
 
@@ -280,17 +280,17 @@ Point `--s1-dir` at the folder that contains `*_S1_*.tif` files.
 ```powershell
 cd e:\MTP\earth2\LULCDial-s1
 
-python -m baresoil.build_instruct_s1 ^
-  --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
-  --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
-  --out-dir data/baresoil_s1/shards/ai4lcc_ge_train_smoke ^
+python -m lulcdial.build_instruct_s1 ^
+  --labels-dir data/lulcdial_s1/ai4lcc/multisenge/labels ^
+  --s1-dir data/lulcdial_s1/ai4lcc/multisenge/s1 ^
+  --out-dir data/lulcdial_s1/shards/ai4lcc_ge_train_smoke ^
   --split all ^
   --max-patches 20
 
-python -m baresoil.build_bench ^
-  --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
-  --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
-  --out-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_smoke.jsonl ^
+python -m lulcdial.build_bench ^
+  --labels-dir data/lulcdial_s1/ai4lcc/multisenge/labels ^
+  --s1-dir data/lulcdial_s1/ai4lcc/multisenge/s1 ^
+  --out-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val_smoke.jsonl ^
   --max-samples 20
 ```
 
@@ -301,16 +301,16 @@ python -m baresoil.build_bench ^
 ```powershell
 cd e:\MTP\earth2\LULCDial-s1
 
-python -m baresoil.build_instruct_s1 ^
-  --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
-  --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
-  --out-dir data/baresoil_s1/shards/ai4lcc_ge_train ^
+python -m lulcdial.build_instruct_s1 ^
+  --labels-dir data/lulcdial_s1/ai4lcc/multisenge/labels ^
+  --s1-dir data/lulcdial_s1/ai4lcc/multisenge/s1 ^
+  --out-dir data/lulcdial_s1/shards/ai4lcc_ge_train ^
   --split all
 
-python -m baresoil.build_bench ^
-  --labels-dir data/baresoil_s1/ai4lcc/multisenge/labels ^
-  --s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
-  --out-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl
+python -m lulcdial.build_bench ^
+  --labels-dir data/lulcdial_s1/ai4lcc/multisenge/labels ^
+  --s1-dir data/lulcdial_s1/ai4lcc/multisenge/s1 ^
+  --out-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl
 ```
 
 
@@ -320,9 +320,9 @@ python -m baresoil.build_bench ^
 
 | Artifact    | Path                                             | Done when                           |
 | ----------- | ------------------------------------------------ | ----------------------------------- |
-| Train shard | `data/baresoil_s1/shards/ai4lcc_ge_train_train/` | `manifest.json` → `num_samples > 0` |
-| Val shard   | `data/baresoil_s1/shards/ai4lcc_ge_train_val/`   | same                                |
-| Bench JSONL | `data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl`   | ~800 rows                           |
+| Train shard | `data/lulcdial_s1/shards/ai4lcc_ge_train_train/` | `manifest.json` → `num_samples > 0` |
+| Val shard   | `data/lulcdial_s1/shards/ai4lcc_ge_train_val/`   | same                                |
+| Bench JSONL | `data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl`   | ~800 rows                           |
 
 
 **Copy to GPU server (minimum):**
@@ -348,16 +348,16 @@ On laptop / remote CPU (where full `multisenge/s1` exists):
 ```powershell
 cd e:\MTP\earth2\LULCDial-s1   # or D:\Riha\earth2\LULCDial-s1
 
-python -m baresoil.pack_bench_s1 ^
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
-  --src-s1-dir data/baresoil_s1/ai4lcc/multisenge/s1 ^
-  --out-dir data/baresoil_s1/ai4lcc/multisenge/s1_val_bench
+python -m lulcdial.pack_bench_s1 ^
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl ^
+  --src-s1-dir data/lulcdial_s1/ai4lcc/multisenge/s1 ^
+  --out-dir data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench
 ```
 
 Then `scp -r` that `s1_val_bench` folder to PARAM:
 
 ```text
-~/MTP/earth2/LULCDial-s1/data/baresoil_s1/ai4lcc/multisenge/s1_val_bench/
+~/MTP/earth2/LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench/
 ```
 
 Also ensure `EarthDial_4B_MS` exists under `~/EarthDial_Models/` (RGB-only is not enough for S1).
@@ -371,29 +371,29 @@ cd ~/MTP/earth2/LULCDial-s1
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 
 # smoke
-python -m baresoil.predict_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
-  --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
+python -m lulcdial.predict_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --s1-root data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench \
   --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
+  --out-pred-jsonl data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
   --max-samples 20
 
 # full (resume-safe) — ~47 min for 801 on A100
-python -m baresoil.predict_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
-  --s1-root data/baresoil_s1/ai4lcc/multisenge/s1_val_bench \
+python -m lulcdial.predict_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --s1-root data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench \
   --checkpoint /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
-  --out-pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
+  --out-pred-jsonl data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
   --resume
 ```
 
 ### 1B.2 Score zero-shot
 
 ```bash
-python -m baresoil.eval_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
-  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
-  --out-metrics data/baresoil_s1/metrics/v0.1/earthdial_zs_baseline.json
+python -m lulcdial.eval_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --pred-jsonl data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
+  --out-metrics data/lulcdial_s1/metrics/v0.1/earthdial_zs_baseline.json
 ```
 
 **Done when:** `metrics/v0.1/earthdial_zs_baseline.json` exists (committed; F1 ≈ 0.0194).
@@ -433,8 +433,8 @@ Full train shard is already on PARAM. Keep it for 100%; write a new folder for 2
 cd ~/MTP/earth2/LULCDial-s1
 python - <<'PY'
 from datasets import load_from_disk
-src = "data/baresoil_s1/shards/ai4lcc_ge_train_train"
-dst = "data/baresoil_s1/shards/ai4lcc_ge_train_p25"
+src = "data/lulcdial_s1/shards/ai4lcc_ge_train_train"
+dst = "data/lulcdial_s1/shards/ai4lcc_ge_train_p25"
 ds = load_from_disk(src)
 n = int(round(len(ds) * 0.25))  # ~3678 of 14710 (2 QA per patch)
 print(f"full={len(ds)} p25={n}")
@@ -443,14 +443,14 @@ print("wrote", dst)
 PY
 ```
 
-Then point `Stage4_BareSoil_S1.json` train `annotation` → `.../ai4lcc_ge_train_p25` (PARAM Linux path). Val stays `ai4lcc_ge_train_val`.
+Then point `Stage4_LULCDial_S1.json` train `annotation` → `.../ai4lcc_ge_train_p25` (PARAM Linux path). Val stays `ai4lcc_ge_train_val`.
 
 ### 1C-b setup (50%) — do tonight; train tomorrow
 
 **Same rules as p25:** fresh start from `EarthDial_4B_MS` (do **not** continue from p25), same hyperparams (`448`, batch 1, accum 128, `freeze_backbone`, no deepspeed).
 
 **Repo files (already committed / pull on PARAM):**
-- Meta: `src/shell/data/Stage4_BareSoil_S1_p50.json` → shard `ai4lcc_ge_train_p50`
+- Meta: `src/shell/data/Stage4_LULCDial_S1_p50.json` → shard `ai4lcc_ge_train_p50`
 - Train: `src/shell/train_p50.sbatch` → out `checkpoints/LULCDial_S1_p50/`
 - Predict: `src/shell/pred_p50.sbatch` → `preds/lulcdial_p50/`
 
@@ -465,8 +465,8 @@ module load MLDL/Pytorch-gpu   # so `datasets` / py3.10 match train env
 
 python - <<'PY'
 from datasets import load_from_disk
-src = "data/baresoil_s1/shards/ai4lcc_ge_train_train"
-dst = "data/baresoil_s1/shards/ai4lcc_ge_train_p50"
+src = "data/lulcdial_s1/shards/ai4lcc_ge_train_train"
+dst = "data/lulcdial_s1/shards/ai4lcc_ge_train_p50"
 ds = load_from_disk(src)
 n = int(round(len(ds) * 0.50))  # ~7355 of 14710
 print(f"full={len(ds)} p50={n}")
@@ -475,8 +475,8 @@ print("wrote", dst)
 PY
 
 # sanity
-ls -lt data/baresoil_s1/shards/ai4lcc_ge_train_p50/
-python -c "from datasets import load_from_disk; print(len(load_from_disk('data/baresoil_s1/shards/ai4lcc_ge_train_p50')))"
+ls -lt data/lulcdial_s1/shards/ai4lcc_ge_train_p50/
+python -c "from datasets import load_from_disk; print(len(load_from_disk('data/lulcdial_s1/shards/ai4lcc_ge_train_p50')))"
 ```
 
 Expect ~**7355** rows. Do **not** start `sbatch` tonight unless you want training overnight.
@@ -500,10 +500,10 @@ sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_p50.sbatch
 cd ~/MTP/earth2/LULCDial-s1
 module load MLDL/Pytorch-gpu
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
-python -m baresoil.eval_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl \
-  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/lulcdial_p50/ai4lcc_val_predictions.jsonl \
-  --out-metrics data/baresoil_s1/metrics/v0.1/lulcdial_p50.json
+python -m lulcdial.eval_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \
+  --pred-jsonl data/lulcdial_s1/bench/v0.1/preds/lulcdial_p50/ai4lcc_val_predictions.jsonl \
+  --out-metrics data/lulcdial_s1/metrics/v0.1/lulcdial_p50.json
 ```
 
 Compare to `lulcdial_p25.json` (F1 ≈ 0.782) and ZS (F1 ≈ 0.019).
@@ -524,16 +524,16 @@ Compare to `lulcdial_p25.json` (F1 ≈ 0.782) and ZS (F1 ≈ 0.019).
 
 > Prefer the **25 → 50 → 100%** plan above. Full 100% run is **1C-c**.
 
-**Config:** `LULCDial-s1/src/shell/data/Stage4_BareSoil_S1.json`  
+**Config:** `LULCDial-s1/src/shell/data/Stage4_LULCDial_S1.json`  
 **Trainer:** `LULCDial-s1/src/earthdial/train/finetune.py`  
 **Base checkpoint:** `EarthDial_4B_MS`  
 **Output:** `LULCDial-s1/checkpoints/LULCDial_S1_v0.1/`
 
-Before training, update shard paths inside `Stage4_BareSoil_S1.json` if machine path differs from:
+Before training, update shard paths inside `Stage4_LULCDial_S1.json` if machine path differs from:
 
 ```text
-e:/MTP/earth2/LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train_train
-e:/MTP/earth2/LULCDial-s1/data/baresoil_s1/shards/ai4lcc_ge_train_val
+e:/MTP/earth2/LULCDial-s1/data/lulcdial_s1/shards/ai4lcc_ge_train_train
+e:/MTP/earth2/LULCDial-s1/data/lulcdial_s1/shards/ai4lcc_ge_train_val
 ```
 
 **Template command (PARAM — 1 GPU; do NOT use plain `python finetune.py`):**
@@ -551,7 +551,7 @@ python -m torch.distributed.run \
   --model_name_or_path /home/rihak_iitp/EarthDial_Models/EarthDial_4B_MS \
   --conv_style "phi3-chat" \
   --output_dir /home/rihak_iitp/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25 \
-  --meta_path shell/data/Stage4_BareSoil_S1.json \
+  --meta_path shell/data/Stage4_LULCDial_S1.json \
   --overwrite_output_dir True \
   --force_image_size 224 \
   --bf16 True \
@@ -579,10 +579,10 @@ See also: `LULCDial-s1/src/EarthDial.sh` (example shell wrapper).
 ```powershell
 cd e:\MTP\earth2\LULCDial-s1
 
-python -m baresoil.eval_zero_shot ^
-  --bench-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val.jsonl ^
-  --pred-jsonl data/baresoil_s1/bench/v0.1/ai4lcc_val_predictions_lulcdial.jsonl ^
-  --out-metrics data/baresoil_s1/metrics/lulcdial_v0.1.json
+python -m lulcdial.eval_zero_shot ^
+  --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl ^
+  --pred-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val_predictions_lulcdial.jsonl ^
+  --out-metrics data/lulcdial_s1/metrics/lulcdial_v0.1.json
 ```
 
 **Compare:**
@@ -607,27 +607,27 @@ python -m baresoil.eval_zero_shot ^
 ```bash
 cd ~/MTP/earth2/LULCDial-s1
 
-ls -lt data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
-      data/baresoil_s1/bench/v0.1/multisenna_bench.jsonl 2>/dev/null
-wc -l data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
-     data/baresoil_s1/bench/v0.1/multisenna_bench.jsonl 2>/dev/null
+ls -lt data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
+      data/lulcdial_s1/bench/v0.1/multisenna_bench.jsonl 2>/dev/null
+wc -l data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
+     data/lulcdial_s1/bench/v0.1/multisenna_bench.jsonl 2>/dev/null
 
-ls data/baresoil_s1/ai4lcc/multisenna/s1_na_bench 2>/dev/null | head
-ls data/baresoil_s1/ai4lcc/multisenna/s1 2>/dev/null | head
+ls data/lulcdial_s1/ai4lcc/multisenna/s1_na_bench 2>/dev/null | head
+ls data/lulcdial_s1/ai4lcc/multisenna/s1 2>/dev/null | head
 
 python - <<'PY'
 import json
 from pathlib import Path
 cands = [
-    Path("data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl"),
-    Path("data/baresoil_s1/bench/v0.1/multisenna_bench.jsonl"),
+    Path("data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench.jsonl"),
+    Path("data/lulcdial_s1/bench/v0.1/multisenna_bench.jsonl"),
 ]
 bench = next(p for p in cands if p.is_file())
 row = json.loads(bench.open().readline())
 name = Path(row["s1_path"]).name
 for root in [
-    Path("data/baresoil_s1/ai4lcc/multisenna/s1_na_bench"),
-    Path("data/baresoil_s1/ai4lcc/multisenna/s1"),
+    Path("data/lulcdial_s1/ai4lcc/multisenna/s1_na_bench"),
+    Path("data/lulcdial_s1/ai4lcc/multisenna/s1"),
 ]:
     hit = root / name
     print(bench, "->", hit, "OK" if hit.is_file() else "MISSING")
@@ -653,17 +653,17 @@ Score (adjust `--bench-jsonl` if your path is the other one):
 cd ~/MTP/earth2/LULCDial-s1
 module load MLDL/Pytorch-gpu
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
-python -m baresoil.eval_zero_shot \
-  --bench-jsonl data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
-  --pred-jsonl data/baresoil_s1/bench/v0.1/preds/lulcdial_v0.1_multisenna/predictions.jsonl \
-  --out-metrics data/baresoil_s1/metrics/v0.1/lulcdial_v0.1_multisenna.json
+python -m lulcdial.eval_zero_shot \
+  --bench-jsonl data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench.jsonl \
+  --pred-jsonl data/lulcdial_s1/bench/v0.1/preds/lulcdial_v0.1_multisenna/predictions.jsonl \
+  --out-metrics data/lulcdial_s1/metrics/v0.1/lulcdial_v0.1_multisenna.json
 ```
 
 **If rebuilding bench locally:**
 
 ```text
-LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/labels/
-LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/s1/
+LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/labels/
+LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/s1/
 ```
 
 **Smoke test:**
@@ -671,20 +671,20 @@ LULCDial-s1/data/baresoil_s1/ai4lcc/multisenna/s1/
 ```powershell
 cd e:\MTP\earth2\LULCDial-s1
 
-python -m baresoil.multisenna.build_bench_multisenna ^
-  --labels-dir data/baresoil_s1/ai4lcc/multisenna/labels ^
-  --s1-dir data/baresoil_s1/ai4lcc/multisenna/s1 ^
-  --out-jsonl data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench_smoke.jsonl ^
+python -m lulcdial.multisenna.build_bench_multisenna ^
+  --labels-dir data/lulcdial_s1/ai4lcc/multisenna/labels ^
+  --s1-dir data/lulcdial_s1/ai4lcc/multisenna/s1 ^
+  --out-jsonl data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench_smoke.jsonl ^
   --max-samples 100
 ```
 
 **Full bench:**
 
 ```powershell
-python -m baresoil.multisenna.build_bench_multisenna ^
-  --labels-dir data/baresoil_s1/ai4lcc/multisenna/labels ^
-  --s1-dir data/baresoil_s1/ai4lcc/multisenna/s1 ^
-  --out-jsonl data/baresoil_s1/bench/multisenna/v0.1/multisenna_bench.jsonl
+python -m lulcdial.multisenna.build_bench_multisenna ^
+  --labels-dir data/lulcdial_s1/ai4lcc/multisenna/labels ^
+  --s1-dir data/lulcdial_s1/ai4lcc/multisenna/s1 ^
+  --out-jsonl data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench.jsonl
 ```
 
 **Outputs:**
@@ -734,7 +734,7 @@ bash earthdial_demo.sh
 | File | Purpose |
 |------|---------|
 | [`ROADMAP.md`](ROADMAP.md) | Plan, paper reading order, next steps |
-| [`LULCDial-s1/baresoil/README.md`](LULCDial-s1/baresoil/README.md) | Data-prep commands |
+| [`LULCDial-s1/lulcdial/README.md`](LULCDial-s1/lulcdial/README.md) | Data-prep commands |
 | [`BenchmarkGuide/MultiSenGE_CNN_and_EarthDial_SAR_Research_Brief_2026.md`](BenchmarkGuide/MultiSenGE_CNN_and_EarthDial_SAR_Research_Brief_2026.md) | SAR research gaps |
 | [`BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`](BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md) | Dataset facts |
 | [`log.md`](log.md) | Change history |
