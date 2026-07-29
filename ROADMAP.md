@@ -93,6 +93,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | Classify strong, dialogue weak | Report both; primary = **example F1**   |
 | Single S1 date per patch       | Methods §; Phase 3 = 2-date lite only   |
 | Not a new satellite dataset    | Claim = **instruction + eval protocol** |
+| **Mixed VH radiometry (dB vs linear)** | `s1_vh_io.read_s1_vh_db` converts to dB only when per-patch `max < 1.0`; ~36% of patches stay linear. Same at train and test, so v0.1 numbers are internally valid. **Decide: disclose, or fix + re-train.** Details in local `writeup/05_*.md` §5 |
 
 
 ---
@@ -104,9 +105,9 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | ------- | ----------------------------------------------------- | ------ |
 | **1.1** | Master results table (§10)                            | ✅ local `writeup/` |
 | **1.2** | Bench spec (tasks, 14 classes, 70/30, metrics)        | ✅ local `writeup/` |
-| **1.3** | 10 figure patches                                     | ✅ local `writeup/` |
-| **1.4** | 3–5 failure cases                                     | ✅ local `writeup/` |
-| **1.5** | Draft Intro + Method + Results                        | ✅ local `writeup/` |
+| **1.3** | 10 figure patches                                     | ✅ 10/10 PNGs in local `writeup/figures/v0.1/` |
+| **1.4** | 3–5 failure cases                                     | ✅ 5 cases, real ZS/FT preds |
+| **1.5** | Draft Intro + Method + Results                        | ✅ local `writeup/` (+ radiometry caveat) |
 | **1.6** | **MultiSenNA** predict + eval with `LULCDial_S1_v0.1` | ✅ F1 **0.674** transfer (11939 patches) |
 
 `writeup/` is **local only** (gitignored) — paper drafts, figures, Table 1 template.

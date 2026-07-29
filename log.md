@@ -10,6 +10,20 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-29 — Phase 1 finished; found mixed VH radiometry
+
+**Why:** Close out the remaining Phase 1 items (figures, failure cases).
+
+**Done (local `writeup/`, gitignored):**
+- 10/10 figure previews → `writeup/figures/v0.1/`
+- 5 failure cases filled with **real** ZS/FT predictions (both `ai4lcc_test_predictions.jsonl` files were already tracked locally)
+- New helper `writeup/scripts/dump_patch_preds.py` (GT/ZS/FT per patch)
+- Fixed `rank_failures.py` (unclosed paren) and `export_figure_previews.py` (bench `s1_path` is relative to `LULCDial-s1/`)
+
+**Found — mixed VH radiometry (needs a decision):** `lulcdial/s1_vh_io.py::read_s1_vh_db` converts linear→dB only when a patch satisfies `max < 1.0`. AI4LCC patches are linear intensity (mean ≈ 0.02) but some pixels exceed 1.0, so on a 300-patch sample of the v0.1 test bench **193 (64%) were converted to dB and 107 (36%) stayed linear**; the following `clip(-50, 10)` is a no-op for linear values. This is why the first preview export came out flat grey.
+
+Impact: model input is a mixture of two radiometric scales. It applied identically at train and test, so ZS 0.019 / FT 0.800 / MultiSenNA 0.674 remain internally valid, but it likely costs accuracy and a reviewer will spot it. **`s1_vh_io.py` intentionally left unchanged** — fixing it invalidates the v0.1 checkpoint and all metrics. Figure previews do their own unconditional dB conversion + 2–98 percentile stretch instead. Recorded in `ROADMAP.md` §5 and `writeup/05_*.md` §5.
+
 ### 2026-07-29 — MultiSenNA transfer eval done (v0.1)
 
 **Why:** Fill the regional-generalization row for `LULCDial_S1_v0.1`.
