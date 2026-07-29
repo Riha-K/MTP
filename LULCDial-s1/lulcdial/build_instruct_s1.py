@@ -142,6 +142,8 @@ def build_shard(
         "s1_dir": str(s1_dir),
         "out_dir": str(out_dir),
         "label_taxonomy": "AI4LCC OCSGE 14-class",
+        "vh_units": "dB",
+        "linear_to_db": "unconditional",
     }
     (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     return manifest

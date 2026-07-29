@@ -10,6 +10,20 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-29 — Fix VH radiometry (unconditional linear→dB)
+
+**Decision:** Fix for publication credibility (Option 3 path). Old v0.1 checkpoint + metrics stay as historical until rebuild+retrain.
+
+**Code:** `lulcdial/s1_vh_io.py::read_s1_vh_db` — removed per-patch `max < 1.0` gate; always `10*log10(clip(vh, 1e-10))` then clip to [-50, 10] dB. Shard manifests now record `vh_units=dB`, `linear_to_db=unconditional`.
+
+**Required next (sir PC → PARAM):**
+1. `git pull` on sir PC + PARAM
+2. Rename leftover `baresoil` → `lulcdial` on sir PC if still present
+3. Rebuild train/val shards with `build_instruct_s1` (images bake radiometry)
+4. Copy new shards to PARAM; re-train; re-run ZS + FT + MultiSenNA eval
+
+Bench JSONL does **not** need rebuild for radiometry (TIFFs re-read at predict). Shards **do**.
+
 ### 2026-07-29 — Phase 1 finished; found mixed VH radiometry
 
 **Why:** Close out the remaining Phase 1 items (figures, failure cases).

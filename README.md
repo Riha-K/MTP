@@ -1,7 +1,7 @@
 # LULCDial-S1 / AI4LCC-S1 VLM
 
 > **One project:** SAR-LC-Bench + LULCDial-S1 (Sentinel-1 VH · OCSGE 14-class · EarthDial)  
-> **Status:** v0.1 metrics done · MultiSenNA transfer done · **Next:** write-up
+> **Status:** v0.1 metrics (pre-radiometry-fix) · MultiSenNA done · **Next:** rebuild shards + re-train with fixed dB
 
 ---
 

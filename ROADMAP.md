@@ -79,8 +79,8 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | 70/30 shards + bench             | train_ratio=0.7                              | `shards/`, `bench/v0.1/`                  |
 | Test bench                       | **2497** patches                             | `bench/v0.1/ai4lcc_test.jsonl`            |
 | EarthDial ZS                     | example F1 **0.019**                         | `metrics/v0.1/earthdial_zs_baseline.json` |
-| LULCDial v0.1 FT                 | F1 **0.800**, T1/T2 **0.121 / 0.364**        | `metrics/v0.1/lulcdial_v0.1.json`         |
-| MultiSenNA transfer              | F1 **0.674** (no NA training), T1/T2 **0.014 / 0.081** | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
+| LULCDial v0.1 FT                 | F1 **0.800**, T1/T2 **0.121 / 0.364** *(pre-radiometry-fix; rebuild)* | `metrics/v0.1/lulcdial_v0.1.json`         |
+| MultiSenNA transfer              | F1 **0.674** *(pre-radiometry-fix; rebuild)* | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
 
 
 ---
@@ -93,7 +93,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | Classify strong, dialogue weak | Report both; primary = **example F1**   |
 | Single S1 date per patch       | Methods §; Phase 3 = 2-date lite only   |
 | Not a new satellite dataset    | Claim = **instruction + eval protocol** |
-| **Mixed VH radiometry (dB vs linear)** | `s1_vh_io.read_s1_vh_db` converts to dB only when per-patch `max < 1.0`; ~36% of patches stay linear. Same at train and test, so v0.1 numbers are internally valid. **Decide: disclose, or fix + re-train.** Details in local `writeup/05_*.md` §5 |
+| **Mixed VH radiometry (FIXED in code)** | Was: per-patch `max < 1.0` gate mixed dB/linear. Now: **unconditional** linear→dB in `s1_vh_io.py`. **Old v0.1 metrics/checkpoint are stale** until shards are rebuilt + model re-trained + eval re-run. |
 
 
 ---
