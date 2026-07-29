@@ -10,6 +10,20 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-29 — MultiSenNA transfer eval done (v0.1)
+
+**Why:** Fill the regional-generalization row for `LULCDial_S1_v0.1`.
+
+**What:** Ran `lulcdial.eval_zero_shot` on the completed MultiSenNA predictions (job 91686, 11939/11939 patches) on PARAM.
+
+**Result (`metrics/v0.1/lulcdial_v0.1_multisenna.json`):**
+- classification example F1 **0.674** (11939 rows, 0 missing)
+- dialogue T1 **0.014**, T2 **0.081** (collapse on transfer — reported as limitation)
+
+**Takeaway:** GE-trained model transfers to Nouvelle-Aquitaine with **no retraining** at F1 0.67 (vs 0.80 in-domain). Updated `README.md`, `ROADMAP.md` (§4, §6.1.6, §10, §11), and local `writeup/` (01, 05).
+
+**PARAM note:** predictions/bench had ended up nested under `data/lulcdial_s1/baresoil_s1/...` after the pull+`mv` rename; recovered with an instant `mv` of the preds dir and pointed eval at the nested bench path directly (no re-run needed).
+
 ### 2026-07-28 — Rename baresoil → lulcdial (project-aligned naming)
 
 **Why:** “BareSoil” was not part of this project scope; align names with LULCDial-S1 / SAR-LC-Bench.

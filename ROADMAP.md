@@ -80,7 +80,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | Test bench                       | **2497** patches                             | `bench/v0.1/ai4lcc_test.jsonl`            |
 | EarthDial ZS                     | example F1 **0.019**                         | `metrics/v0.1/earthdial_zs_baseline.json` |
 | LULCDial v0.1 FT                 | F1 **0.800**, T1/T2 **0.121 / 0.364**        | `metrics/v0.1/lulcdial_v0.1.json`         |
-| MultiSenNA transfer              | **TODO** re-run with v0.1 (70/30) checkpoint | —                                         |
+| MultiSenNA transfer              | F1 **0.674** (no NA training), T1/T2 **0.014 / 0.081** | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
 
 
 ---
@@ -107,7 +107,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | **1.3** | 10 figure patches                                     | ✅ local `writeup/` |
 | **1.4** | 3–5 failure cases                                     | ✅ local `writeup/` |
 | **1.5** | Draft Intro + Method + Results                        | ✅ local `writeup/` |
-| **1.6** | **MultiSenNA** predict + eval with `LULCDial_S1_v0.1` | ⏳ GPU on PARAM — leave table row blank until eval |
+| **1.6** | **MultiSenNA** predict + eval with `LULCDial_S1_v0.1` | ✅ F1 **0.674** transfer (11939 patches) |
 
 `writeup/` is **local only** (gitignored) — paper drafts, figures, Table 1 template.
 
@@ -153,7 +153,7 @@ Public folder `sar_lc_bench_v0.1/`, README, `EVAL_PROTOCOL.md`, `BENCH_MANIFEST_
 | ----------------------------- | ---------- | ----- | ---------- | ----- | ----- |
 | EarthDial ZS                  | 70/30 test | 2497  | **0.019**  | 0.000 | 0.000 |
 | **LULCDial_S1_v0.1**          | 70/30 test | 2497  | **0.800**  | 0.121 | 0.364 |
-| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 12115 | *pending*  | —     | —     |
+| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.674**  | 0.014 | 0.081 |
 
 
 ---
@@ -162,7 +162,7 @@ Public folder `sar_lc_bench_v0.1/`, README, `EVAL_PROTOCOL.md`, `BENCH_MANIFEST_
 
 ## 11. Elevator pitch
 
-> **SAR-LC-Bench v0.1** evaluates Sentinel-1 VH land-cover **classification and dialogue** on official **14-class OCSGE** (2497 test patches). **LULCDial-S1** fine-tunes EarthDial and raises example F1 from **0.02 to 0.80**, with regional transfer to MultiSenNA.
+> **SAR-LC-Bench v0.1** evaluates Sentinel-1 VH land-cover **classification and dialogue** on official **14-class OCSGE** (2497 test patches). **LULCDial-S1** fine-tunes EarthDial and raises example F1 from **0.02 to 0.80**, and transfers to a different French region (MultiSenNA, Nouvelle-Aquitaine) with **no retraining** at F1 **0.67**.
 
 ---
 
