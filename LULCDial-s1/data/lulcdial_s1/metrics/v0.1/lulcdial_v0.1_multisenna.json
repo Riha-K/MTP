@@ -1,0 +1,12 @@
+{
+  "num_bench_rows": 11939,
+  "num_scored_rows": 11939,
+  "missing_predictions": 0,
+  "classification": {
+    "example_f1": 0.6794192605804417
+  },
+  "dialogue": {
+    "turn1_set_match_accuracy": 0.013401457408493174,
+    "turn2_set_match_accuracy": 0.07881732138370048
+  }
+}

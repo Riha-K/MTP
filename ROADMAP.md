@@ -78,9 +78,9 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | S1 VH + OCSGE 14-class templates | classify + 2-turn dialogue                   | `lulcdial/`                               |
 | 70/30 shards + bench             | train_ratio=0.7                              | `shards/`, `bench/v0.1/`                  |
 | Test bench                       | **2497** patches                             | `bench/v0.1/ai4lcc_test.jsonl`            |
-| EarthDial ZS                     | example F1 **0.019**                         | `metrics/v0.1/earthdial_zs_baseline.json` |
-| LULCDial v0.1 FT                 | F1 **0.800**, T1/T2 **0.121 / 0.364** *(pre-radiometry-fix; rebuild)* | `metrics/v0.1/lulcdial_v0.1.json`         |
-| MultiSenNA transfer              | F1 **0.674** *(pre-radiometry-fix; rebuild)* | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
+| EarthDial ZS                     | example F1 **0.052**                         | `metrics/v0.1/earthdial_zs_baseline.json` |
+| LULCDial v0.1 FT                 | F1 **0.812**, T1/T2 **0.134 / 0.390** *(post-radiometry-fix)* | `metrics/v0.1/lulcdial_v0.1.json`         |
+| MultiSenNA transfer              | F1 **0.679**, T1/T2 **0.013 / 0.079** *(post-radiometry-fix)* | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
 
 
 ---
@@ -93,7 +93,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | Classify strong, dialogue weak | Report both; primary = **example F1**   |
 | Single S1 date per patch       | Methods §; Phase 3 = 2-date lite only   |
 | Not a new satellite dataset    | Claim = **instruction + eval protocol** |
-| **Mixed VH radiometry (FIXED in code)** | Was: per-patch `max < 1.0` gate mixed dB/linear. Now: **unconditional** linear→dB in `s1_vh_io.py`. **Old v0.1 metrics/checkpoint are stale** until shards are rebuilt + model re-trained + eval re-run. |
+| **Mixed VH radiometry (FIXED)** | Unconditional linear→dB in `s1_vh_io.py`. Shards rebuilt + model re-trained. Post-fix: ZS **0.052** / FT **0.812** / MultiSenNA **0.679** (was 0.019 / 0.800 / 0.674). |
 
 
 ---
@@ -108,7 +108,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | **1.3** | 10 figure patches                                     | ✅ 10/10 PNGs in local `writeup/figures/v0.1/` |
 | **1.4** | 3–5 failure cases                                     | ✅ 5 cases, real ZS/FT preds |
 | **1.5** | Draft Intro + Method + Results                        | ✅ local `writeup/` (+ radiometry caveat) |
-| **1.6** | **MultiSenNA** predict + eval with `LULCDial_S1_v0.1` | ✅ F1 **0.674** transfer (11939 patches) |
+| **1.6** | **MultiSenNA** predict + eval with `LULCDial_S1_v0.1` | ✅ F1 **0.679** transfer (11939 patches, post-fix) |
 
 `writeup/` is **local only** (gitignored) — paper drafts, figures, Table 1 template.
 
@@ -152,9 +152,9 @@ Public folder `sar_lc_bench_v0.1/`, README, `EVAL_PROTOCOL.md`, `BENCH_MANIFEST_
 
 | Model                         | Split      | N     | Example F1 | T1    | T2    |
 | ----------------------------- | ---------- | ----- | ---------- | ----- | ----- |
-| EarthDial ZS                  | 70/30 test | 2497  | **0.019**  | 0.000 | 0.000 |
-| **LULCDial_S1_v0.1**          | 70/30 test | 2497  | **0.800**  | 0.121 | 0.364 |
-| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.674**  | 0.014 | 0.081 |
+| EarthDial ZS                  | 70/30 test | 2497  | **0.052**  | 0.000 | 0.000 |
+| **LULCDial_S1_v0.1**          | 70/30 test | 2497  | **0.812**  | 0.134 | 0.390 |
+| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.679**  | 0.013 | 0.079 |
 
 
 ---
@@ -163,7 +163,7 @@ Public folder `sar_lc_bench_v0.1/`, README, `EVAL_PROTOCOL.md`, `BENCH_MANIFEST_
 
 ## 11. Elevator pitch
 
-> **SAR-LC-Bench v0.1** evaluates Sentinel-1 VH land-cover **classification and dialogue** on official **14-class OCSGE** (2497 test patches). **LULCDial-S1** fine-tunes EarthDial and raises example F1 from **0.02 to 0.80**, and transfers to a different French region (MultiSenNA, Nouvelle-Aquitaine) with **no retraining** at F1 **0.67**.
+> **SAR-LC-Bench v0.1** evaluates Sentinel-1 VH land-cover **classification and dialogue** on official **14-class OCSGE** (2497 test patches). **LULCDial-S1** fine-tunes EarthDial and raises example F1 from **0.05 to 0.81** (post-radiometry-fix), and transfers to a different French region (MultiSenNA, Nouvelle-Aquitaine) with **no retraining** at F1 **0.68**.
 
 ---
 

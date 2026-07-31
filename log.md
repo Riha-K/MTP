@@ -10,6 +10,42 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-31 — Phase 1 complete (post-radiometry-fix): MultiSenNA F1 0.679
+
+**MultiSenNA predict:** job 93033 COMPLETED on `ragpu008` — 11939/11939 preds (~9.5 h).
+
+**Metrics (`metrics/v0.1/lulcdial_v0.1_multisenna.json`):**
+- classification example F1 **0.679** (was **0.674** pre-fix)
+- dialogue T1 **0.013** / T2 **0.079** (was 0.014 / 0.081)
+
+**Full post-fix table:**
+
+| Model | Example F1 | T1 | T2 |
+|-------|------------|-----|-----|
+| EarthDial ZS | 0.052 | 0.000 | 0.000 |
+| LULCDial_S1_v0.1 | **0.812** | 0.134 | 0.390 |
+| → MultiSenNA transfer | **0.679** | 0.013 | 0.079 |
+
+Radiometry fix lifted all three F1s slightly (ZS +0.033, FT +0.012, MultiSenNA +0.005). Dialogue transfer remains weak — report as limitation.
+
+Updated `README.md`, `ROADMAP.md`, local `writeup/`, metrics JSONs. Phase 1 done.
+
+### 2026-07-31 — Post-fix FT scored (F1 0.812); MultiSenNA re-eval running
+
+**Train:** job 92652 COMPLETED alone on `racn115` — `train_loss=0.1658`, epoch 1.0, full `checkpoints/LULCDial_S1_v0.1/` weights saved.
+
+**FT predict:** job 93032 COMPLETED on `racn116` — 2497/2497 preds.
+
+**FT metrics (`metrics/v0.1/lulcdial_v0.1.json`):**
+- classification example F1 **0.812** (was **0.800** pre-fix)
+- dialogue T1 **0.134** / T2 **0.390** (was 0.121 / 0.364)
+
+**ZS (already scored):** F1 **0.052** (was 0.019).
+
+**MultiSenNA:** job 93033 `pred_na` on `ragpu008` (pinned `--exclude=racn116`) — still running; leave alone until ~11939 lines, then score.
+
+Updated `README.md`, `ROADMAP.md`, and local `writeup/` (01, 04, 05, README) with post-fix ZS/FT; MultiSenNA row marked re-running / TBD. Failure-case patch dumps still pre-fix until new preds are downloaded.
+
 ### 2026-07-30 — Post-fix ZS scored; first re-train killed by co-scheduling
 
 **ZS (post-radiometry-fix):** job 92607 COMPLETED, 2497/2497 preds. `metrics/v0.1/earthdial_zs_baseline.json` → classification example F1 **0.0517** (was 0.0194 pre-fix), dialogue T1/T2 **0.0** (base model does not follow the dialogue format — expected).

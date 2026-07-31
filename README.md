@@ -1,7 +1,7 @@
 # LULCDial-S1 / AI4LCC-S1 VLM
 
 > **One project:** SAR-LC-Bench + LULCDial-S1 (Sentinel-1 VH · OCSGE 14-class · EarthDial)  
-> **Status:** v0.1 metrics (pre-radiometry-fix) · MultiSenNA done · **Next:** rebuild shards + re-train with fixed dB
+> **Status:** Phase 1 complete (post-radiometry-fix) · **Next:** Phase 2 (public bench package) / Phase 3 (multitemporal)
 
 ---
 
@@ -15,12 +15,12 @@
 
 ---
 
-## Main result (v0.1, 2497 test, 70/30)
+## Main result (v0.1, 2497 test, 70/30, post-radiometry-fix)
 
 | Model | Example F1 |
 |-------|------------|
-| EarthDial ZS | 0.019 |
-| LULCDial_S1_v0.1 | **0.800** |
-| LULCDial_S1_v0.1 → MultiSenNA (transfer, no retrain) | **0.674** |
+| EarthDial ZS | 0.052 |
+| LULCDial_S1_v0.1 | **0.812** |
+| LULCDial_S1_v0.1 → MultiSenNA (transfer, no retrain) | **0.679** |
 
 Metrics: `LULCDial-s1/data/lulcdial_s1/metrics/v0.1/`
