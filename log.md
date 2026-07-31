@@ -10,6 +10,47 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-07-30 — Post-fix ZS scored; first re-train killed by co-scheduling
+
+**ZS (post-radiometry-fix):** job 92607 COMPLETED, 2497/2497 preds. `metrics/v0.1/earthdial_zs_baseline.json` → classification example F1 **0.0517** (was 0.0194 pre-fix), dialogue T1/T2 **0.0** (base model does not follow the dialogue format — expected).
+
+**Re-train 92602 FAILED — root cause co-scheduling, not code/OOM:**
+- `sacct`: `FAILED ExitCode 0:9` (SIGKILL), batch step `CANCELLED`, elapsed 01:23:18, died at step **82/127** (loss ~0.13, healthy)
+- `zs_v01` 92607 ended **16:56:42**; `ft_v01` 92602 killed **16:56:49** — 7 s later, same node `racn115`
+- Ruled out: node healthy (`mix`), ~106 GB free, `racn115` is `gpu:2` so each job had its own GPU
+- Ruled out memory flags: `SelectTypeParameters = CR_CORE`, `RealMemory=1`, `CfgTRES=mem=1M` → `--mem` not enforced
+- Conclusion: node cleanup on the finishing job SIGKILLs the user's other processes on that node
+- `save_strategy epoch` meant **no weights saved** — only `runs/`; all 82 steps lost
+
+**Rule added to RUNBOOK:** never run two of your own jobs on one node; Slurm packs onto partially-used `gpu:2` nodes even when others are idle. Pin with `--exclude=<node>` / `--nodelist=`.
+
+**Re-submitted:** job **92652** (`ft_v01`) running **alone** on `racn115`. Do not submit `pred_v0.1` / `pred_multisenna` until it finishes (~2 h, 127 steps @ ~55 s/step).
+
+**Local:** recreated `metrics/v0.1/` + `bench/v0.1/preds/{earthdial_zs,lulcdial_v0.1,lulcdial_v0.1_multisenna}/`; ZS metrics written.
+
+### 2026-07-30 — Radiometry rebuild in progress (shards + PARAM re-train)
+
+**Why:** Option 3 — rebuild shards with unconditional linear→dB, re-train, re-eval all metrics.
+
+**Sir PC:**
+- Cleaned leftover `baresoil` / `baresoil_s1`
+- Rebuilt GE shards with fixed `s1_vh_io`: train 11320 / 5660 patches, val 4992 / 2496; manifests `vh_units=dB`, `linear_to_db=unconditional`
+- Re-packed `s1_val_bench` / laptop copy aligned to `ai4lcc_test.jsonl` (2497 tifs, 0 missing)
+- GE bench JSONL stays path+label only (no image bake) — radiometry-independent
+
+**PARAM:**
+- `git pull` after moving conflicting untracked `metrics/.../lulcdial_v0.1_multisenna.json`; confirmed no `nanmax` gate in `s1_vh_io.py`
+- Deleted old shards, `preds/`, `metrics/v0.1`, `checkpoints/LULCDial_S1_v0.1` (kept `LULCDial_S1_v0.1_old_9010`)
+- Uploaded new train/val shards; verified manifests
+- Bench still 2497 + `s1_test_bench_v0.1` 2497 (kept — no re-upload needed)
+- **Re-train job 92602** (`ft_v01`) running on `racn115`
+
+**MultiSenNA:** no sir-PC shard rebuild. Transfer eval only; TIFFs re-read at predict with fixed code. Keep existing MultiSenNA bench + S1 on PARAM; re-run predict after new checkpoint.
+
+**ZS:** must re-run after radiometry fix (same `read_s1_vh_db` at inference). Can `sbatch pred_zs_v0.1.sbatch` now (queues if GPU busy) or right after train finishes; then FT predict + MultiSenNA.
+
+**Next:** wait for 92602 → ZS + FT predict + MultiSenNA → score metrics → update README/ROADMAP/writeup numbers.
+
 ### 2026-07-29 — Fix VH radiometry (unconditional linear→dB)
 
 **Decision:** Fix for publication credibility (Option 3 path). Old v0.1 checkpoint + metrics stay as historical until rebuild+retrain.

@@ -218,6 +218,9 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
 - DeepSpeed may JIT-compile ops and fail with `which c++` missing — on **1× A100 80GB**, omit `--deepspeed` (bf16 is enough for 4B).
 - Predict supports `--resume` (skips rows already in the pred JSONL).
 - Aborted mid-epoch runs leave only `runs/` (TensorBoard) — `save_strategy epoch` means **no weights** until epoch ends. Restart is a clean load of `EarthDial_4B_MS`.
+- **Never run two of your own jobs on the same node.** GPU nodes are `gpu:2`, so Slurm packs a second `--gres=gpu:1` job onto a partially-used node even when other nodes are idle. When the first job ends, node cleanup SIGKILLs your remaining processes (`ExitCode 0:9`, batch step `CANCELLED`). Killed `ft_v01` 92602 at step 82/127 seven seconds after `zs_v01` 92607 completed on `racn115`.
+- Run fine-tune **alone** (`squeue -u $USER` empty first). To parallelise a predict job, pin it away: `sbatch --exclude=<train_node> …` or `--nodelist=ragpu003`. Idle nodes in `sinfo` are **not** a guarantee of placement.
+- Memory flags are useless here — `SelectTypeParameters = CR_CORE`, `RealMemory=1`, `CfgTRES=mem=1M`. `--mem` is not enforced; diagnose kills via `sacct -j <id> --format=JobID,State,ExitCode,Start,End,NodeList,MaxRSS -P`.
 
 ### 1C-a flags (must-haves)
 
