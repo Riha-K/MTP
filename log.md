@@ -10,6 +10,13 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-03 — Refresh Phase 1 failure cases with post-fix preds
+
+Re-ran `dump_patch_preds.py` + `rank_failures.py` on post-fix ZS/FT JSONLs. Updated local `writeup/04_failure_cases.md`:
+- Case 1 still mode-collapse (`Dense Built-Up`; **2329/2497** ZS)
+- Case 2 switched to `31UFP_3084_1542` (old free-text patch no longer free-text after fix)
+- Cases 3–5 answers/rank tables match new FT preds; metrics already 0.812 / 0.134 / 0.390
+
 ### 2026-07-31 — Phase 1 complete (post-radiometry-fix): MultiSenNA F1 0.679
 
 **MultiSenNA predict:** job 93033 COMPLETED on `ragpu008` — 11939/11939 preds (~9.5 h).
