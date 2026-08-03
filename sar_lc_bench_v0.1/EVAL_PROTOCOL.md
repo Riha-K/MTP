@@ -115,7 +115,7 @@ See [`leaderboard.csv`](leaderboard.csv). Summary:
 |--------|-------|---|------------|--------|--------|-------|-------|
 | EarthDial_4B_MS (ZS) | GE test | 2497 | 0.052 | 0.000 | 0.000 | 0.000 | 0.000 |
 | LULCDial_S1_v0.1 (FT) | GE test | 2497 | **0.812** | 0.134 | 0.390 | **0.813** | **0.870** |
-| LULCDial_S1_v0.1 → MultiSenNA | transfer | 11939 | **0.679** | 0.013 | 0.079 | *(re-score)* | |
+| LULCDial_S1_v0.1 → MultiSenNA | transfer | 11939 | **0.679** | 0.013 | 0.079 | **0.687** | **0.686** |
 
 Dialogue **improvement track:** [`LULCDial-s1/docs/DIALOGUE_IMPROVE.md`](../LULCDial-s1/docs/DIALOGUE_IMPROVE.md) (soft metrics done; format-aligned FT next).
 
