@@ -10,6 +10,18 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-03 — MultiSenNA soft dialogue F1 (laptop scorer on PARAM)
+
+After pushing dialogue scorer (`87a24fa`) and fixing PARAM pull conflicts: re-scored MultiSenNA 11939/11939.
+
+| Metric | Value |
+|--------|-------|
+| classify example F1 | **0.679** |
+| T1 / T2 set-match | 0.013 / 0.079 |
+| **T1 / T2 example F1** | **0.687 / 0.686** |
+
+Same story as GE: soft dialogue F1 ≈ classify; exact set-match is the bottleneck (worse on transfer). Updated metrics + leaderboard locally.
+
 ### 2026-08-03 — Dialogue improvement track (soft F1 + format-aligned prompts)
 
 **Why:** GE dialogue set-match looks weak (T1 0.134) vs classify F1 0.812; failure cases show format/consistency, not perception.
@@ -27,7 +39,9 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **PARAM:** after this commit is pushed, `git pull` (stash/move local metrics/preds conflicts first), then re-score MultiSenNA for soft T1/T2 F1.
 
-**Next:** MultiSenNA soft F1 on PARAM; optional Continuetrain after shard rebuild.
+**MultiSenNA soft F1 (done on PARAM):** T1 **0.687**, T2 **0.686** (set-match 0.013 / 0.079; classify 0.679).
+
+**Next:** optional Continuetrain after shard rebuild for higher set-match.
 
 ### 2026-08-03 — Defer public data release; Phase 3 bi-temporal is next
 

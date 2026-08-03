@@ -80,7 +80,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | Test bench                       | **2497** patches                             | `bench/v0.1/ai4lcc_test.jsonl`            |
 | EarthDial ZS                     | example F1 **0.052**                         | `metrics/v0.1/earthdial_zs_baseline.json` |
 | LULCDial v0.1 FT                 | F1 **0.812**; T1/T2 set **0.134 / 0.390**; T1/T2 F1 **0.813 / 0.870** | `metrics/v0.1/lulcdial_v0.1.json` |
-| MultiSenNA transfer              | F1 **0.679**, T1/T2 **0.013 / 0.079** *(post-radiometry-fix)* | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
+| MultiSenNA transfer              | F1 **0.679**; T1/T2 set **0.013 / 0.079**; T1/T2 F1 **0.687 / 0.686** | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
 
 
 ---
@@ -192,7 +192,7 @@ Papers (when writing): ChangeChat, DeltaVLM (templates only — RGB bi-temp; we 
 | ----------------------------- | ---------- | ----- | ---------- | ------ | ------ | ----- | ----- |
 | EarthDial ZS                  | 70/30 test | 2497  | **0.052**  | 0.000  | 0.000  | 0.000 | 0.000 |
 | **LULCDial_S1_v0.1**          | 70/30 test | 2497  | **0.812**  | 0.134  | 0.390  | **0.813** | **0.870** |
-| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.679**  | 0.013  | 0.079  | — | — |
+| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.679**  | 0.013  | 0.079  | **0.687** | **0.686** |
 
 
 Dialogue set-match is strict; dialogue example F1 is soft (same as classify F1 on that turn). See `LULCDial-s1/docs/DIALOGUE_IMPROVE.md`.
