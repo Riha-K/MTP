@@ -10,6 +10,41 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-03 — Dialogue improvement track (soft F1 + format-aligned prompts)
+
+**Why:** GE dialogue set-match looks weak (T1 0.134) vs classify F1 0.812; failure cases show format/consistency, not perception.
+
+**Done (laptop — not heavy):**
+- `eval_zero_shot` now also reports `dialogue.turn1_example_f1` / `turn2_example_f1`
+- Re-scored GE: T1 F1 **0.813**, T2 F1 **0.870** (set-match unchanged)
+- Dialogue prompts in `instruct_templates.py` now force option-list + comma-separated answers (aligned with classify)
+- Steps + machine split: `LULCDial-s1/docs/DIALOGUE_IMPROVE.md`
+- Draft public package `sar_lc_bench_v0.1/` (Zenodo deferred)
+
+**Machine:**
+- Step A (metrics / re-score): **laptop only**
+- Steps C–D (rebuild shards + FT): **sir PC + PARAM** — only when ready to lift set-match
+
+**PARAM:** after this commit is pushed, `git pull` (stash/move local metrics/preds conflicts first), then re-score MultiSenNA for soft T1/T2 F1.
+
+**Next:** MultiSenNA soft F1 on PARAM; optional Continuetrain after shard rebuild.
+
+### 2026-08-03 — Defer public data release; Phase 3 bi-temporal is next
+
+**Decision:** Do not upload TIFF packs / create public `SAR-LC-Bench` GitHub yet. Finish **Phase 3 (2-date lite, ~100 patches)** first, then one Zenodo + public-repo release with single-date + bi-temporal data.
+
+**Write-up polish:** `writeup/README.md` + conclusion updated for deferred publish / Phase 3 next. ROADMAP §7–9 rewritten with Phase 3 scope + machine split (sir PC for date discovery, laptop for templates, PARAM for GPU).
+
+**Next:** on sir PC, find MultiSenGE patches with ≥2 S1 dates and sample ~100 for `ai4lcc_bitemp_100.jsonl`.
+
+### 2026-08-03 — Phase 2 started: draft `sar_lc_bench_v0.1/` package
+
+Scaffolded public-ready bench package (protocol, manifest+SHA256, leaderboard, MIT LICENSE, `data/ge/ai4lcc_test.jsonl`, `PUBLISH.md`).
+
+**Publishing advice:** use a **separate public GitHub repo** (e.g. `SAR-LC-Bench`) when going live — do not turn this MTP research repo into the public face (personal notes / PARAM ops). Large TIFF packs → Zenodo / GitHub Release, not git.
+
+Still TODO for Phase 2: ship/link compact `s1_test_bench` rasters; optional MultiSenNA JSONL+checksum; create empty public repo when ready.
+
 ### 2026-08-03 — Refresh Phase 1 failure cases with post-fix preds
 
 Re-ran `dump_patch_preds.py` + `rank_failures.py` on post-fix ZS/FT JSONLs. Updated local `writeup/04_failure_cases.md`:

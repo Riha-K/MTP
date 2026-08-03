@@ -79,7 +79,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | 70/30 shards + bench             | train_ratio=0.7                              | `shards/`, `bench/v0.1/`                  |
 | Test bench                       | **2497** patches                             | `bench/v0.1/ai4lcc_test.jsonl`            |
 | EarthDial ZS                     | example F1 **0.052**                         | `metrics/v0.1/earthdial_zs_baseline.json` |
-| LULCDial v0.1 FT                 | F1 **0.812**, T1/T2 **0.134 / 0.390** *(post-radiometry-fix)* | `metrics/v0.1/lulcdial_v0.1.json`         |
+| LULCDial v0.1 FT                 | F1 **0.812**; T1/T2 set **0.134 / 0.390**; T1/T2 F1 **0.813 / 0.870** | `metrics/v0.1/lulcdial_v0.1.json` |
 | MultiSenNA transfer              | F1 **0.679**, T1/T2 **0.013 / 0.079** *(post-radiometry-fix)* | `metrics/v0.1/lulcdial_v0.1_multisenna.json` |
 
 
@@ -90,7 +90,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 
 | Issue                          | What to do                              |
 | ------------------------------ | --------------------------------------- |
-| Classify strong, dialogue weak | Report both; primary = **example F1**   |
+| Classify strong, dialogue **set-match** weak | Report **both** set-match and dialogue **example F1**; primary classify = example F1. Soft T1 F1 ≈ 0.81 on GE while set-match ≈ 0.13 (format/consistency gap). Plan: `LULCDial-s1/docs/DIALOGUE_IMPROVE.md` |
 | Single S1 date per patch       | Methods §; Phase 3 = 2-date lite only   |
 | Not a new satellite dataset    | Claim = **instruction + eval protocol** |
 | **Mixed VH radiometry (FIXED)** | Unconditional linear→dB in `s1_vh_io.py`. Shards rebuilt + model re-trained. Post-fix: ZS **0.052** / FT **0.812** / MultiSenNA **0.679** (was 0.019 / 0.800 / 0.674). |
@@ -117,13 +117,54 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 
 ## 7. Phase 2 - Package SAR-LC-Bench v0.1
 
-Public folder `sar_lc_bench_v0.1/`, README, `EVAL_PROTOCOL.md`, `BENCH_MANIFEST_v0.1.json`, leaderboard.csv.
+Public folder [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) drafted in this research repo:
+
+| Artifact | Status |
+|----------|--------|
+| `README.md`, `EVAL_PROTOCOL.md`, `LICENSE` | ✅ |
+| `BENCH_MANIFEST_v0.1.json` + SHA256 of GE test JSONL | ✅ |
+| `leaderboard.csv` (post-fix numbers) | ✅ |
+| `data/ge/ai4lcc_test.jsonl` (2497 rows) | ✅ |
+| `PUBLISH.md` (separate public GitHub repo steps) | ✅ |
+| Compact `s1_test_bench/` TIFF pack + Zenodo | ⏸ **deferred** — publish after Phase 3 (more data in one release) |
+| Standalone public GitHub repo `SAR-LC-Bench` | ⏸ **deferred** — same |
+
+**Decision (2026-08-03):** keep protocol draft here; go public (GitHub + free Zenodo TIFF pack) **at the end**, after bi-temporal Phase 3, so one release can include single-date + 2-date materials.
+
+**Do not** open the whole MTP repo as the public bench — it has personal notes. See `sar_lc_bench_v0.1/PUBLISH.md`.
 
 ---
 
-## 8. Phase 3 -Bi-temporal change QA (optional)
+## 8. Phase 3 — Bi-temporal change QA (lite) — **NEXT**
 
-2 S1 dates, ~100 patches, small table. **Not required** for core thesis if Phase 1–2 are solid.
+**Goal:** small extension subsection — **2 Sentinel-1 dates**, ~**100** patches, classify/change dialogue, one small results table. Optional for core thesis; strengthens the temporal story.
+
+### Scope (keep lite)
+
+| Item | Choice |
+|------|--------|
+| Dates per patch | **Exactly 2** VH acquisitions (not full-year stack) |
+| Patch count | ~**100** from MultiSenGE test (or train∩multi-date) |
+| Labels | Same OCSGE multi-label presence; plus simple **change** QA (what appeared / disappeared / unchanged) |
+| Model | Start with **ZS + existing LULCDial_S1_v0.1** (single-image FT may transfer poorly to 2-image input — report honestly); optional small FT later |
+| Publish | Bundle 2-date pack with Phase 2 Zenodo **at end** |
+
+### Machine
+
+| Step | Where |
+|------|--------|
+| Discover patches with ≥2 S1 dates; write 2-date JSONL | **Sir PC** (full `multisenge/s1` needed) — laptop usually lacks full archive |
+| Template + eval scripts | **Laptop** |
+| GPU predict / optional FT | **PARAM** |
+
+### First concrete steps
+
+1. On sir PC: list patches that have ≥2 `*_S1_*.tif` dates; sample ~100.
+2. Define instruction templates (ChangeChat-style, S1 VH).
+3. Build `bench/v0.1/ai4lcc_bitemp_100.jsonl`.
+4. Smoke predict 20 → full 100 → small table in writeup.
+
+Papers (when writing): ChangeChat, DeltaVLM (templates only — RGB bi-temp; we adapt to S1).
 
 ---
 
@@ -132,30 +173,29 @@ Public folder `sar_lc_bench_v0.1/`, README, `EVAL_PROTOCOL.md`, `BENCH_MANIFEST_
 
 | Add-on                                            | Required?               | Effort       | Publication value           |
 | ------------------------------------------------- | ----------------------- | ------------ | --------------------------- |
-| **MultiSenNA transfer** (v0.1 model)              | **Yes — do this first** | 1–2 days GPU | Regional generalization row |
-| **Bench package + paper draft**                   | **Yes**                 | 1–2 weeks    | Makes project publishable   |
-| **Bi-temporal change QA** (2-date lite)           | Optional                | ~1 week      | Small extension subsection  |
-| **Dialogue metric / template fix**                | Optional                | Medium       | If you want higher T1/T2    |
-| **2–3 extra ZS baselines** (GeoChat ZS on subset) | Optional                | Low          | Wider comparison table      |
-| Full-year S1 stacks                               | No (now)                | Large        | Different project           |
-| S1+S2 fusion                                      | No (now)                | Large        | Out of scope                |
+| **MultiSenNA transfer** (v0.1 model)              | ✅ done                   | —            | Regional generalization row |
+| **Bench package draft**                           | ✅ drafted                | —            | Protocol ready              |
+| **Dialogue metric / format-aligned FT**       | **IN PROGRESS** (soft F1 ✅) | Soft = laptop; FT = sir+PARAM | Fixes weak set-match story |
+| **Bi-temporal change QA** (2-date lite)       | After dialogue track        | ~1 week                      | Small extension subsection  |
+| **Public GitHub + Zenodo TIFF packs**         | **Yes — at end**            | 1–2 days                     | Makes project publishable   |
 
 
-**Multitemporal is NOT required** at the same time as MultiSenNA. Order: **MultiSenNA → write-up → bench release → bi-temporal only if time**.
+**Order now:** **Dialogue soft metrics ✅ → optional dialogue FT → Phase 3 bi-temporal (optional) → public release**.
 
 ---
-
 
 
 ## 10. Master results table
 
 
-| Model                         | Split      | N     | Example F1 | T1    | T2    |
-| ----------------------------- | ---------- | ----- | ---------- | ----- | ----- |
-| EarthDial ZS                  | 70/30 test | 2497  | **0.052**  | 0.000 | 0.000 |
-| **LULCDial_S1_v0.1**          | 70/30 test | 2497  | **0.812**  | 0.134 | 0.390 |
-| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.679**  | 0.013 | 0.079 |
+| Model                         | Split      | N     | Example F1 | T1 set | T2 set | T1 F1 | T2 F1 |
+| ----------------------------- | ---------- | ----- | ---------- | ------ | ------ | ----- | ----- |
+| EarthDial ZS                  | 70/30 test | 2497  | **0.052**  | 0.000  | 0.000  | 0.000 | 0.000 |
+| **LULCDial_S1_v0.1**          | 70/30 test | 2497  | **0.812**  | 0.134  | 0.390  | **0.813** | **0.870** |
+| LULCDial_S1_v0.1 → MultiSenNA | transfer   | 11939 | **0.679**  | 0.013  | 0.079  | — | — |
 
+
+Dialogue set-match is strict; dialogue example F1 is soft (same as classify F1 on that turn). See `LULCDial-s1/docs/DIALOGUE_IMPROVE.md`.
 
 ---
 

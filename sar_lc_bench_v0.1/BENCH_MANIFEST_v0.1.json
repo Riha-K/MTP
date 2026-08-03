@@ -1,0 +1,50 @@
+{
+  "bench_name": "SAR-LC-Bench",
+  "version": "v0.1",
+  "created": "2026-08-03",
+  "radiometry": {
+    "vh_units": "dB",
+    "linear_to_db": "unconditional",
+    "notes": "AI4LCC stores linear VH; convert with 10*log10 before model input."
+  },
+  "split": {
+    "rule": "md5(patch_stem) % 1000; train if < 700 else test",
+    "train_ratio": 0.7,
+    "train_patches": 5660,
+    "test_patches": 2497
+  },
+  "tasks": ["classify_multilabel", "dialogue_turn1", "dialogue_turn2"],
+  "primary_metric": "classification.example_f1",
+  "secondary_metrics": [
+    "dialogue.turn1_set_match_accuracy",
+    "dialogue.turn2_set_match_accuracy"
+  ],
+  "artifacts": {
+    "ge_test_jsonl": {
+      "logical_path": "data/ge/ai4lcc_test.jsonl",
+      "source_in_research_repo": "LULCDial-s1/data/lulcdial_s1/bench/v0.1/ai4lcc_test.jsonl",
+      "num_rows": 2497,
+      "size_bytes": 3342343,
+      "sha256": "90b8dedc4c905aeb004f11522363928d0905535803c9f3cf6c14528be2325b30"
+    },
+    "multisenna_bench_jsonl": {
+      "logical_path": "data/na/multisenna_bench.jsonl",
+      "source_in_research_repo": "LULCDial-s1/data/lulcdial_s1/bench/multisenna/v0.1/multisenna_bench.jsonl",
+      "num_rows": 11939,
+      "sha256": null,
+      "notes": "Optional transfer row; compute sha256 when copying into the public package."
+    },
+    "s1_ge_test_pack": {
+      "logical_path": "data/ge/s1_test_bench/",
+      "expected_tif_count": 2497,
+      "notes": "Pack of VH GeoTIFFs referenced by ge_test_jsonl; do not store in Git — use GitHub Release / Zenodo / HF."
+    }
+  },
+  "taxonomy": {
+    "name": "OCSGE 14-class (MultiSenGE)",
+    "num_classes_ge": 14,
+    "extra_class_multisenna": {"id": 15, "name": "Beaches, Sand"}
+  },
+  "reference_evaluator": "python -m lulcdial.eval_zero_shot",
+  "baselines_note": "Scores in leaderboard.csv are post-radiometry-fix runs (2026-07-30/31)."
+}

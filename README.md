@@ -1,7 +1,7 @@
 # LULCDial-S1 / AI4LCC-S1 VLM
 
 > **One project:** SAR-LC-Bench + LULCDial-S1 (Sentinel-1 VH · OCSGE 14-class · EarthDial)  
-> **Status:** Phase 1 complete (post-radiometry-fix) · **Next:** Phase 2 (public bench package) / Phase 3 (multitemporal)
+> **Status:** Phase 1 complete · Dialogue soft F1 ✅ · Format-aligned dialogue FT optional next · Zenodo deferred
 
 ---
 
@@ -12,6 +12,8 @@
 | **1** | [`ROADMAP.md`](ROADMAP.md) — objective, papers, phases |
 | **2** | [`RUNBOOK.md`](RUNBOOK.md) — PARAM commands |
 | **3** | [`log.md`](log.md) — history |
+| **4** | [`LULCDial-s1/docs/DIALOGUE_IMPROVE.md`](LULCDial-s1/docs/DIALOGUE_IMPROVE.md) — dialogue track |
+| **5** | [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) — public package draft |
 
 ---
 

@@ -91,11 +91,13 @@ def evaluate(
     turn2_key: str,
 ) -> dict[str, Any]:
     used = 0
-    missing_predictions = 0 #will skip if missing
+    missing_predictions = 0  # will skip if missing
 
     classify_f1_sum = 0.0
     turn1_acc_sum = 0.0
     turn2_acc_sum = 0.0
+    turn1_f1_sum = 0.0
+    turn2_f1_sum = 0.0
 
     for row in bench_rows:
         patch_id = str(row.get("patch_id", ""))
@@ -117,6 +119,9 @@ def evaluate(
 
         turn1_acc_sum += 1.0 if pd_turn1 == gt_turn1_set else 0.0
         turn2_acc_sum += 1.0 if pd_turn2 == gt_turn2_set else 0.0
+        # Soft dialogue metrics (same F1 as classify) — set-match alone understates content quality.
+        turn1_f1_sum += _f1_score(pd_turn1, gt_turn1_set)
+        turn2_f1_sum += _f1_score(pd_turn2, gt_turn2_set)
 
     if used == 0:
         raise ValueError("No matched predictions found by patch_id.")
@@ -131,6 +136,8 @@ def evaluate(
         "dialogue": {
             "turn1_set_match_accuracy": turn1_acc_sum / used,
             "turn2_set_match_accuracy": turn2_acc_sum / used,
+            "turn1_example_f1": turn1_f1_sum / used,
+            "turn2_example_f1": turn2_f1_sum / used,
         },
     }
 

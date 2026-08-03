@@ -7,6 +7,8 @@
   },
   "dialogue": {
     "turn1_set_match_accuracy": 0.0,
-    "turn2_set_match_accuracy": 0.0
+    "turn2_set_match_accuracy": 0.0,
+    "turn1_example_f1": 0.0,
+    "turn2_example_f1": 0.0
   }
 }

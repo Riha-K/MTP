@@ -24,14 +24,25 @@ def build_classify_qa(present_names: list[str]) -> tuple[str, str]:
 
 
 def build_dialogue_turns(label_ids: list[int], present_names: list[str]) -> list[dict[str, str]]:
-    """Two-turn dialogue: classify, then ask about natural classes."""
+    """Two-turn dialogue: list all present classes, then natural/agricultural subset.
+
+    Prompts force the same comma-separated OCSGE name format as classify so
+    turn-1 targets stay aligned with classify_answer (consistency for FT).
+    """
+    options = ai4lcc_classify_options_text()
     natural_names = natural_class_names_from_ids(label_ids)
     q1 = (
         f"{LULC_TOKEN} {S1_VH_10_TOKEN} <image>\n"
-        "What land cover classes do you see in this image?"
+        "What land cover classes do you see in this image? "
+        f"Reply with all that apply from: {options}. "
+        "Answer with comma-separated class names only (no sentences)."
     )
     a1 = format_present_class_names(present_names)
-    q2 = "Which of these are natural or agricultural areas?"
+    q2 = (
+        "Which of these are natural or agricultural areas? "
+        "Answer with comma-separated class names only from the classes you listed "
+        "(or None if none apply)."
+    )
     a2 = format_present_class_names(natural_names) if natural_names else "None"
     return [
         {"from": "human", "value": q1},
