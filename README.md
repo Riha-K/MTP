@@ -1,7 +1,8 @@
-# LULCDial-S1 / AI4LCC-S1 VLM
+# MTP / earth2
 
-> **One project:** SAR-LC-Bench + LULCDial-S1 (Sentinel-1 VH · OCSGE 14-class · EarthDial)  
-> **Status:** Phase 1 complete · Dialogue soft F1 ✅ · Format-aligned dialogue FT optional next · Zenodo deferred
+> **Story:** MultiSenGE **validation** (CNN: ConvLSTM+Inception-S1S2) + **VLM extension** (LULCDial-S1 / SAR-LC-Bench).  
+> **Base paper:** MultiSenGE / AI4LCC — not EarthDial.  
+> **Next:** replicate ConvLSTM+Inception → VGG-16 U-Net, then advanced model.
 
 ---
 
@@ -9,20 +10,19 @@
 
 | # | File |
 |---|------|
-| **1** | [`ROADMAP.md`](ROADMAP.md) — objective, papers, phases |
-| **2** | [`RUNBOOK.md`](RUNBOOK.md) — PARAM commands |
-| **3** | [`log.md`](log.md) — history |
-| **4** | [`LULCDial-s1/docs/DIALOGUE_IMPROVE.md`](LULCDial-s1/docs/DIALOGUE_IMPROVE.md) — dialogue track |
-| **5** | [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) — public package draft |
+| **1** | [`ROADMAP.md`](ROADMAP.md) — whole-project plan (Pillar A next) |
+| **2** | [`log.md`](log.md) — history |
+| **3** | [`multisenge_seg/`](multisenge_seg/) — CNN replicate + [`PROTOCOL.md`](multisenge_seg/PROTOCOL.md) |
+| **4** | [`BenchmarkGuide/MultiSenGE_Validation_and_VLM_Plan.md`](BenchmarkGuide/MultiSenGE_Validation_and_VLM_Plan.md) — paper survey |
+| **5** | [`LULCDial-s1/RUNBOOK.md`](LULCDial-s1/RUNBOOK.md) — VLM / PARAM commands (Pillar B) |
+| **6** | [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) — public bench package draft |
 
 ---
 
-## Main result (v0.1, 2497 test, 70/30, post-radiometry-fix)
+## Pillar B main result (v0.1, frozen)
 
 | Model | Example F1 |
 |-------|------------|
 | EarthDial ZS | 0.052 |
 | LULCDial_S1_v0.1 | **0.812** |
-| LULCDial_S1_v0.1 → MultiSenNA (transfer, no retrain) | **0.679** |
-
-Metrics: `LULCDial-s1/data/lulcdial_s1/metrics/v0.1/`
+| → MultiSenNA transfer | **0.679** |

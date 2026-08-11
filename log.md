@@ -10,6 +10,67 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-11 — Patch counts match paper; train tricks; VGG-16 U-Net
+
+**Index:** Added missing train tile **32ULV** (793 patches). With ≥17-day S2 gap → **train 3369 / val 1911 / test 610 = 5890** (paper). S1 paired by same month / nearest date (not a second gap filter).
+
+**Train:** `train.py` now has geometric aug (~75%), ReduceLROnPlateau (patience 5), EarlyStopping (20), multitemporal channel mean/std. `model.py` = ConvLSTM+Inception → **VGG-16 U-Net**.
+
+---
+
+### 2026-08-11 — VGG-16 U-Net; single CNN path naming
+
+**Why SmallUNet before:** temporary scaffold so index + train loop could land without a heavy backbone. **Now:** `model.py` uses paper-style **VGG-16 U-Net** (from scratch on fused features). Dataset keeps **10** S2 bands (on-disk TIFs are 10-band).
+
+**Naming:** Call the work **CNN validation / RS-2023 replicate** (not “Track V1/V2”). `train.sbatch`; index → `patch_index.json`.
+
+**Still open vs paper:** patch count ~3305 vs ~5890; augment / EarlyStop / ReduceLR / global norm.
+
+---
+
+### 2026-08-11 — CNN index smoke OK after date-filter fix
+
+**Data confirmed present** under `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/`: S1 (~115 GB), S2 (~88 GB / 72033 tifs), GR (8157), labels (8157).
+
+**Bugfix:** `build_patch_index` initially only kept **9** patches — label JSON listed S1 dates whose files were not on disk. Fix: pick Jul/Aug/Sep/Nov dates only from filenames that **exist** on disk before applying the ≥17-day gap rule (`multisenge_seg/dataset.py`).
+
+**Smoke:** `python -m multisenge_seg.smoke_index` → **3305** patches (train **1545** / val **1218** / test **542**).
+
+**Scaffold already in tree:** `multisenge_seg/` (PROTOCOL, taxonomy 6/10, geo split, Dataset, ConvLSTM+Inception+SmallUNet stub). Model smoke needs `torch` (not in default laptop Python).
+
+**Still pending:** email authors (`BenchmarkGuide/EMAIL_AUTHORS_CODE_REQUEST.md`); PARAM train loop + VGG-UNet parity; advanced model after replicate.
+
+### 2026-08-10 — S2+GR downloaded; CNN validation scaffold started
+
+**Data on laptop** (`LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/`):
+
+| Dir | Files | Size |
+|-----|-------|------|
+| `s1/` | 209854 | ~115 GB |
+| `s2/` | 72033 | ~88 GB |
+| `ground_reference/` | 8157 | ~0.03 GB |
+| `labels/` | 8157 | ~0.04 GB |
+
+**Scaffold added:** `multisenge_seg/` — PROTOCOL, geographic split, 6/10-class maps, patch index + Dataset, ConvLSTM+Inception+SmallUNet stub, `smoke_index.py`.
+
+**Next (at the time):** run smoke_index; email authors; PARAM train later.
+
+### 2026-08-10 — CNN validation next; RUNBOOK moved; new umbrella ROADMAP
+
+**Decision:** Professor path = **CNN validation** (replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2, then advanced model). Metz-only IRRG baseline idea dropped. Pillar B (LULCDial) treated as core-complete.
+
+**Doc moves:**
+- `RUNBOOK.md` → `LULCDial-s1/RUNBOOK.md` (VLM/PARAM commands only)
+- Old root `ROADMAP.md` archived as `LULCDial-s1/ROADMAP_VLM.md`
+- New root [`ROADMAP.md`](ROADMAP.md) = dual-pillar plan with CNN validation checklist
+- Root [`README.md`](README.md) updated pointers
+
+**Data fact (HTTP Content-Length):** MultiSenGE `s2.tgz` ≈ **80 GB**; `s1.tgz` ≈ **110 GB**; `ground_reference.tgz` ≈ **25 MB**. Workspace currently **S1 + labels only** — S2 + GR must be downloaded on **sir PC** before full CNN training data can be built.
+
+**Before implementing the RS-2023 model** (needs from user): see chat checklist (disk, download, email authors, confirm 6 vs 10 classes).
+
+**Next:** email authors (code on demand) + laptop scaffold after A0 protocol freeze; sir PC downloads S2+GR.
+
 ### 2026-08-03 — MultiSenNA soft dialogue F1 (laptop scorer on PARAM)
 
 After pushing dialogue scorer (`87a24fa`) and fixing PARAM pull conflicts: re-scored MultiSenNA 11939/11939.

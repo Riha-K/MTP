@@ -3,6 +3,8 @@ writeup/
 
 # --- Large raw / generated data (do not push) ---
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1/
+LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s2/
+LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/ground_reference/
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench/
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1_test_bench_v0.2/
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/*.tgz
@@ -13,6 +15,9 @@ LULCDial-s1/data/lulcdial_s1/shards/
 LULCDial-s1/data/lulcdial_s1/shardsold/
 LULCDial-s1/data/lulcdial_s1/bench/previews/
 LULCDial-s1/checkpoints/
+multisenge_seg/checkpoints/
+multisenge_seg/artifacts/
+.tmp_msge_tools/
 ~$*.docx
 Adobe Scan*.pdf
 
