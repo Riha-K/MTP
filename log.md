@@ -10,6 +10,22 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-17 — CNN replicate train finished (job 96769); next = test eval
+
+**Done:** EarlyStopping after epoch **25** (20 epochs without beating val_wF1). Best checkpoint is **epoch 5**.
+
+| Split | Metric | Ours | Paper (RS 2023 Table 5/6, **test** tile 31UEQ) |
+|-------|--------|------|-----------------------------------------------|
+| **Val** (31UFP+31UGP) | Weighted F1 | **0.9411** | — (paper reports test, not val) |
+| Val | Kappa | **0.448** (epoch 5) | paper test kappa **0.4186** |
+| Paper target | Weighted F1 | pending **test** | **0.9018** (ConvLSTM+Inception-S1S2, 6-class) |
+
+Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpoints/run_c6_v0/{best.pt,last.pt,best_metrics.json,history.json}`.
+
+**Not yet:** paper-fair number is **test** on tile `31UEQ`. Run `sbatch multisenge_seg/eval.sbatch` after `git pull` (uses `--eval-ckpt best.pt --eval-split test`).
+
+---
+
 ### 2026-08-17 — PARAM smoke OK; CNN train job submitted (A4)
 
 **Smoke** (`python -m multisenge_seg.smoke_index --max-labels 400`): **135** patches from first 400 labels; example `31TFN_4626_514` with months [7,8,9,11]. Env: `MLDL/Pytorch-gpu` + `rasterio` OK on login01 (`cuda False` on login is normal).
@@ -18,7 +34,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Docs added locally:** `multisenge_seg/PARAM_TRANSFER.md`, `LAB_GPU_TRANSFER.md`; `train.sbatch` uses absolute PARAM paths.
 
-**Next:** wait for `best_metrics.json` (Weighted F1 vs paper ~0.89–0.90); then full replicate analysis / optional 10-class run.
+**Next:** ~~wait for `best_metrics.json`~~ → train finished (see later 2026-08-17 entry). Test eval still pending.
 
 ---
 

@@ -111,6 +111,60 @@ def evaluate(model, loader, device, num_classes: int) -> dict:
     return scores_from_cm(cm)
 
 
+def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
+    ckpt_path = args.eval_ckpt
+    if not ckpt_path.is_file():
+        raise FileNotFoundError(f"checkpoint not found: {ckpt_path}")
+    device = torch.device(args.device)
+    try:
+        ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+    except TypeError:
+        ckpt = torch.load(ckpt_path, map_location=device)
+    stats = ckpt.get("norm_stats")
+    if not stats:
+        stats_path = ckpt_path.parent / "norm_stats.json"
+        if not stats_path.is_file():
+            raise RuntimeError("checkpoint has no norm_stats; expected sibling norm_stats.json")
+        stats = json.loads(stats_path.read_text(encoding="utf-8"))
+    n_cls = int(ckpt.get("num_classes", n_cls))
+    s1_ch = int(ckpt.get("s1_ch", 2))
+    s2_ch = int(ckpt.get("s2_ch", 10))
+    ds = MultiSenGETemporalDataset(
+        records,
+        args.eval_split,
+        num_classes=6 if n_cls == 6 else 10,
+        augment=False,
+        s1_mean=stats["s1_mean"],
+        s1_std=stats["s1_std"],
+        s2_mean=stats["s2_mean"],
+        s2_std=stats["s2_std"],
+    )
+    if len(ds) == 0:
+        raise RuntimeError(f"no patches for split={args.eval_split}")
+    loader = DataLoader(
+        ds,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.workers,
+        collate_fn=_collate,
+    )
+    model = ConvLSTMInceptionS1S2(s1_ch=s1_ch, s2_ch=s2_ch, num_classes=n_cls).to(device)
+    model.load_state_dict(ckpt["model"])
+    print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls}")
+    scores = evaluate(model, loader, device, n_cls)
+    out = args.out_dir
+    out.mkdir(parents=True, exist_ok=True)
+    dest = out / f"{args.eval_split}_metrics.json"
+    dest.write_text(json.dumps(scores, indent=2), encoding="utf-8")
+    print(
+        f"{args.eval_split} wF1={scores['weighted_f1']:.4f} acc={scores['accuracy']:.4f} "
+        f"kappa={scores['kappa']:.4f} meanF1={scores['mean_f1']:.4f}"
+    )
+    print("per_class_f1", [round(x, 4) for x in scores["per_class_f1"]])
+    print("wrote", dest)
+    return 0
+
+
 def train_one_epoch(model, loader, opt, criterion, device) -> float:
     model.train()
     total = 0.0
@@ -146,6 +200,13 @@ def main() -> int:
     p.add_argument("--max-val", type=int, default=None)
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_seg/checkpoints/run_c6_v0"))
     p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
+    p.add_argument(
+        "--eval-ckpt",
+        type=Path,
+        default=None,
+        help="Skip train; load this checkpoint and score --eval-split (paper test = 31UEQ)",
+    )
+    p.add_argument("--eval-split", type=str, default="test", choices=["train", "val", "test"])
     args = p.parse_args()
 
     n_cls = num_output_classes(args.num_classes)
@@ -155,6 +216,9 @@ def main() -> int:
     else:
         print("building index from", args.data_root)
         records = build_patch_index(args.data_root)
+
+    if args.eval_ckpt:
+        return _run_eval(args, records, n_cls)
 
     print("estimating channel stats…")
     stats = estimate_channel_stats(records, args.num_classes, max_patches=args.stats_patches)

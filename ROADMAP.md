@@ -9,7 +9,7 @@
 
 | Pillar             | Goal                                                                                                                                 | Status                                |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| **A — Validation** | Replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2 on MultiSenGE, then beat/match with a modern model under the **same** protocol | **NEXT**                              |
+| **A — Validation** | Replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2 on MultiSenGE, then beat/match with a modern model under the **same** protocol | **Train done** (val 0.9411); test pending |
 | **B — Extension**  | SAR-LC-Bench + LULCDial-S1 (S1 VH · 14-class OCSGE · dialogue) + MultiSenNA transfer                                                 | **Core done** (optional polish later) |
 
 
@@ -74,7 +74,7 @@ URLs: [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4lcc/) · Unistra S3 lin
 | **A1**  | Download S2 + GR                                                 | Laptop         | ✅ S2 ~88 GB · GR 8157                       |
 | **A2**  | Build 4-date train/val/test index (+ optional cache)             | Laptop         | ✅ ~5890 after adding tile **32ULV**; S1 by month match |
 | **A3**  | Reimplement ConvLSTM+Inception → VGG-16 U-Net in PyTorch         | Laptop → PARAM | ✅ VGG-16 U-Net + train (aug / ReduceLR / EarlyStop / norm) |
-| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | **In progress** — job 96769 (`sbatch train.sbatch`) |
+| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | **Train done** — val_wF1 **0.9411**; next = **test** (`eval.sbatch`) |
 | **A5**  | Same protocol + advanced model (e.g. U-TAE / SegFormer-temporal) | PARAM          | Pending                                     |
 | **B**   | VLM numbers frozen for Extension §                               | —              | Done                                        |
 

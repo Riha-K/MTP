@@ -33,6 +33,17 @@ python -m multisenge_seg.train --index multisenge_seg/artifacts/patch_index.json
 # or: sbatch multisenge_seg/train.sbatch
 ```
 
+Held-out **test** (tile `31UEQ`, paper Table 5):
+
+```bash
+sbatch multisenge_seg/eval.sbatch
+# or:
+python -m multisenge_seg.train \
+  --index multisenge_seg/artifacts/patch_index.json \
+  --eval-ckpt multisenge_seg/checkpoints/run_c6_v0/best.pt \
+  --eval-split test --out-dir multisenge_seg/checkpoints/run_c6_v0
+```
+
 Smoke: `--max-train 8 --max-val 4 --epochs 1`
 
 ## Remaining gaps vs paper
