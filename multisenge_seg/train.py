@@ -30,7 +30,7 @@ from multisenge_seg.metrics import (
     scores_from_cm,
 )
 from multisenge_seg.model import ConvLSTMInceptionS1S2
-from multisenge_seg.taxonomy import num_output_classes
+from multisenge_seg.taxonomy import num_output_classes, remap_mask
 
 
 def _collate(batch):
@@ -54,6 +54,32 @@ def estimate_class_counts(loader, num_classes: int, max_batches: int = 50) -> np
     return counts
 
 
+def estimate_class_counts_from_gr(
+    records: list[PatchRecord],
+    split: str,
+    num_classes: int,
+) -> np.ndarray:
+    """Inverse-frequency weights from all train GR masks (paper: full train set).
+
+    Reads ground_reference only — not S1/S2 — so a full train scan is cheap.
+    """
+    import rasterio
+
+    counts = np.zeros(num_classes, dtype=np.int64)
+    n = 0
+    for r in records:
+        if r.split != split:
+            continue
+        with rasterio.open(r.gr_path) as src:
+            mask = src.read(1).astype(np.int64)
+        mask = remap_mask(mask, num_classes=num_classes)
+        for c in range(1, num_classes + 1):
+            counts[c - 1] += int((mask == c).sum())
+        n += 1
+    print("class-count patches", n)
+    return counts
+
+
 def estimate_channel_stats(
     records: list[PatchRecord],
     num_classes: int,
@@ -61,7 +87,7 @@ def estimate_channel_stats(
 ) -> dict:
     """Multitemporal per-channel mean/std on a train subset (paper-style)."""
     ds = MultiSenGETemporalDataset(records, "train", num_classes=num_classes, augment=False)
-    n = min(len(ds), max_patches)
+    n = len(ds) if max_patches <= 0 else min(len(ds), max_patches)
     if n == 0:
         raise RuntimeError("no train patches for stats")
     s1_sum = s1_sq = s2_sum = s2_sq = None
@@ -155,7 +181,7 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
     )
     model = ConvLSTMInceptionS1S2(s1_ch=s1_ch, s2_ch=s2_ch, num_classes=n_cls).to(device)
     model.load_state_dict(ckpt["model"])
-    print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls}")
+    print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls} device={device}")
     scores = evaluate(model, loader, device, n_cls)
     out = args.out_dir
     out.mkdir(parents=True, exist_ok=True)
@@ -171,21 +197,28 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
     return 0
 
 
-def train_one_epoch(model, loader, opt, criterion, device) -> float:
+def train_one_epoch(model, loader, opt, criterion, device, accum_steps: int = 1) -> float:
+    """Paper batch 16 ≈ batch_size × accum_steps when one GPU cannot hold 16."""
     model.train()
+    accum_steps = max(int(accum_steps), 1)
     total = 0.0
     n = 0
-    for batch in loader:
+    opt.zero_grad(set_to_none=True)
+    for i, batch in enumerate(loader):
         s1 = batch["s1"].to(device)
         s2 = batch["s2"].to(device)
         mask = batch["mask"].to(device)
-        opt.zero_grad(set_to_none=True)
         logits = model(s1, s2)
-        loss = criterion(logits, mask)
+        loss = criterion(logits, mask) / accum_steps
         loss.backward()
-        opt.step()
-        total += float(loss.item())
+        if (i + 1) % accum_steps == 0:
+            opt.step()
+            opt.zero_grad(set_to_none=True)
+        total += float(loss.item()) * accum_steps
         n += 1
+    if n % accum_steps != 0:
+        opt.step()
+        opt.zero_grad(set_to_none=True)
     return total / max(n, 1)
 
 
@@ -201,7 +234,19 @@ def main() -> int:
     p.add_argument("--patience", type=int, default=20, help="EarlyStopping patience (paper)")
     p.add_argument("--plateau-patience", type=int, default=5, help="ReduceLROnPlateau patience")
     p.add_argument("--no-augment", action="store_true")
-    p.add_argument("--stats-patches", type=int, default=64)
+    p.add_argument(
+        "--stats-patches",
+        type=int,
+        default=64,
+        help="Train patches for channel mean/std. 0 = all train (paper).",
+    )
+    p.add_argument(
+        "--accum-steps",
+        type=int,
+        default=1,
+        help="Gradient accumulation. Effective batch = batch-size × accum-steps (paper 16).",
+    )
+    p.add_argument("--full-class-weights", action="store_true", help="Count class pixels on all train GR masks")
     p.add_argument("--max-train", type=int, default=None, help="Smoke: limit train patches")
     p.add_argument("--max-val", type=int, default=None)
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_seg/checkpoints/run_c6_v0"))
@@ -278,8 +323,12 @@ def main() -> int:
     device = torch.device(args.device)
     model = ConvLSTMInceptionS1S2(s1_ch=s1_ch, s2_ch=s2_ch, num_classes=n_cls).to(device)
 
-    print("estimating class weights (subset of train)…")
-    counts = estimate_class_counts(train_loader, n_cls, max_batches=80)
+    if args.full_class_weights:
+        print("estimating class weights (all train GR masks)…")
+        counts = estimate_class_counts_from_gr(records, "train", args.num_classes)
+    else:
+        print("estimating class weights (subset of train)…")
+        counts = estimate_class_counts(train_loader, n_cls, max_batches=80)
     weights = class_weights_from_counts(counts)
     print("counts", counts.tolist(), "weights", weights.round(4).tolist())
     criterion = nn.CrossEntropyLoss(
@@ -298,7 +347,9 @@ def main() -> int:
     stale = 0
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()
-        loss = train_one_epoch(model, train_loader, opt, criterion, device)
+        loss = train_one_epoch(
+            model, train_loader, opt, criterion, device, accum_steps=args.accum_steps
+        )
         val = evaluate(model, val_loader, device, n_cls)
         scheduler.step(val["weighted_f1"])
         row = {

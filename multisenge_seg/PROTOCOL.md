@@ -93,9 +93,14 @@ Weights were **not** released publicly — reimplement or obtain on demand.
 
 ## 6. Metrics
 
-- Weighted F1 (primary vs paper tables)
-- Per-class F1
-- Accuracy / Cohen’s Kappa (paper reported)
+Computed in `metrics.py` (`scores_from_cm`) from pixel confusion matrix:
+
+- Per-class **Precision / Recall / F1** (paper Table 5)
+- Support-weighted **W-Precision / W-Recall / W-F1** (paper “W-Avg” row)
+- **Cohen’s Kappa** (paper Table 6)
+- Accuracy (logged; not paper headline)
+
+Frozen replicate vs paper: [`RESULTS_RS2023_6CLASS.md`](RESULTS_RS2023_6CLASS.md).
 
 **Never** compare these numbers to LULCDial **patch example F1**.
 

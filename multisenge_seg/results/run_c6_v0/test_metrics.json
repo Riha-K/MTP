@@ -1,0 +1,16 @@
+{
+  "job": 96798,
+  "ckpt": "multisenge_seg/checkpoints/run_c6_v0/best.pt",
+  "split": "test",
+  "tile": "31UEQ",
+  "num_classes": 6,
+  "accuracy": 0.8808,
+  "weighted_precision": 0.9506,
+  "weighted_recall": 0.8808,
+  "weighted_f1": 0.9098,
+  "mean_f1": 0.4743,
+  "kappa": 0.4496,
+  "per_class_precision": [0.3184, 0.4720, 0.4300, 0.0388, 0.2201, 0.9938],
+  "per_class_recall": [0.7200, 0.7649, 0.5021, 0.2837, 0.8015, 0.8980],
+  "per_class_f1": [0.4416, 0.5838, 0.4633, 0.0682, 0.3453, 0.9435]
+}

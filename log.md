@@ -10,11 +10,28 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-17 — 6-class test replicate complete (Table 5/6 vs paper)
+
+**Test eval** job **96798** on `best.pt` (train job **96769**, epoch 5). Full comparison: [`multisenge_seg/RESULTS_RS2023_6CLASS.md`](multisenge_seg/RESULTS_RS2023_6CLASS.md).
+
+| Metric | Mine (test 31UEQ) | Paper Table 5/6 | Δ |
+|--------|-------------------|-----------------|---|
+| W-Precision | 0.9506 | 0.9591 | −0.009 |
+| W-Recall | **0.8808** | 0.8596 | **+0.021** |
+| **W-F1** | **0.9098** | **0.9018** | **+0.008** |
+| Kappa | **0.4496** | 0.4186 | **+0.031** |
+
+Per-class P/R/F1 logged; metrics defined in `multisenge_seg/metrics.py`. JSON (repo): `multisenge_seg/results/run_c6_v0/test_metrics.json`. PARAM: `checkpoints/run_c6_v0/test_metrics.json`.
+
+**A4 replicate done** for 6-class. Optional: 10-class (§4.2) or A5 modern model.
+
+---
+
 ### 2026-08-17 — CNN replicate train finished (job 96769); next = test eval
 
 **Done:** EarlyStopping after epoch **25** (20 epochs without beating val_wF1). Best checkpoint is **epoch 5**.
 
-| Split | Metric | Ours | Paper (RS 2023 Table 5/6, **test** tile 31UEQ) |
+| Split | Metric | Mine | Paper (RS 2023 Table 5/6, **test** tile 31UEQ) |
 |-------|--------|------|-----------------------------------------------|
 | **Val** (31UFP+31UGP) | Weighted F1 | **0.9411** | — (paper reports test, not val) |
 | Val | Kappa | **0.448** (epoch 5) | paper test kappa **0.4186** |

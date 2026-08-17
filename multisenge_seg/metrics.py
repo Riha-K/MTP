@@ -1,4 +1,23 @@
-"""Segmentation metrics for CNN validation (pixel Weighted F1, etc.)."""
+"""Segmentation metrics for CNN validation (Wenger et al. RS 2023 Table 5/6).
+
+All eval metrics are computed from a pixel confusion matrix ``cm`` (rows=GT,
+cols=prediction, classes 0..C-1). Nodata / unknown pixels use ``ignore_index=255``.
+
+Per-class (paper Table 5 columns):
+  Precision_i = TP_i / (TP_i + FP_i)
+  Recall_i    = TP_i / (TP_i + FN_i)
+  F1_i        = 2·TP_i / (2·TP_i + FP_i + FN_i)
+
+Support-weighted averages (paper "W-Avg" row):
+  W-Precision = sum_i(Precision_i · support_i) / sum(support)
+  W-Recall    = sum_i(Recall_i    · support_i) / sum(support)
+  W-F1        = sum_i(F1_i        · support_i) / sum(support)
+
+Cohen's Kappa (paper Table 6): from overall accuracy vs chance agreement on ``cm``.
+
+Written to ``{split}_metrics.json`` by ``train.py --eval-ckpt``. Frozen replicate
+numbers vs paper: ``RESULTS_RS2023_6CLASS.md``.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +29,7 @@ def _ratio(num: float, den: float) -> float:
 
 
 def _f1(tp: float, fp: float, fn: float) -> float:
+    """Harmonic mean of precision and recall for one class."""
     denom = 2 * tp + fp + fn
     return 0.0 if denom == 0 else (2 * tp) / denom
 
@@ -34,17 +54,17 @@ def accumulate_confusion(
 
 
 def scores_from_cm(cm: np.ndarray) -> dict:
-    """Paper Table 5 style: per-class Precision / Recall / F1 + support-weighted averages."""
+    """Return RS-2023 Table 5/6 metrics dict from confusion matrix ``cm``."""
     c = cm.shape[0]
     support = cm.sum(axis=1).astype(np.float64)
     per_p, per_r, per_f1 = [], [], []
     for i in range(c):
         tp = float(cm[i, i])
-        fp = float(cm[:, i].sum() - tp)
-        fn = float(cm[i, :].sum() - tp)
-        per_p.append(_ratio(tp, tp + fp))
-        per_r.append(_ratio(tp, tp + fn))
-        per_f1.append(_f1(tp, fp, fn))
+        fp = float(cm[:, i].sum() - tp)  # predicted as i, GT elsewhere
+        fn = float(cm[i, :].sum() - tp)  # GT is i, predicted elsewhere
+        per_p.append(_ratio(tp, tp + fp))  # Precision_i
+        per_r.append(_ratio(tp, tp + fn))  # Recall_i
+        per_f1.append(_f1(tp, fp, fn))  # F1_i
     per_p_arr = np.array(per_p, dtype=np.float64)
     per_r_arr = np.array(per_r, dtype=np.float64)
     per_f1_arr = np.array(per_f1, dtype=np.float64)
