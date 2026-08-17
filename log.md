@@ -10,6 +10,33 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-17 — PARAM smoke OK; CNN train job submitted (A4)
+
+**Smoke** (`python -m multisenge_seg.smoke_index --max-labels 400`): **135** patches from first 400 labels; example `31TFN_4626_514` with months [7,8,9,11]. Env: `MLDL/Pytorch-gpu` + `rasterio` OK on login01 (`cuda False` on login is normal).
+
+**Train:** `sbatch multisenge_seg/train.sbatch` → job **96769** on `ragpu004` (paper-style: max 80 epochs, EarlyStopping patience 20, ReduceLR patience 5 in `train.py` defaults). Trial job 96767 cancelled after ~13 min (startup only). Monitor: `multisenge_seg/artifacts/slurm-96769.out` · checkpoints `multisenge_seg/checkpoints/run_c6_v0/`.
+
+**Docs added locally:** `multisenge_seg/PARAM_TRANSFER.md`, `LAB_GPU_TRANSFER.md`; `train.sbatch` uses absolute PARAM paths.
+
+**Next:** wait for `best_metrics.json` (Weighted F1 vs paper ~0.89–0.90); then full replicate analysis / optional 10-class run.
+
+---
+
+### 2026-08-15 / 08-17 — MultiSenGE data + code on PARAM; next = CNN train (A4)
+
+**PARAM transfer done** (`~/MTP/earth2`):
+- Code: `git pull` → `multisenge_seg/` present
+- Data under `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/`:
+  - labels **8157** · ground_reference **8157**
+  - s2 **72033** · s1 **209854**
+- Labels were already on PARAM; GR then S2 (~5.5 h) then S1 (overnight, one disconnect + resume via `scp -r`)
+
+**Not zero-shot.** Pillar A is **pixel CNN segmentation** — train ConvLSTM+Inception→VGG-16 U-Net from scratch (paper replicate). Zero-shot was Pillar B (EarthDial VLM), already done.
+
+**Next on PARAM:** ~~smoke + sbatch~~ → job **96769** running (see 2026-08-17 entry).
+
+---
+
 ### 2026-08-11 — Patch counts match paper; train tricks; VGG-16 U-Net
 
 **Index:** Added missing train tile **32ULV** (793 patches). With ≥17-day S2 gap → **train 3369 / val 1911 / test 610 = 5890** (paper). S1 paired by same month / nearest date (not a second gap filter).

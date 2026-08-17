@@ -57,6 +57,8 @@ URLs: [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4lcc/) · Unistra S3 lin
 | **Your laptop**        | Protocol, index, model/code, docs, email authors; no full train                                                                          |
 | **PARAM GPU**          | Train replicate + advanced model; long jobs                                                                                              |
 
+**Transfer:** lab box [`LAB_GPU_TRANSFER.md`](multisenge_seg/LAB_GPU_TRANSFER.md) · PARAM [`PARAM_TRANSFER.md`](multisenge_seg/PARAM_TRANSFER.md)
+
 
 **Do not** try full training on the laptop.
 
@@ -72,7 +74,7 @@ URLs: [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4lcc/) · Unistra S3 lin
 | **A1**  | Download S2 + GR                                                 | Laptop         | ✅ S2 ~88 GB · GR 8157                       |
 | **A2**  | Build 4-date train/val/test index (+ optional cache)             | Laptop         | ✅ ~5890 after adding tile **32ULV**; S1 by month match |
 | **A3**  | Reimplement ConvLSTM+Inception → VGG-16 U-Net in PyTorch         | Laptop → PARAM | ✅ VGG-16 U-Net + train (aug / ReduceLR / EarlyStop / norm) |
-| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | Pending |
+| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | **In progress** — job 96769 (`sbatch train.sbatch`) |
 | **A5**  | Same protocol + advanced model (e.g. U-TAE / SegFormer-temporal) | PARAM          | Pending                                     |
 | **B**   | VLM numbers frozen for Extension §                               | —              | Done                                        |
 

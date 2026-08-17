@@ -1,15 +1,20 @@
 #!/bin/bash
 #SBATCH -J msge_cnn
+#SBATCH -N 1
+#SBATCH -n 4
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
-#SBATCH -c 4
 #SBATCH -t 24:00:00
-#SBATCH -o multisenge_seg/artifacts/slurm-%j.out
-#SBATCH -e multisenge_seg/artifacts/slurm-%j.err
+# IMPORTANT: absolute paths — Slurm does NOT expand ~
+#SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_seg/artifacts/slurm-%j.out
+#SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_seg/artifacts/slurm-%j.err
 
 set -euo pipefail
-cd "${SLURM_SUBMIT_DIR:-$HOME/MTP/earth2}"
-# module load MLDL/Pytorch-gpu   # PARAM: uncomment / adjust
+cd /home/rihak_iitp/MTP/earth2
+mkdir -p multisenge_seg/artifacts multisenge_seg/checkpoints
+
+module purge
+module load MLDL/Pytorch-gpu
 export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
 
 python -m multisenge_seg.build_index \

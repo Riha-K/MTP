@@ -23,11 +23,13 @@ python -m multisenge_seg.smoke_index --model-smoke   # needs torch
 
 ## Train (PARAM)
 
+See **[`PARAM_TRANSFER.md`](PARAM_TRANSFER.md)** for copy steps (git pull + scp/rsync S2/GR; reuse S1 if already there).
+
 ```bash
 export PYTHONPATH=$PWD
 python -m multisenge_seg.build_index
 python -m multisenge_seg.train --index multisenge_seg/artifacts/patch_index.json \
-  --num-classes 6 --epochs 20 --batch-size 2 --out-dir multisenge_seg/checkpoints/run_c6_v0
+  --num-classes 6 --epochs 80 --batch-size 2 --out-dir multisenge_seg/checkpoints/run_c6_v0
 # or: sbatch multisenge_seg/train.sbatch
 ```
 
