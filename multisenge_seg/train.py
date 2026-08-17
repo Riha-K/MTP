@@ -23,7 +23,12 @@ from torch.utils.data import DataLoader
 
 from multisenge_seg.build_index import records_from_json
 from multisenge_seg.dataset import MultiSenGETemporalDataset, PatchRecord, build_patch_index
-from multisenge_seg.metrics import accumulate_confusion, class_weights_from_counts, scores_from_cm
+from multisenge_seg.metrics import (
+    accumulate_confusion,
+    class_weights_from_counts,
+    format_prf_table,
+    scores_from_cm,
+)
 from multisenge_seg.model import ConvLSTMInceptionS1S2
 from multisenge_seg.taxonomy import num_output_classes
 
@@ -157,10 +162,11 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
     dest = out / f"{args.eval_split}_metrics.json"
     dest.write_text(json.dumps(scores, indent=2), encoding="utf-8")
     print(
-        f"{args.eval_split} wF1={scores['weighted_f1']:.4f} acc={scores['accuracy']:.4f} "
-        f"kappa={scores['kappa']:.4f} meanF1={scores['mean_f1']:.4f}"
+        f"{args.eval_split} wP={scores['weighted_precision']:.4f} "
+        f"wR={scores['weighted_recall']:.4f} wF1={scores['weighted_f1']:.4f} "
+        f"acc={scores['accuracy']:.4f} kappa={scores['kappa']:.4f}"
     )
-    print("per_class_f1", [round(x, 4) for x in scores["per_class_f1"]])
+    print(format_prf_table(scores))
     print("wrote", dest)
     return 0
 
