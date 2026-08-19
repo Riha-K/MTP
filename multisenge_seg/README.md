@@ -12,7 +12,8 @@ Replicate **Wenger et al. Remote Sensing 2023** on MultiSenGE, then advance unde
 | `dataset.py` | Index + Dataset (10-band S2, VV/VH S1) |
 | `model.py` | ConvLSTM + Naive Inception + **VGG-16 U-Net** |
 | `train.py` / `train.sbatch` | Weighted CE train loop (PARAM) |
-| `train_c10.sbatch` / `eval_c10.sbatch` | **10-class** Table 7/8 ([`CLASS10.md`](CLASS10.md)) |
+| `train_c10.sbatch` / `eval_c10.sbatch` | **10-class v0** replicate ([`CLASS10.md`](CLASS10.md)) |
+| `train_c10_v1.sbatch` | 10-class v1 (seed 42, kappa stop, class boost) |
 | `taxonomy.py` / `splits.py` | 6/10-class maps, geo tiles |
 
 ## Data

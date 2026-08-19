@@ -75,7 +75,7 @@ URLs: [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4lcc/) · Unistra S3 lin
 | **A2**  | Build 4-date train/val/test index (+ optional cache)             | Laptop         | ✅ ~5890 after adding tile **32ULV**; S1 by month match |
 | **A3**  | Reimplement ConvLSTM+Inception → VGG-16 U-Net in PyTorch         | Laptop → PARAM | ✅ VGG-16 U-Net + train (aug / ReduceLR / EarlyStop / norm) |
 | **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | ✅ 6-class frozen — report **v0 last.pt ep 25** W-F1 **0.9037** vs **0.9018**; see [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md) |
-| **A4b** | 10-class replicate (paper Table 7/8)                             | PARAM          | **NEXT** — `--num-classes 10`, same tiles/dates |
+| **A4b** | 10-class replicate (paper Table 7/8)                             | PARAM          | ✅ v0 `best.pt` test W-F1 **0.8711** vs paper **0.8851**; kappa **0.7588** vs **0.7945**. v1 (kappa stop + class boost) optional |
 | **A5**  | Same protocol + advanced model (e.g. U-TAE / SegFormer-temporal) | PARAM          | After A4b (or in parallel if sir agrees) |
 | **B**   | VLM numbers frozen for Extension §                               | —              | Done                                        |
 

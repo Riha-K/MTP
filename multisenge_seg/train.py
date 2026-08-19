@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 import time
 from pathlib import Path
 
@@ -40,6 +41,47 @@ def _collate(batch):
         "s2": torch.stack([b["s2"] for b in batch], dim=0),
         "mask": torch.stack([b["mask"] for b in batch], dim=0),
     }
+
+
+def set_seed(seed: int) -> None:
+    """Lock shuffle / init / numpy aug. CUDA can still differ slightly across GPUs."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def _seed_worker(worker_id: int) -> None:
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
+
+def parse_class_boost(spec: str, n_cls: int) -> np.ndarray:
+    """Paper class ids 1..C, e.g. '8:2.5,4:1.5,10:0.6'. Missing ids stay 1.0."""
+    boost = np.ones(n_cls, dtype=np.float64)
+    spec = (spec or "").strip()
+    if not spec:
+        return boost
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        cid_s, fac_s = part.split(":")
+        cid = int(cid_s)
+        fac = float(fac_s)
+        if cid < 1 or cid > n_cls:
+            raise ValueError(f"class-boost id {cid} not in 1..{n_cls}")
+        boost[cid - 1] = fac
+    return boost
+
+
+def apply_class_boost(weights: np.ndarray, boost: np.ndarray) -> np.ndarray:
+    out = weights.astype(np.float64) * boost
+    return out / out.sum() * len(out)
 
 
 @torch.no_grad()
@@ -247,6 +289,25 @@ def main() -> int:
         help="Gradient accumulation. Effective batch = batch-size × accum-steps (paper 16).",
     )
     p.add_argument("--full-class-weights", action="store_true", help="Count class pixels on all train GR masks")
+    p.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="If set, seed torch/numpy/shuffle. Omit for unreproducible (v0).",
+    )
+    p.add_argument(
+        "--monitor",
+        type=str,
+        default="weighted_f1",
+        choices=["weighted_f1", "kappa", "mean_f1"],
+        help="Val metric for EarlyStop + ReduceLROnPlateau",
+    )
+    p.add_argument(
+        "--class-boost",
+        type=str,
+        default="",
+        help="Multiply CE weights after inverse-freq. Paper ids 1..C, e.g. 8:2.5,4:1.5,10:0.6",
+    )
     p.add_argument("--max-train", type=int, default=None, help="Smoke: limit train patches")
     p.add_argument("--max-val", type=int, default=None)
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_seg/checkpoints/run_c6_v0"))
@@ -270,6 +331,10 @@ def main() -> int:
 
     if args.eval_ckpt:
         return _run_eval(args, records, n_cls)
+
+    if args.seed is not None:
+        set_seed(args.seed)
+        print("seed", args.seed)
 
     print("estimating channel stats…")
     stats = estimate_channel_stats(records, args.num_classes, max_patches=args.stats_patches)
@@ -300,12 +365,17 @@ def main() -> int:
     if args.max_val:
         val_ds.records = val_ds.records[: args.max_val]
 
+    loader_kw = dict(num_workers=args.workers, collate_fn=_collate)
+    if args.seed is not None:
+        g = torch.Generator()
+        g.manual_seed(args.seed)
+        loader_kw["generator"] = g
+        loader_kw["worker_init_fn"] = _seed_worker
     train_loader = DataLoader(
         train_ds,
         batch_size=args.batch_size,
         shuffle=True,
-        num_workers=args.workers,
-        collate_fn=_collate,
+        **loader_kw,
     )
     val_loader = DataLoader(
         val_ds,
@@ -331,6 +401,10 @@ def main() -> int:
         counts = estimate_class_counts(train_loader, n_cls, max_batches=80)
     weights = class_weights_from_counts(counts)
     print("counts", counts.tolist(), "weights", weights.round(4).tolist())
+    boost = parse_class_boost(args.class_boost, n_cls)
+    if np.any(boost != 1.0):
+        weights = apply_class_boost(weights, boost)
+        print("boost", boost.tolist(), "weights_after", np.round(weights, 4).tolist())
     criterion = nn.CrossEntropyLoss(
         weight=torch.tensor(weights, dtype=torch.float32, device=device),
         ignore_index=255,
@@ -342,8 +416,9 @@ def main() -> int:
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     (args.out_dir / "norm_stats.json").write_text(json.dumps(stats, indent=2), encoding="utf-8")
+    monitor_key = args.monitor
     history = []
-    best_f1 = -1.0
+    best_mon = -1.0
     stale = 0
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()
@@ -351,7 +426,8 @@ def main() -> int:
             model, train_loader, opt, criterion, device, accum_steps=args.accum_steps
         )
         val = evaluate(model, val_loader, device, n_cls)
-        scheduler.step(val["weighted_f1"])
+        mon = float(val[monitor_key])
+        scheduler.step(mon)
         row = {
             "epoch": epoch,
             "train_loss": loss,
@@ -366,7 +442,8 @@ def main() -> int:
         print(
             f"epoch {epoch:03d} loss={loss:.4f} "
             f"val_wF1={val['weighted_f1']:.4f} acc={val['accuracy']:.4f} "
-            f"kappa={val['kappa']:.4f} lr={row['lr']:.1e} ({row['sec']}s)"
+            f"kappa={val['kappa']:.4f} meanF1={val['mean_f1']:.4f} "
+            f"mon={monitor_key}:{mon:.4f} lr={row['lr']:.1e} ({row['sec']}s)"
         )
         ckpt = {
             "epoch": epoch,
@@ -379,19 +456,19 @@ def main() -> int:
             "args": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
         }
         torch.save(ckpt, args.out_dir / "last.pt")
-        if val["weighted_f1"] > best_f1:
-            best_f1 = val["weighted_f1"]
+        if mon > best_mon:
+            best_mon = mon
             stale = 0
             torch.save(ckpt, args.out_dir / "best.pt")
             (args.out_dir / "best_metrics.json").write_text(json.dumps(val, indent=2), encoding="utf-8")
         else:
             stale += 1
             if stale >= args.patience:
-                print(f"EarlyStopping after {args.patience} epochs without val_wF1 improvement")
+                print(f"EarlyStopping after {args.patience} epochs without val {monitor_key} improvement")
                 break
 
     (args.out_dir / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
-    print("done. best val weighted F1", best_f1, "dir", args.out_dir)
+    print("done. best val", monitor_key, best_mon, "dir", args.out_dir)
     return 0
 
 
