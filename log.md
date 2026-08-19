@@ -10,6 +10,32 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-19 — 10-class train/eval sbatch ready (A4b)
+
+Same protocol as 6-class v1 (full stats, full GR weights, batch 8 × accum 2). `--num-classes 10` → `checkpoints/run_c10_v0/`. Docs: `multisenge_seg/CLASS10.md`. PARAM: `sbatch multisenge_seg/train_c10.sbatch`. Paper target W-F1 **0.8851** / Kappa **0.7945**.
+
+---
+
+### 2026-08-19 — 6-class freeze: report v0 last.pt (epoch 25)
+
+**Report to sir:** v0 `last.pt`, **epoch 25**, test tile 31UEQ. JSON: [`multisenge_seg/results/run_c6_v0/last_test_metrics.json`](multisenge_seg/results/run_c6_v0/last_test_metrics.json). Tables: [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md).
+
+| Metric | Paper Table 5/6 | v0 last ep 25 | v0 best ep 5 |
+|--------|-----------------|---------------|--------------|
+| W-F1 | 0.9018 | **0.9037** | 0.9098 |
+| Kappa | 0.4186 | **0.4424** | 0.4496 |
+| Class 2 F1 | 0.6364 | **0.6649** | 0.5838 |
+| Class 3 F1 | 0.5894 | 0.4558 | 0.4633 |
+| Class 5 F1 | 0.4064 | 0.3640 | 0.3453 |
+
+`best.pt` (ep 5) wins **val/test W-F1** via class 6; `last.pt` is better on urban 1/2/4/5. Quote last.
+
+**v1** (job 96803, full stats + effective batch 16): test W-F1 0.9019 (best ep 17); class 5 **worse** than v0 last. Not the main row.
+
+**A4 6-class replicate frozen.** Class 3 and 5 still below paper. Next: 10-class (paper §4.2 / Table 7) then A5 modern model — not more 6-class epochs.
+
+---
+
 ### 2026-08-17 — 6-class test replicate complete (Table 5/6 vs paper)
 
 **Test eval** job **96798** on `best.pt` (train job **96769**, epoch 5). Full comparison: [`multisenge_seg/RESULTS_RS2023_6CLASS.md`](multisenge_seg/RESULTS_RS2023_6CLASS.md).

@@ -123,5 +123,6 @@ Frozen replicate vs paper: [`RESULTS_RS2023_6CLASS.md`](RESULTS_RS2023_6CLASS.md
 | S1 / S2 / GR / labels on disk | ✅ |
 | This protocol | ✅ drafted |
 | Loader + VGG-16 U-Net model | ✅ `multisenge_seg/` |
-| Train replicate | ⬜ |
-| Advanced model (U-TAE / etc.) | ⬜ after replicate |
+| Train replicate (6-class) | ✅ report **v0 last.pt epoch 25** (test W-F1 0.9037) |
+| 10-class replicate | ⬜ next (`--num-classes 10`) |
+| Advanced model (U-TAE / etc.) | ⬜ after 10-class |

@@ -9,7 +9,7 @@
 
 | Pillar             | Goal                                                                                                                                 | Status                                |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| **A — Validation** | Replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2 on MultiSenGE, then beat/match with a modern model under the **same** protocol | **6-class replicate done** — test wF1 **0.9098** vs paper **0.9018** ([results](multisenge_seg/RESULTS_RS2023_6CLASS.md)) |
+| **A — Validation** | Replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2 on MultiSenGE, then beat/match with a modern model under the **same** protocol | **6-class frozen** — report v0 **last.pt ep 25** test W-F1 **0.9037** vs paper **0.9018**; class 3/5 still below. Next: **10-class** then A5 |
 | **B — Extension**  | SAR-LC-Bench + LULCDial-S1 (S1 VH · 14-class OCSGE · dialogue) + MultiSenNA transfer                                                 | **Core done** (optional polish later) |
 
 
@@ -74,8 +74,9 @@ URLs: [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4lcc/) · Unistra S3 lin
 | **A1**  | Download S2 + GR                                                 | Laptop         | ✅ S2 ~88 GB · GR 8157                       |
 | **A2**  | Build 4-date train/val/test index (+ optional cache)             | Laptop         | ✅ ~5890 after adding tile **32ULV**; S1 by month match |
 | **A3**  | Reimplement ConvLSTM+Inception → VGG-16 U-Net in PyTorch         | Laptop → PARAM | ✅ VGG-16 U-Net + train (aug / ReduceLR / EarlyStop / norm) |
-| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | ✅ test wF1 **0.9098** vs **0.9018** — [`RESULTS_RS2023_6CLASS.md`](multisenge_seg/RESULTS_RS2023_6CLASS.md) |
-| **A5**  | Same protocol + advanced model (e.g. U-TAE / SegFormer-temporal) | PARAM          | Pending                                     |
+| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | ✅ 6-class frozen — report **v0 last.pt ep 25** W-F1 **0.9037** vs **0.9018**; see [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md) |
+| **A4b** | 10-class replicate (paper Table 7/8)                             | PARAM          | **NEXT** — `--num-classes 10`, same tiles/dates |
+| **A5**  | Same protocol + advanced model (e.g. U-TAE / SegFormer-temporal) | PARAM          | After A4b (or in parallel if sir agrees) |
 | **B**   | VLM numbers frozen for Extension §                               | —              | Done                                        |
 
 
