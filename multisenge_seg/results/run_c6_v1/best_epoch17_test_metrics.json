@@ -1,0 +1,22 @@
+{
+  "which": "best.pt",
+  "run": "run_c6_v1",
+  "epoch": 17,
+  "why_saved": "highest val Weighted F1 on v1 (full-train stats, full class weights, effective batch 16)",
+  "val_weighted_f1": 0.9375,
+  "train_job": 96803,
+  "eval_job": 97040,
+  "ckpt": "multisenge_seg/checkpoints/run_c6_v1/best.pt",
+  "split": "test",
+  "tile": "31UEQ",
+  "n_test_patches": 610,
+  "num_classes": 6,
+  "accuracy": 0.8651,
+  "weighted_precision": 0.9556,
+  "weighted_recall": 0.8651,
+  "weighted_f1": 0.9019,
+  "kappa": 0.4328,
+  "per_class_precision": [0.3439, 0.5865, 0.3358, 0.0471, 0.2082, 0.9975],
+  "per_class_recall": [0.6226, 0.6980, 0.7819, 0.4477, 0.7928, 0.8766],
+  "per_class_f1": [0.4430, 0.6374, 0.4698, 0.0852, 0.3298, 0.9332]
+}

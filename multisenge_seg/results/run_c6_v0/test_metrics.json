@@ -1,6 +1,7 @@
 {
   "job": 96798,
   "ckpt": "multisenge_seg/checkpoints/run_c6_v0/best.pt",
+  "epoch": 5,
   "split": "test",
   "tile": "31UEQ",
   "num_classes": 6,

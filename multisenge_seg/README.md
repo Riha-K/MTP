@@ -6,6 +6,7 @@ Replicate **Wenger et al. Remote Sensing 2023** on MultiSenGE, then advance unde
 |-----|---------|
 | [`PROTOCOL.md`](PROTOCOL.md) | Frozen setting (dates, tiles, classes) |
 | [`RESULTS_RS2023_6CLASS.md`](RESULTS_RS2023_6CLASS.md) | Test P/R/F1 vs paper Table 5/6 |
+| [`TABLE5_TEST_FOR_SIR.md`](TABLE5_TEST_FOR_SIR.md) | Paper-format tables · best vs last · epoch numbers |
 | [`results/run_c6_v0/test_metrics.json`](results/run_c6_v0/test_metrics.json) | Small test scores JSON (job 96798) |
 | `dataset.py` | Index + Dataset (10-band S2, VV/VH S1) |
 | `model.py` | ConvLSTM + Naive Inception + **VGG-16 U-Net** |

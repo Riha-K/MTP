@@ -1,0 +1,22 @@
+{
+  "which": "last.pt",
+  "run": "run_c6_v1",
+  "epoch": 37,
+  "why_saved": "weights at EarlyStopping; not used for reporting (test W-F1 below paper)",
+  "val_weighted_f1_at_best_epoch": 0.9375,
+  "train_job": 96803,
+  "eval_job": 97041,
+  "ckpt": "multisenge_seg/checkpoints/run_c6_v1/last.pt",
+  "split": "test",
+  "tile": "31UEQ",
+  "n_test_patches": 610,
+  "num_classes": 6,
+  "accuracy": 0.8487,
+  "weighted_precision": 0.9544,
+  "weighted_recall": 0.8487,
+  "weighted_f1": 0.8906,
+  "kappa": 0.4051,
+  "per_class_precision": [0.3532, 0.5749, 0.2724, 0.0465, 0.1870, 0.9982],
+  "per_class_recall": [0.6306, 0.7177, 0.8185, 0.4283, 0.7879, 0.8576],
+  "per_class_f1": [0.4528, 0.6384, 0.4088, 0.0839, 0.3023, 0.9226]
+}
