@@ -10,9 +10,22 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
-### 2026-08-19 — 10-class train/eval sbatch ready (A4b)
+### 2026-08-21 — Freeze report rows; drop c6_v1 / c10_v1 from repo
 
-Same protocol as 6-class v1 (full stats, full GR weights, batch 8 × accum 2). `--num-classes 10` → `checkpoints/run_c10_v0/`. Docs: `multisenge_seg/CLASS10.md`. PARAM: `sbatch multisenge_seg/train_c10.sbatch`. Paper target W-F1 **0.8851** / Kappa **0.7945**.
+Kept **only** report JSON + docs. Removed `run_c6_v1` results, `train_c6_v1` / `eval_v1*` sbatch, and `*_c10_v1*` sbatch (seed/kappa-boost test did not beat 10-class v0 on test: W-F1 0.8719 / kappa 0.7534 vs v0 **0.8711 / 0.7588**).
+
+| Report | Ckpt | Test W-F1 | Kappa | Paper |
+|--------|------|-----------|-------|-------|
+| 6-class | v0 `last.pt` ep 25 | **0.9037** | **0.4424** | 0.9018 / 0.4186 |
+| 10-class | v0 `best.pt` | **0.8711** | **0.7588** | 0.8851 / 0.7945 |
+
+Docs: `RESULTS_RS2023_6CLASS.md`, `RESULTS_RS2023_10CLASS.md`, `TABLE5_TEST_FOR_SIR.md`, `CLASS10.md`. Next optional: **A5**.
+
+---
+
+### 2026-08-19 — 10-class train/eval (A4b) → frozen v0
+
+Train job **97047** · test **97153** (`best.pt`). Headline W-F1 **0.8711** / kappa **0.7588** vs paper **0.8851 / 0.7945**. See `CLASS10.md` / `RESULTS_RS2023_10CLASS.md`.
 
 ---
 
@@ -20,19 +33,15 @@ Same protocol as 6-class v1 (full stats, full GR weights, batch 8 × accum 2). `
 
 **Report to sir:** v0 `last.pt`, **epoch 25**, test tile 31UEQ. JSON: [`multisenge_seg/results/run_c6_v0/last_test_metrics.json`](multisenge_seg/results/run_c6_v0/last_test_metrics.json). Tables: [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md).
 
-| Metric | Paper Table 5/6 | v0 last ep 25 | v0 best ep 5 |
-|--------|-----------------|---------------|--------------|
-| W-F1 | 0.9018 | **0.9037** | 0.9098 |
-| Kappa | 0.4186 | **0.4424** | 0.4496 |
-| Class 2 F1 | 0.6364 | **0.6649** | 0.5838 |
-| Class 3 F1 | 0.5894 | 0.4558 | 0.4633 |
-| Class 5 F1 | 0.4064 | 0.3640 | 0.3453 |
+| Metric | Paper Table 5/6 | v0 last ep 25 |
+|--------|-----------------|---------------|
+| W-F1 | 0.9018 | **0.9037** |
+| Kappa | 0.4186 | **0.4424** |
+| Class 2 F1 | 0.6364 | **0.6649** |
+| Class 3 F1 | 0.5894 | 0.4558 |
+| Class 5 F1 | 0.4064 | 0.3640 |
 
-`best.pt` (ep 5) wins **val/test W-F1** via class 6; `last.pt` is better on urban 1/2/4/5. Quote last.
-
-**v1** (job 96803, full stats + effective batch 16): test W-F1 0.9019 (best ep 17); class 5 **worse** than v0 last. Not the main row.
-
-**A4 6-class replicate frozen.** Class 3 and 5 still below paper. Next: 10-class (paper §4.2 / Table 7) then A5 modern model — not more 6-class epochs.
+`last.pt` preferred over `best.pt` (ep 5) for urban F1. **A4 6-class frozen.**
 
 ---
 

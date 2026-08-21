@@ -2,21 +2,18 @@
 
 Independent reimplementation of **ConvLSTM+Inception-S1S2** (Wenger et al., *Remote Sensing* 2023, §4.1, Table 5 & 6).
 
-**Quote this row:** v0 **`last.pt`, epoch 25** (not `best.pt` epoch 5).  
-Sir-facing tables: [`TABLE5_TEST_FOR_SIR.md`](TABLE5_TEST_FOR_SIR.md) · Word: `results/run_c6_v0/Table5_v0_simple.docx`
+**Report:** v0 **`last.pt`, epoch 25**. Sir tables: [`TABLE5_TEST_FOR_SIR.md`](TABLE5_TEST_FOR_SIR.md).
 
 | Item | Value |
 |------|--------|
-| Paper | `BenchmarkGuide/3_ConvLSTM_Inception_MultiSenGE_RemoteSensing.pdf` |
 | Split | Test tile **31UEQ** (~610 patches), 6-class |
-| Train | PARAM job **96769** (batch 2) |
-| Report ckpt | `checkpoints/run_c6_v0/last.pt` · **epoch 25** · eval job **96802** |
+| Train | PARAM job **96769** |
+| Report ckpt | `checkpoints/run_c6_v0/last.pt` · **epoch 25** · eval **96802** |
 | JSON | [`results/run_c6_v0/last_test_metrics.json`](results/run_c6_v0/last_test_metrics.json) |
-| Also saved | `best.pt` epoch **5** (val W-F1 peak) · [`test_metrics.json`](results/run_c6_v0/test_metrics.json) |
 
 ---
 
-## Table 5 — report row (v0 last.pt, epoch 25)
+## Table 5 — report row
 
 | Class | Name | Paper P | My P | Paper R | My R | Paper F1 | My F1 |
 |-------|------|---------|------|---------|------|----------|-------|
@@ -30,28 +27,10 @@ Sir-facing tables: [`TABLE5_TEST_FOR_SIR.md`](TABLE5_TEST_FOR_SIR.md) · Word: `
 
 Kappa: paper **0.4186** · ours **0.4424**.
 
-Class **2** above paper; class **3 and 5** still below. Class **4** near-zero for both.
+Class **2** above paper; class **3** and **5** still below. Class **4** near-zero for both.
 
 ---
 
-## Why not quote best.pt (epoch 5)
+## Status
 
-| | best.pt ep 5 | last.pt ep 25 |
-|--|--------------|---------------|
-| Test W-F1 | **0.9098** | 0.9037 |
-| Class 2 F1 | 0.5838 | **0.6649** |
-| Class 5 F1 | 0.3453 | **0.3640** |
-
-`best.pt` is the EarlyStopping pick on **val W-F1** (class 6). `last.pt` is better on urban F1.
-
----
-
-## v1 (not the main table)
-
-Job **96803**: full-train norm, full class weights, effective batch 16. Test W-F1 **0.9019** (best, ep 17). Class 5 F1 **0.330** — worse than v0 last. JSON: `results/run_c6_v1/`.
-
----
-
-## Next
-
-6-class **frozen**. Next: **10-class** (paper Table 7/8, `--num-classes 10`) then A5 modern model.
+6-class **frozen**. 10-class: [`CLASS10.md`](CLASS10.md) / [`RESULTS_RS2023_10CLASS.md`](RESULTS_RS2023_10CLASS.md). Next optional: **A5** modern model.
