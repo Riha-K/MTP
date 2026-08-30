@@ -9,8 +9,6 @@ from __future__ import annotations
 
 _VAL = {"31UFP", "31UGP"}
 _TEST = {"31UEQ"}
-
-# Documented train tiles + T32ULV (required for paper n_train=3369)
 _TRAIN = {
     "32UMV",
     "32ULU",

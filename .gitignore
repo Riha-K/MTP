@@ -8,6 +8,8 @@ LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/ground_reference/
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench/
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1_test_bench_v0.2/
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/*.tgz
+LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/*.tar
+LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s2.tar
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/
 LULCDial-s1/data/lulcdial_s1/bench/multisenna/v0.1/*.jsonl
 LULCDial-s1/data/lulcdial_s1/bench/multisenna/v0.1/*.summary.json

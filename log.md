@@ -10,6 +10,16 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-30 — Breast-cancer TL paper notes + ignore MultiSenGE `.tar`
+
+Added BenchmarkGuide notes for Singh et al. TCBB 2021 (*Imbalanced Breast Cancer Classification Using Transfer Learning*): PDF + Word summary (`Imbalanced_Breast_Cancer_Paper_Explained.docx`) covering Table 4 (layer-wise RF / negative transfer) vs Table 5 (LR/SVM/RF vs dense head; train dense vs retrain VGG-19 — both still ImageNet TL, not from-scratch).
+
+Working split convention to keep for new experiments: **train 56% / val 14% / test 30%** (val taken from the train pool; test untouched). Paper itself only makes ~70/30 clear from confusion-matrix size.
+
+`.gitignore`: ignore `multisenge/*.tar` and `s2.tar` so local Sentinel-2 archives are not committed. Repo cleanup: drop obsolete `EMAIL_AUTHORS_CODE_REQUEST.md`.
+
+---
+
 ### 2026-08-21 — Freeze report rows; drop c6_v1 / c10_v1 from repo
 
 Kept **only** report JSON + docs. Removed `run_c6_v1` results, `train_c6_v1` / `eval_v1*` sbatch, and `*_c10_v1*` sbatch (seed/kappa-boost test did not beat 10-class v0 on test: W-F1 0.8719 / kappa 0.7534 vs v0 **0.8711 / 0.7588**).
