@@ -259,6 +259,22 @@ class TemporalAggregator(nn.Module):
       if self.mode == "mean":
         out = x * (~pad_mask).float()[:, :, None, None, None]
         return out.sum(dim=1) / (~pad_mask).sum(dim=1)[:, None, None, None]
+    if self.mode == "att_group":
+      n_heads, b, t, h, w = attn_mask.shape
+      attn = attn_mask.view(n_heads * b, t, h, w)
+      if x.shape[-2] > w:
+        attn = nn.functional.interpolate(attn, size=x.shape[-2:], mode="bilinear", align_corners=False)
+      else:
+        attn = nn.functional.avg_pool2d(attn, kernel_size=w // x.shape[-2])
+      attn = attn.view(n_heads, b, t, *x.shape[-2:])
+      out = torch.stack(x.chunk(n_heads, dim=2))
+      out = attn[:, :, :, None, :, :] * out
+      out = out.sum(dim=2)
+      return torch.cat([group for group in out], dim=1)
+    if self.mode == "att_mean":
+      attn = attn_mask.mean(dim=0)
+      attn = nn.functional.interpolate(attn, size=x.shape[-2:], mode="bilinear", align_corners=False)
+      return (x * attn[:, :, None, :, :]).sum(dim=1)
     if self.mode == "mean":
       return x.mean(dim=1)
     raise ValueError(f"unsupported agg mode {self.mode}")
