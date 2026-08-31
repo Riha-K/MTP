@@ -231,7 +231,8 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
     dest.write_text(json.dumps(scores, indent=2), encoding="utf-8")
     print(
         f"{args.eval_split} wP={scores['weighted_precision']:.4f} "
-        f"wR={scores['weighted_recall']:.4f} wF1={scores['weighted_f1']:.4f} "
+        f"wR={scores['weighted_recall']:.4f} wSens={scores['weighted_sensitivity']:.4f} "
+        f"wSpec={scores['weighted_specificity']:.4f} wF1={scores['weighted_f1']:.4f} "
         f"acc={scores['accuracy']:.4f} kappa={scores['kappa']:.4f}"
     )
     print(format_prf_table(scores))

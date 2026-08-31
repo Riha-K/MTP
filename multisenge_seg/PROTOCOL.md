@@ -95,10 +95,12 @@ Weights were **not** released publicly — reimplement or obtain on demand.
 
 Computed in `metrics.py` (`scores_from_cm`) from pixel confusion matrix:
 
-- Per-class **Precision / Recall / F1** (paper Table 5)
-- Support-weighted **W-Precision / W-Recall / W-F1** (paper “W-Avg” row)
+- Per-class **Precision / Recall / Sensitivity / Specificity / F1** (Table 5 + breast-TL one-vs-rest)
+- Support-weighted **W-Precision / W-Recall / W-Sensitivity / W-Specificity / W-F1** (paper “W-Avg” row)
 - **Cohen’s Kappa** (paper Table 6)
-- Accuracy (logged; not paper headline)
+- **Accuracy**, mean F1 / mean sensitivity / mean specificity (logged)
+
+`multisenge_utae/` uses the same `multisenge_seg/metrics.py` — one metric definition for A4 and A5.
 
 Frozen replicate vs paper: [`RESULTS_RS2023_6CLASS.md`](RESULTS_RS2023_6CLASS.md).
 
