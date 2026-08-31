@@ -12,7 +12,8 @@
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-%j.err
 
-set -euo pipefail
+# No set -u: PARAM module purge triggers conda deactivate "unbound variable" errors.
+set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
 mkdir -p multisenge_utae/artifacts multisenge_utae/checkpoints
 

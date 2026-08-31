@@ -8,7 +8,7 @@
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-smoke-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-smoke-%j.err
 
-set -euo pipefail
+set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
 mkdir -p multisenge_utae/artifacts multisenge_utae/checkpoints
 

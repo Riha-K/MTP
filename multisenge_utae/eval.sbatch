@@ -9,7 +9,7 @@
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-eval-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-eval-%j.err
 
-set -euo pipefail
+set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
 mkdir -p multisenge_utae/artifacts multisenge_utae/results/run_c6_head_v0
 

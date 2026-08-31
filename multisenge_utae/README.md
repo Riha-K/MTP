@@ -57,6 +57,8 @@ sbatch multisenge_utae/smoke.sbatch      # short GPU smoke
 
 Monitor: `squeue -u rihak_iitp` · log: `tail -f multisenge_utae/artifacts/slurm-<JOBID>.out`
 
+If job fails in ~1 min with `.err`: `CONDA_BACKUP_QT_XCB_GL_INTEGRATION: unbound variable` — fixed in sbatch (`set -eo pipefail`, not `-u` with `module purge`). Run `git pull`.
+
 **GPU node status (PARAM):**
 
 ```bash
