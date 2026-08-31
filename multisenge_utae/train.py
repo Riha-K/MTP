@@ -268,9 +268,12 @@ def main() -> int:
     model = build_model(input_dim, n_cls, args.mode, args.init_ckpt, device)
 
     if args.full_class_weights:
+        print("estimating class weights (all train GR masks)…")
         counts = estimate_class_counts_from_gr(records, "train", args.num_classes)
     else:
+        print("estimating class weights (train loader subset)…", flush=True)
         counts = estimate_class_counts(train_loader, n_cls, max_batches=80)
+    print("counts", counts.tolist(), flush=True)
     weights = class_weights_from_counts(counts)
     boost = parse_class_boost(args.class_boost, n_cls)
     if np.any(boost != 1.0):
@@ -292,7 +295,9 @@ def main() -> int:
     stale = 0
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()
+        print(f"epoch {epoch}/{args.epochs} train…", flush=True)
         loss = train_one_epoch(model, train_loader, opt, criterion, device, accum_steps=args.accum_steps)
+        print(f"epoch {epoch}/{args.epochs} val…", flush=True)
         val = evaluate(model, val_loader, device, n_cls)
         mon = float(val[monitor_key])
         scheduler.step(mon)
