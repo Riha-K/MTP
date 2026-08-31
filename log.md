@@ -10,6 +10,55 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-08-31 — A5 `multisenge_utae` coded; PARAM head train job 99003 running
+
+**Scope:** Pillar A phase **A5** — U-TAE on MultiSenGE (6-class first), breast-paper workflow (probes → head → full), same geographic tile split as A4.
+
+**New package `multisenge_utae/`** (pushed `632b38e` … `75638de`):
+- Models: vendored U-TAE + L-TAE (`models/utae.py`, `ltae.py`, `positional_encoding.py`); S2+S1 concat → `B×4×12×256×256`
+- `train.py` — `--mode head|full`, `--num-classes 6|10`; reuses `multisenge_seg` dataset/index/metrics
+- `probe_layers.py` — L0–L3 linear/RF probes (P3)
+- `export_notes.py` — JSON → markdown tables (P/R/Sens/Spec/F1, kappa, confusion matrix)
+- PARAM: `train.sbatch`, `train_full.sbatch`, `eval.sbatch`, `probe.sbatch`, `smoke.sbatch`
+- Plan doc: `BenchmarkGuide/A5_UTAE_Phase_Plan.docx` updated; tracked `multisenge_seg/results/run_c6_v0/Table5_v0.docx`
+
+**Metrics (shared `multisenge_seg/metrics.py`):** per-class Precision / Recall / **Sensitivity** / **Specificity** / F1; weighted W-P/R/Sens/Spec/F1; kappa; accuracy; confusion matrix in JSON. Documented in `PROTOCOL.md`, `multisenge_utae/README.md`.
+
+**PARAM submit notes (in README + sbatch headers):**
+```bash
+cd ~/MTP/earth2
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train.sbatch
+sinfo -N -p gpu -o "%N %T %C %G"
+squeue -u rihak_iitp
+tail -f multisenge_utae/artifacts/slurm-<JOBID>.out   # from ~/MTP/earth2
+```
+
+**Lab GPU:** account on **`172.30.1.70`** user `riha_2511ai47` (see `multisenge_seg/LAB_GPU_TRANSFER.md`). Alternative if PARAM queue full; needs campus VPN / lab network.
+
+**PARAM day timeline:**
+
+| Job | Result |
+|-----|--------|
+| Login smoke (CPU, 8 train patches) | OK — pipeline runs; low val W-F1 expected |
+| **98984** | **FAILED** ~49 s — `set -u` + `module purge` → conda `CONDA_BACKUP_QT_XCB_GL_INTEGRATION: unbound variable`; no Python output |
+| Fix | `set -eo pipefail` (drop `-u`) in all `multisenge_utae/*.sbatch` (`75638de`) |
+| Earlier code fix | `TemporalAggregator` `att_group` without padding (`a139031`) |
+| **99003** | **RUNNING** on **ragpu003** (gpu partition) |
+
+**99003 progress (~3h45m, epoch 22/80, head-only P4):** train loss ~0.97→0.74; val **W-F1 ~0.90–0.95** (tiles 31UFP+31UGP); best seen in log **ep 10 W-F1 0.9494**, kappa 0.4904; LR → `1e-4` after ep 16. Checkpoints → `multisenge_utae/checkpoints/run_c6_head_v0/`. `.err` only CuDNN/pynvml warnings.
+
+**Queue:** Cluster saturated (all `ragpu003/004/006/008` at 2+ jobs on `gpu:2`); waited hours in `PD (Priority)`. Job 98984 got a slot then died on module load; 99003 started after resubmit.
+
+**Next when 99003 completes:**
+1. `sbatch … multisenge_utae/train_full.sbatch` (P5, init from `best.pt`)
+2. `sbatch … multisenge_utae/eval.sbatch` — test tile **31UEQ** vs A4 **W-F1 0.9037 / kappa 0.4424**
+3. Optional: `probe.sbatch` with `CKPT=…/best.pt`
+4. Add `RESULTS_UTAE_6CLASS.md` + `log` test row after eval
+
+**Not done yet:** 10-class U-TAE; layer probes on PARAM; test metrics JSON in repo.
+
+---
+
 ### 2026-08-30 — Breast-cancer TL paper notes + ignore MultiSenGE `.tar`
 
 Added BenchmarkGuide notes for Singh et al. TCBB 2021 (*Imbalanced Breast Cancer Classification Using Transfer Learning*): PDF + Word summary (`Imbalanced_Breast_Cancer_Paper_Explained.docx`) covering Table 4 (layer-wise RF / negative transfer) vs Table 5 (LR/SVM/RF vs dense head; train dense vs retrain VGG-19 — both still ImageNet TL, not from-scratch).
