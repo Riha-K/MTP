@@ -190,5 +190,6 @@ squeue -u $USER
 ## Notes
 
 - Login nodes: use for `scp`/`rsync`/`git`/`pip`. Heavy train → **`sbatch`**, not interactive overnight.  
+- **GPU queue:** `sinfo -N -p gpu -o "%N %T %C %G"` · your jobs: `squeue -u $USER`  
 - CAPTCHA: each new SSH/`scp` may ask again; keep one long `scp` session.  
 - If home quota is tight, ask PARAM admins / sir for a scratch project path and symlink `multisenge` there.

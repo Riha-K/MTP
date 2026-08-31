@@ -57,6 +57,23 @@ sbatch multisenge_utae/smoke.sbatch      # short GPU smoke
 
 Monitor: `squeue -u rihak_iitp` · log: `tail -f multisenge_utae/artifacts/slurm-<JOBID>.out`
 
+**GPU node status (PARAM):**
+
+```bash
+sinfo -N -p gpu -o "%N %T %C %G"
+```
+
+`STATE`: `idle` / `mixed` / `down` / `drained` · `GRES`: `gpu:2` per node · `CPUS(A/I/O/T)`: allocated / idle / other / total.
+
+**Jobs per node (find a free GPU slot — need fewer than 2 running on `gpu:2`):**
+
+```bash
+for n in ragpu003 ragpu004 ragpu006 ragpu008; do
+  echo "=== $n ==="
+  squeue -w $n -t R -o "%.10i %.8u %.10M"
+done
+```
+
 ## Eval on test tile 31UEQ
 
 ```bash
