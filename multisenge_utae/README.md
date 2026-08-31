@@ -45,10 +45,17 @@ python -m multisenge_utae.train \
 ## PARAM (full run)
 
 ```bash
-sbatch multisenge_utae/train.sbatch      # head, 6-class
+cd ~/MTP/earth2
+
+# Preferred on PARAM (avoid down nodes + crowded ragpu004):
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train.sbatch
+
 sbatch multisenge_utae/train_full.sbatch # full fine-tune after head
 sbatch multisenge_utae/probe.sbatch      # L0-L3 probes
+sbatch multisenge_utae/smoke.sbatch      # short GPU smoke
 ```
+
+Monitor: `squeue -u rihak_iitp` · log: `tail -f multisenge_utae/artifacts/slurm-<JOBID>.out`
 
 ## Eval on test tile 31UEQ
 

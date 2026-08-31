@@ -1,4 +1,5 @@
 #!/bin/bash
+# PARAM: sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_full.sbatch
 #SBATCH -J msge_utae_full
 #SBATCH -N 1
 #SBATCH -n 4

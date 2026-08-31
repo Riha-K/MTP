@@ -1,4 +1,7 @@
 #!/bin/bash
+# PARAM submit (from ~/MTP/earth2):
+#   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train.sbatch
+# Exclude: ragpu005/007 down; ragpu004 often overloaded (3 jobs on gpu:2).
 #SBATCH -J msge_utae_head
 #SBATCH -N 1
 #SBATCH -n 4

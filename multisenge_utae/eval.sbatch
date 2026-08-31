@@ -1,4 +1,5 @@
 #!/bin/bash
+# PARAM: sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
 #SBATCH -J msge_utae_eval
 #SBATCH -N 1
 #SBATCH -n 2
