@@ -50,9 +50,10 @@ cd ~/MTP/earth2
 # Preferred on PARAM (avoid down nodes + crowded ragpu004):
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train.sbatch
 
-sbatch multisenge_utae/train_full.sbatch # full fine-tune after head
-sbatch multisenge_utae/probe.sbatch      # L0-L3 probes
-sbatch multisenge_utae/smoke.sbatch      # short GPU smoke
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe.sbatch      # P3 L0-L3 probes
+sbatch multisenge_utae/probe_smoke.sbatch   # P3 smoke (~24 train / 12 val patches)
+sbatch multisenge_utae/train_full.sbatch    # P5 full fine-tune after head
+sbatch multisenge_utae/smoke.sbatch         # short GPU smoke
 ```
 
 Monitor: `squeue -u rihak_iitp` · log: `tail -f multisenge_utae/artifacts/slurm-<JOBID>.out`
@@ -75,6 +76,28 @@ for n in ragpu003 ragpu004 ragpu006 ragpu008; do
   squeue -w $n -t R -o "%.10i %.8u %.10M"
 done
 ```
+
+## P3 — layer probes (L0–L3)
+
+Frozen U-TAE encoder; fit a **linear** pixel classifier on train tiles, score on **val** (31UFP+31UGP). Uses P4 `best.pt` for weights + `norm_stats` (encoder was not updated in P4).
+
+```bash
+cd ~/MTP/earth2
+git pull
+
+# Optional: quick pipeline check (~15 min)
+sbatch multisenge_utae/probe_smoke.sbatch
+
+# Full P3 (all train/val patches, ~512 px/patch; allow up to 12h)
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe.sbatch
+```
+
+Outputs → `multisenge_utae/results/probe_c6_v0/`:
+
+- `L0_linear_metrics.json` … `L3_linear_metrics.json` (full per-class table each)
+- `probe_summary_linear.json` + `.md` (headline W-F1 per level)
+
+Override checkpoint: `CKPT=path/to/best.pt sbatch ... probe.sbatch`
 
 ## Eval on test tile 31UEQ
 
@@ -119,3 +142,5 @@ python -m multisenge_utae.export_notes \
 ```
 
 Or use `sbatch multisenge_utae/eval.sbatch` (test eval + auto `.md`).
+
+**Results:** P4 head — [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/run_c6_head_v0/best_metrics.json`](results/run_c6_head_v0/best_metrics.json) · test [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json).
