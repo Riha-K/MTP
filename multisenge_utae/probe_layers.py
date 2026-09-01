@@ -54,11 +54,37 @@ def load_norm_stats(
 
 
 def _pool_level(feat: torch.Tensor, level: str) -> torch.Tensor:
-    """Return B x D x H x W feature map for a probe level."""
-    if level == "L3":
+    """Return B x C x H x W feature map for a probe level."""
+    if feat.dim() == 5:
+        return feat.mean(dim=1)
+    if feat.dim() == 4:
         return feat
-    # L0-L2: B,T,C,H,W -> mean over time
-    return feat.mean(dim=1)
+    raise ValueError(f"level {level}: expected 4D or 5D features, got {feat.dim()}D")
+
+
+def _sample_pixel_features(
+    feat_bchw: np.ndarray,
+    batch_i: int,
+    yy: np.ndarray,
+    xx: np.ndarray,
+    mask_shape: tuple[int, int],
+) -> np.ndarray:
+    """Map mask pixels to feature vectors; shape (n_pixels, n_channels)."""
+    plane = feat_bchw[batch_i]
+    c, fh, fw = plane.shape
+    mh, mw = mask_shape
+    n = len(yy)
+    fy = np.clip((yy.astype(np.int64) * fh) // mh, 0, fh - 1)
+    fx = np.clip((xx.astype(np.int64) * fw) // mw, 0, fw - 1)
+    if fy.shape != (n,) or fx.shape != (n,):
+        raise RuntimeError(f"fy/fx length mismatch: {fy.shape}, {fx.shape}, n={n}")
+    # Pairwise indices (C, N) — avoid broadcast when fy/fx lengths differ.
+    sampled = plane[:, fy, fx]
+    if sampled.shape != (c, n):
+        raise RuntimeError(
+            f"feature/label count mismatch: got {sampled.shape}, expected ({c}, {n})"
+        )
+    return sampled.T.astype(np.float32)
 
 
 @torch.no_grad()
@@ -82,8 +108,10 @@ def collect_probe_samples(
         bp = batch_positions(x.shape[0], device)
         levels = model.encode_levels(x, batch_positions=bp)
         feat = _pool_level(levels[level], level)
+        if feat.dim() != 4:
+            raise RuntimeError(f"level {level}: expected BCHW after pool, got {tuple(feat.shape)}")
         feat_np = feat.cpu().numpy()
-        b, c, h, w = feat_np.shape
+        b = feat_np.shape[0]
         for i in range(b):
             m = mask[i]
             valid = m != 255
@@ -95,11 +123,12 @@ def collect_probe_samples(
             if n < len(yy):
                 pick = rng.choice(len(yy), size=n, replace=False)
                 yy, xx, lab = yy[pick], xx[pick], lab[pick]
-            # map label coords to feature map resolution
-            fy = np.clip((yy * h) // m.shape[0], 0, h - 1)
-            fx = np.clip((xx * w) // m.shape[1], 0, w - 1)
-            feats = feat_np[i, :, fy, fx].T
-            xs.append(feats.astype(np.float32))
+            feats = _sample_pixel_features(feat_np, i, yy, xx, m.shape)
+            if feats.shape[0] != len(lab):
+                raise RuntimeError(
+                    f"level {level} patch {n_patches}: feats {feats.shape[0]} != labels {len(lab)}"
+                )
+            xs.append(feats)
             ys.append(lab.astype(np.int64))
             n_patches += 1
             if max_patches is not None and n_patches >= max_patches:
@@ -108,7 +137,13 @@ def collect_probe_samples(
             break
     if not xs:
         raise RuntimeError(f"no probe pixels collected for level={level}")
-    return np.concatenate(xs, axis=0), np.concatenate(ys, axis=0)
+    x_all = np.concatenate(xs, axis=0)
+    y_all = np.concatenate(ys, axis=0)
+    if x_all.shape[0] != y_all.shape[0]:
+        raise RuntimeError(
+            f"level {level}: x/y length mismatch {x_all.shape[0]} vs {y_all.shape[0]}"
+        )
+    return x_all, y_all
 
 
 def fit_probe(x_train: np.ndarray, y_train: np.ndarray, probe: str, num_classes: int):
