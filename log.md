@@ -10,6 +10,38 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-01 — P3 probe jobs ready (PARAM)
+
+**P3 setup:** `probe.sbatch` defaults to `run_c6_head_v0/best.pt`, 12h wall, val-only scoring. `probe_smoke.sbatch` for quick check (24 train / 12 val patches). `probe_layers.py` now loads `norm_stats` from ckpt (same as eval) and writes `probe_summary_linear.md`.
+
+```bash
+cd ~/MTP/earth2 && git pull
+sbatch multisenge_utae/probe_smoke.sbatch   # optional
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe.sbatch
+```
+
+Outputs → `multisenge_utae/results/probe_c6_v0/`. **Note:** encoder was frozen in P4, so probes reflect init encoder (+ shared norm); re-run after P5 for fine-tuned encoder features.
+
+---
+
+### 2026-09-01 — U-TAE P4 head: test 31UEQ recorded (vs A4)
+
+**Train:** PARAM **99003** COMPLETED (~5h 13m); early stop ep 30; best val **ep ~10** W-F1 **0.9494**, kappa **0.4904** → `multisenge_utae/checkpoints/run_c6_head_v0/best.pt`.
+
+**Val best** (tiles 31UFP+31UGP, ep ~10): W-F1 **0.9494**, kappa **0.4904** → [`multisenge_utae/results/run_c6_head_v0/best_metrics.json`](multisenge_utae/results/run_c6_head_v0/best_metrics.json). Early stop ep 30; slurm **99003** log on PARAM.
+
+**Test eval** (head `best.pt`, tile **31UEQ**): [`multisenge_utae/results/run_c6_head_v0/test_metrics.json`](multisenge_utae/results/run_c6_head_v0/test_metrics.json). Report: [`multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md`](multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md).
+
+| Split | W-F1 | Kappa |
+|-------|------|-------|
+| Val | 0.9494 | 0.4904 |
+| Test | 0.9012 | 0.4033 |
+| Test vs A4 | 0.9037 ref | 0.4424 ref |
+
+Urban classes 1–3, 5 below A4; class 6 F1 **0.945** vs **0.934**. **P3 probes not run yet.** **P5 full fine-tune** next.
+
+---
+
 ### 2026-08-31 — A5 `multisenge_utae` coded; PARAM head train job 99003 running
 
 **Scope:** Pillar A phase **A5** — U-TAE on MultiSenGE (6-class first), breast-paper workflow (probes → head → full), same geographic tile split as A4.
