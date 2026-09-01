@@ -25,9 +25,32 @@ from multisenge_seg.metrics import format_prf_table, scores_from_cm
 from multisenge_seg.taxonomy import num_output_classes
 from multisenge_seg.train import estimate_channel_stats, set_seed
 from multisenge_utae.data import batch_positions, collate_utae
+from multisenge_utae.export_notes import probe_summary_markdown
 from multisenge_utae.models import UTAE
 
 LEVELS = ("L0", "L1", "L2", "L3")
+
+
+def load_norm_stats(
+    ckpt_path: Path | None,
+    records: list[PatchRecord],
+    num_classes: int,
+    stats_patches: int,
+) -> dict:
+    if ckpt_path and ckpt_path.is_file():
+        try:
+            ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+        except TypeError:
+            ckpt = torch.load(ckpt_path, map_location="cpu")
+        stats = ckpt.get("norm_stats") if isinstance(ckpt, dict) else None
+        if not stats:
+            stats_path = ckpt_path.parent / "norm_stats.json"
+            if stats_path.is_file():
+                stats = json.loads(stats_path.read_text(encoding="utf-8"))
+        if stats:
+            print("using norm_stats from", ckpt_path)
+            return stats
+    return estimate_channel_stats(records, num_classes, max_patches=stats_patches)
 
 
 def _pool_level(feat: torch.Tensor, level: str) -> torch.Tensor:
@@ -104,8 +127,11 @@ def fit_probe(x_train: np.ndarray, y_train: np.ndarray, probe: str, num_classes:
     if probe == "linear":
         from sklearn.linear_model import LogisticRegression
 
+        solver = "saga" if len(y_train) > 100_000 else "lbfgs"
         clf = LogisticRegression(
-            max_iter=2000,
+            max_iter=1000 if solver == "saga" else 2000,
+            solver=solver,
+            tol=1e-3,
             class_weight="balanced",
             multi_class="multinomial",
             n_jobs=-1,
@@ -130,16 +156,22 @@ def scores_from_preds(y_true: np.ndarray, y_pred: np.ndarray, num_classes: int) 
     return scores_from_cm(cm)
 
 
-def load_model(args, input_dim: int, n_cls: int, device: torch.device) -> UTAE:
-    model = UTAE(input_dim=input_dim, num_classes=n_cls).to(device)
-    if args.ckpt:
+def load_model(ckpt_path: Path | None, input_dim: int, n_cls: int, device: torch.device) -> UTAE:
+    if ckpt_path and ckpt_path.is_file():
         try:
-            ckpt = torch.load(args.ckpt, map_location=device, weights_only=False)
+            ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
         except TypeError:
-            ckpt = torch.load(args.ckpt, map_location=device)
-        state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
-        model.load_state_dict(state, strict=False)
-        print("loaded ckpt", args.ckpt)
+            ckpt = torch.load(ckpt_path, map_location=device)
+        if not isinstance(ckpt, dict) or "model" not in ckpt:
+            raise RuntimeError(f"expected train checkpoint with 'model' key: {ckpt_path}")
+        n_cls = int(ckpt.get("num_classes", n_cls))
+        input_dim = int(ckpt.get("input_dim", input_dim))
+        model = UTAE(input_dim=input_dim, num_classes=n_cls).to(device)
+        model.load_state_dict(ckpt["model"])
+        print("loaded ckpt", ckpt_path, f"(encoder frozen in P4; probes use L0-L3 features)")
+    else:
+        model = UTAE(input_dim=input_dim, num_classes=n_cls).to(device)
+        print("random-init encoder (no --ckpt)")
     for p in model.parameters():
         p.requires_grad = False
     return model
@@ -151,7 +183,12 @@ def main() -> int:
     p.add_argument("--index", type=Path, default=None)
     p.add_argument("--num-classes", type=int, default=6, choices=[6, 10])
     p.add_argument("--probe", type=str, default="linear", choices=["linear", "rf"])
-    p.add_argument("--ckpt", type=Path, default=None, help="Optional encoder weights (else random init)")
+    p.add_argument(
+        "--ckpt",
+        type=Path,
+        default=None,
+        help="P4 head checkpoint (uses same norm_stats as train/eval)",
+    )
     p.add_argument("--pixels-per-patch", type=int, default=512)
     p.add_argument("--max-train-patches", type=int, default=None)
     p.add_argument("--max-val-patches", type=int, default=None)
@@ -170,7 +207,7 @@ def main() -> int:
     else:
         records = build_patch_index(args.data_root)
 
-    stats = estimate_channel_stats(records, args.num_classes, max_patches=args.stats_patches)
+    stats = load_norm_stats(args.ckpt, records, args.num_classes, args.stats_patches)
     train_ds = MultiSenGETemporalDataset(
         records,
         "train",
@@ -208,7 +245,7 @@ def main() -> int:
     sample = collate_utae([train_ds[0]])
     input_dim = int(sample["x"].shape[2])
     device = torch.device(args.device)
-    model = load_model(args, input_dim, n_cls, device)
+    model = load_model(args.ckpt, input_dim, n_cls, device)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     summary: dict[str, dict] = {}
@@ -249,11 +286,11 @@ def main() -> int:
             encoding="utf-8",
         )
 
-    (args.out_dir / f"probe_summary_{args.probe}.json").write_text(
-        json.dumps(summary, indent=2),
-        encoding="utf-8",
-    )
-    print("wrote", args.out_dir)
+    summary_path = args.out_dir / f"probe_summary_{args.probe}.json"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    md_path = args.out_dir / f"probe_summary_{args.probe}.md"
+    md_path.write_text(probe_summary_markdown(summary, args.probe), encoding="utf-8")
+    print("wrote", args.out_dir, summary_path.name, md_path.name)
     return 0
 
 
