@@ -29,3 +29,8 @@ python -m multisenge_utae.train \
   --batch-size 2 \
   --workers 2 \
   --out-dir multisenge_utae/checkpoints/run_c6_full_v0
+
+python -m multisenge_utae.plot_history \
+  multisenge_utae/checkpoints/run_c6_full_v0/history.json \
+  --title "U-TAE P5 full fine-tune (6-class)" \
+  || echo "plot skipped (install matplotlib if needed)"

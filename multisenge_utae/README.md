@@ -99,6 +99,18 @@ Outputs → `multisenge_utae/results/probe_c6_v0/`:
 
 Override checkpoint: `CKPT=path/to/best.pt sbatch ... probe.sbatch`
 
+## Training curve plot (sir)
+
+Each train run writes `history.json` (mean **train loss** + val metrics per epoch). Plot:
+
+```bash
+python -m multisenge_utae.plot_history \
+  multisenge_utae/checkpoints/run_c6_head_v0/history.json \
+  --title "U-TAE P4 head-only (6-class)"
+```
+
+Output: `history_plot.png` next to `history.json`. P5 `train_full.sbatch` runs this automatically at job end.
+
 ## Eval on test tile 31UEQ
 
 ```bash
@@ -143,4 +155,4 @@ python -m multisenge_utae.export_notes \
 
 Or use `sbatch multisenge_utae/eval.sbatch` (test eval + auto `.md`).
 
-**Results:** P4 head — [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/run_c6_head_v0/best_metrics.json`](results/run_c6_head_v0/best_metrics.json) · test [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json).
+**Results:** P4 head — [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/run_c6_head_v0/best_metrics.json`](results/run_c6_head_v0/best_metrics.json) · test [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json) · P3 [`results/probe_c6_v0/probe_summary_linear.md`](results/probe_c6_v0/probe_summary_linear.md).

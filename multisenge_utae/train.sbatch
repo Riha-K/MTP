@@ -30,3 +30,8 @@ python -m multisenge_utae.train \
   --batch-size 2 \
   --workers 2 \
   --out-dir multisenge_utae/checkpoints/run_c6_head_v0
+
+python -m multisenge_utae.plot_history \
+  multisenge_utae/checkpoints/run_c6_head_v0/history.json \
+  --title "U-TAE P4 head-only (6-class)" \
+  || echo "plot skipped"
