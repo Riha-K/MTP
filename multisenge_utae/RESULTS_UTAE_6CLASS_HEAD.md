@@ -10,8 +10,9 @@
 | Report ckpt | `checkpoints/run_c6_head_v0/best.pt` (on PARAM; `.pt` not in git) |
 | Val JSON | [`results/run_c6_head_v0/best_metrics.json`](results/run_c6_head_v0/best_metrics.json) — tiles **31UFP + 31UGP** |
 | Test JSON | [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json) — tile **31UEQ** |
+| P3 probes | [`results/probe_c6_v0/probe_summary_linear.md`](results/probe_c6_v0/probe_summary_linear.md) — job **99281** |
 
-**Not done yet:** P3 layer probes (L0–L3) · P5 full fine-tune · 10-class.
+**Not done yet:** P5 full fine-tune (job **99416**) · P3 bar chart for sir · 10-class.
 
 ---
 
@@ -90,7 +91,28 @@ Val→test gap: W-F1 **−0.048**, kappa **−0.087** (expected geographic holdo
 
 ---
 
+## P3 — layer probes (linear, val, job 99281)
+
+| Level | W-F1 | Kappa |
+|-------|------|-------|
+| L0 | 0.7312 | 0.0809 |
+| L1 | 0.7333 | 0.0810 |
+| L2 | **0.7477** | 0.0772 |
+| L3 | 0.4325 | 0.0126 |
+
+Best linear probe: **L2**. L3 low (coarse L-TAE map; trained decoder does better in P4).
+
+**Sir plot (bar chart — not an epoch curve):**
+```bash
+python -m multisenge_utae.plot_probe_summary \
+  multisenge_utae/results/probe_c6_v0/probe_summary_linear.json \
+  --title "U-TAE P3 linear probes (val)"
+```
+
+---
+
 ## Next steps
 
-1. **P3** — `probe.sbatch` with `CKPT=.../best.pt` (L0–L3 per-class table, val)  
-2. **P5** — `train_full.sbatch` then test eval (target: beat A4 W-F1 **0.9037**)
+1. **P5** — job **99416** full fine-tune → test eval (target: beat A4 W-F1 **0.9037**)
+2. **P3 plot** — bar chart for sir: `python -m multisenge_utae.plot_probe_summary results/probe_c6_v0/probe_summary_linear.json`
+3. **Optional** — re-run P3 probes after P5 (fine-tuned encoder)
