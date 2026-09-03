@@ -12,7 +12,8 @@
 | Test JSON | [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json) — tile **31UEQ** |
 | P3 probes | [`results/probe_c6_v0/probe_summary_linear.md`](results/probe_c6_v0/probe_summary_linear.md) — job **99281** |
 
-**Not done yet:** P5 full fine-tune (job **99416**) · P3 bar chart for sir · 10-class.
+**Not done yet:** P3 bar chart for sir · P5 learning-curve plot · 10-class.  
+**P5 done:** see [`RESULTS_UTAE_6CLASS_FULL.md`](RESULTS_UTAE_6CLASS_FULL.md) — test W-F1 **0.9387** / kappa **0.5757** (beats A4).
 
 ---
 
