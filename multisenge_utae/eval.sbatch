@@ -1,5 +1,9 @@
 #!/bin/bash
 # PARAM: sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
+# P5 example:
+#   CKPT=multisenge_utae/checkpoints/run_c6_full_v0/best.pt \
+#   OUT=multisenge_utae/results/run_c6_full_v0 \
+#   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
 #SBATCH -J msge_utae_eval
 #SBATCH -N 1
 #SBATCH -n 2
@@ -11,14 +15,17 @@
 
 set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
-mkdir -p multisenge_utae/artifacts multisenge_utae/results/run_c6_head_v0
+
+CKPT="${CKPT:-multisenge_utae/checkpoints/run_c6_head_v0/best.pt}"
+OUT="${OUT:-multisenge_utae/results/run_c6_head_v0}"
+mkdir -p multisenge_utae/artifacts "${OUT}"
 
 module purge
 module load MLDL/Pytorch-gpu
 export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
 
-CKPT="${CKPT:-multisenge_utae/checkpoints/run_c6_head_v0/best.pt}"
-OUT="multisenge_utae/results/run_c6_head_v0"
+echo "eval CKPT=${CKPT}"
+echo "eval OUT=${OUT}"
 
 python -m multisenge_utae.train \
   --index multisenge_seg/artifacts/patch_index.json \
