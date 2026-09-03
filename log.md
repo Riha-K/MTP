@@ -10,6 +10,51 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-03 — U-TAE P5 full: test beats A4 (job 99416 / eval 99628)
+
+**Train** **99416** COMPLETED · early stop ep 40 · best val W-F1 **0.9585**, kappa **0.560** → `checkpoints/run_c6_full_v0/best.pt`.
+
+**Test** **99628** (31UEQ): W-F1 **0.9387**, kappa **0.5757** → `results/run_c6_full_v0/test_metrics.json`. Report: [`RESULTS_UTAE_6CLASS_FULL.md`](multisenge_utae/RESULTS_UTAE_6CLASS_FULL.md).
+
+| Model | Test W-F1 | Test kappa |
+|-------|-----------|------------|
+| A4 ConvLSTM | 0.9037 | 0.4424 |
+| P4 U-TAE head | 0.9012 | 0.4033 |
+| **P5 U-TAE full** | **0.9387** | **0.5757** |
+
+Urban F1 up vs P4; classes **2, 3, 5, 6** above A4. Class 1 still below A4 (0.408 vs 0.489).
+
+---
+
+### 2026-09-02 — Sir-facing plots: TODO (generate next session)
+
+**Need graphs for thesis/sir** — code ready (`multisenge_utae/plot_history.py`, pushed `b382ae7`). **Not plotted yet** on PARAM.
+
+| Phase | Plot type | When | Command (on PARAM after `git pull`) |
+|-------|-----------|------|-------------------------------------|
+| **P4** head | Train loss + val wF1/mean F1/kappa vs epoch | **Done** 2026-09-02 on PARAM | `checkpoints/run_c6_head_v0/history_plot.png` |
+| **P5** full | Same learning curve | **After job 99416** completes | `python -m multisenge_utae.plot_history multisenge_utae/checkpoints/run_c6_full_v0/history.json ...` |
+| **P3** probes | Bar chart W-F1 per level (L0–L3) — *not* epoch curve | Optional later | Table already in `probe_summary_linear.md`; no `history.json` |
+
+**Do not stop P5 job 99416** for plotting — plot is post-train only. `pip install --user matplotlib` once if needed.
+
+---
+
+### 2026-09-02 — U-TAE P3 layer probes done (job 99281)
+
+**P3** linear probes on val (31UFP+31UGP), ckpt `run_c6_head_v0/best.pt`. Summary: [`multisenge_utae/results/probe_c6_v0/probe_summary_linear.md`](multisenge_utae/results/probe_c6_v0/probe_summary_linear.md).
+
+| Level | W-F1 | Kappa |
+|-------|------|-------|
+| L0 | 0.7312 | 0.0809 |
+| L1 | 0.7333 | 0.0810 |
+| L2 | **0.7477** | 0.0772 |
+| L3 | 0.4325 | 0.0126 |
+
+Best linear probe **L2**. L3 low (coarse L-TAE map). Encoder still init (frozen in P4). **Next: P5** `train_full.sbatch`.
+
+---
+
 ### 2026-09-01 — P3 probe jobs ready (PARAM)
 
 **P3 setup:** `probe.sbatch` defaults to `run_c6_head_v0/best.pt`, 12h wall, val-only scoring. `probe_smoke.sbatch` for quick check (24 train / 12 val patches). `probe_layers.py` now loads `norm_stats` from ckpt (same as eval) and writes `probe_summary_linear.md`.
