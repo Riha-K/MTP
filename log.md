@@ -10,6 +10,17 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-04 — U-TAE 10-class sbatch ready (P4 head → P5 full)
+
+Added `train_c10_head.sbatch`, `train_c10_full.sbatch`, `eval_c10.sbatch`. Auto `history_plot.png` after train. Must run **head first** (cannot init 10c from 6c ckpt). A4 10c target: test W-F1 **0.8711** / kappa **0.7588**.
+
+```bash
+cd ~/MTP/earth2 && git pull
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_head.sbatch
+```
+
+---
+
 ### 2026-09-03 — U-TAE P5 full: test beats A4 (job 99416 / eval 99628)
 
 **Train** **99416** COMPLETED · early stop ep 40 · best val W-F1 **0.9585**, kappa **0.560** → `checkpoints/run_c6_full_v0/best.pt`.

@@ -52,8 +52,17 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train.sbatch
 
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe.sbatch      # P3 L0-L3 probes
 sbatch multisenge_utae/probe_smoke.sbatch   # P3 smoke (~24 train / 12 val patches)
-sbatch multisenge_utae/train_full.sbatch    # P5 full fine-tune after head
+sbatch multisenge_utae/train_full.sbatch    # P5 full fine-tune after head (6-class)
 sbatch multisenge_utae/smoke.sbatch         # short GPU smoke
+
+# 10-class (P4 head → P5 full → test). Do NOT reuse 6-class ckpt.
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_head.sbatch
+# after head best.pt exists:
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_full.sbatch
+# test vs A4 10c W-F1 0.8711 / kappa 0.7588:
+CKPT=multisenge_utae/checkpoints/run_c10_full_v0/best.pt \
+OUT=multisenge_utae/results/run_c10_full_v0 \
+  sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval_c10.sbatch
 ```
 
 Monitor: `squeue -u rihak_iitp` · log: `tail -f multisenge_utae/artifacts/slurm-<JOBID>.out`
