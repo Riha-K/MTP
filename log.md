@@ -10,6 +10,33 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-05 — Status: 6-class A5 frozen; 10-class P4 queued; plots + novelty plan
+
+**6-class U-TAE (done / frozen for sir)**
+| Stage | Test W-F1 | Kappa | Notes |
+|-------|-----------|-------|-------|
+| A4 ConvLSTM+Inception | 0.9037 | 0.4424 | replicate |
+| P4 head | 0.9012 | 0.4033 | ~tie A4 |
+| **P5 full** | **0.9387** | **0.5757** | **beats A4** |
+
+**Sir plots done**
+- A4 6c / 10c: `multisenge_seg/results/run_c{6,10}_v0/history_plot.png`
+- U-TAE P4 / P5: `multisenge_utae/results/run_c6_{head,full}_v0/history_plot.png`
+- P3 bar chart: `multisenge_utae/results/probe_c6_v0/probe_summary_linear.png` (L2 best W-F1 0.7477)
+
+**10-class U-TAE**
+- Scripts: `train_c10_head.sbatch` → `train_c10_full.sbatch` → `eval_c10.sbatch` (+ `probe_c10.sbatch`)
+- **P4 head job 100067** still **PD (Priority)** on PARAM since ~Sep 4 evening (queue fairshare; do **not** submit P5 until `run_c10_head_v0/best.pt` exists)
+- A4 10c target: W-F1 **0.8711** / kappa **0.7588**
+- Why P4 before P5: full FT inits from head ckpt; 6c showed P4→P5 large gain (0.901 → 0.939 W-F1)
+
+**Publishable novelty (not breast TL / not “ran U-TAE” alone)**  
+Plan: [`BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md`](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md) — prefer **MA-UTAE dual-stream S1/S2** or **hierarchical UF head**; decide after 10c baseline.
+
+**Next when 100067 → R / done:** plot auto at job end → `train_c10_full.sbatch` → `eval_c10.sbatch`.
+
+---
+
 ### 2026-09-04 — U-TAE 10-class sbatch ready (P4 head → P5 full)
 
 Added `train_c10_head.sbatch`, `train_c10_full.sbatch`, `eval_c10.sbatch`. Auto `history_plot.png` after train. Must run **head first** (cannot init 10c from 6c ckpt). A4 10c target: test W-F1 **0.8711** / kappa **0.7588**.
