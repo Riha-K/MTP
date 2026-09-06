@@ -10,6 +10,24 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-06 — U-TAE 10-class P4 head done; P5 full running; P4 test queued
+
+**P4 head (10-class)** job **100067** COMPLETED on `ragpu003` (~early stop ep **54**). Best val W-F1 **0.8272** (ep ~34) → `multisenge_utae/checkpoints/run_c10_head_v0/{best.pt,history.json,history_plot.png}`.
+
+**Submitted after head:**
+| Job | Role | Status (2026-09-06 evening) |
+|-----|------|------------------------------|
+| **100432** | P5 full `train_c10_full.sbatch` | **R** on `ragpu008` |
+| **100433** | P4 test eval → `results/run_c10_head_v0/` | **PD (Priority)** — waiting for free GPU |
+
+Duplicates 100442/100443 cancelled (kept earlier 100432/100433 with exclude). Cluster often full (003/004/006/008); eval may wait hours.
+
+**A4 10c target (test):** W-F1 **0.8711** / kappa **0.7588**. Head val 0.827 is val-only; fair compare after test eval + P5 test.
+
+**Next:** when 100433 finishes → copy `test_metrics.json`; when 100432 finishes → eval full ckpt with `eval_c10.sbatch` (`OUT=results/run_c10_full_v0`).
+
+---
+
 ### 2026-09-05 — Status: 6-class A5 frozen; 10-class P4 queued; plots + novelty plan
 
 **6-class U-TAE (done / frozen for sir)**
