@@ -10,6 +10,28 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-07 — U-TAE 10-class P3/P4/P5 frozen; novelty plan detailed
+
+**10-class test tile 31UEQ (done)**
+
+| Stage | Job | Test W-F1 | Kappa | Notes |
+|-------|-----|-----------|-------|-------|
+| A4 ConvLSTM | — | 0.8711 | 0.7588 | frozen target |
+| Paper | — | 0.8851 | 0.7945 | RS 2023 |
+| P4 head | 100067 / eval **100433** | **0.8322** | **0.6971** | below A4/paper |
+| **P5 full** | 100432 / eval **100503** | **0.8811** | **0.7795** | **beats A4**; near paper (−0.004 W-F1) |
+| P3 probes (val) | **100505** | L1 best **0.8009** | 0.6885 | L3 weakest 0.5335 (unlike 6c where L2 best) |
+
+Artifacts (local + PARAM): `multisenge_utae/results/run_c10_{head,full}_v0/` (test_metrics + history_plot), `probe_c10_v0/`, checkpoints history under `checkpoints/run_c10_*_v0/`.
+
+**Novelty plan** updated: [`BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md`](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md) — baselines frozen; detailed §3 for **P1 MA-UTAE**, **P2 hierarchical/confusion**, **P3 probe-guided FT**; recommend main **P1**, optional support P2/P3. Await sir decision before coding.
+
+**Phase 2 report** (local only; `writeup/` gitignored): `writeup/PHASE2_PROGRESS_REPORT.docx` filled with 10c P4/P5 numbers.
+
+**Next:** lock novelty (P1 and/or P2) with sir → implement under same geographic protocol.
+
+---
+
 ### 2026-09-06 — U-TAE 10-class P4 head done; P5 full running; P4 test queued
 
 **P4 head (10-class)** job **100067** COMPLETED on `ragpu003` (~early stop ep **54**). Best val W-F1 **0.8272** (ep ~34) → `multisenge_utae/checkpoints/run_c10_head_v0/{best.pt,history.json,history_plot.png}`.
