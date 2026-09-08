@@ -136,7 +136,8 @@ Vendored from [utae-paps](https://github.com/VSainteuf/utae-paps) (MIT). Encoder
 
 ## Metrics
 
-Same **`multisenge_seg/metrics.py`** as A4 (one definition for sir-facing tables):
+Same **`multisenge_seg/metrics.py`** as A4 (one definition for sir-facing tables).  
+Formula notes (loss, Softmax, U-TAE/L-TAE, multinomial LR probes, W-F1/Kappa): [`../multisenge_seg/FORMULAS.md`](../multisenge_seg/FORMULAS.md).
 
 | Metric | JSON key | Notes |
 |--------|----------|-------|

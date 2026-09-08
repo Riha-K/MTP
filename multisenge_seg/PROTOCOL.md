@@ -93,7 +93,8 @@ Weights were **not** released publicly — reimplement or obtain on demand.
 
 ## 6. Metrics
 
-Computed in `metrics.py` (`scores_from_cm`) from pixel confusion matrix:
+Computed in `metrics.py` (`scores_from_cm`) from pixel confusion matrix.  
+Full formulas + why (wCE, Softmax, U-TAE, P3 multinomial LR): [`FORMULAS.md`](FORMULAS.md).
 
 - Per-class **Precision / Recall / Sensitivity / Specificity / F1** (Table 5 + breast-TL one-vs-rest)
 - Support-weighted **W-Precision / W-Recall / W-Sensitivity / W-Specificity / W-F1** (paper “W-Avg” row)

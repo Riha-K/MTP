@@ -10,6 +10,12 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-08 — Phase 2 formula notes (loss / metrics / U-TAE / P3 LR)
+
+Added [`multisenge_seg/FORMULAS.md`](multisenge_seg/FORMULAS.md): Softmax, wCE, U-TAE/L-TAE, multinomial logistic probes, CM → P/R/Sens/Spec/F1/W-F1/Kappa. Linked from `PROTOCOL.md` and `multisenge_utae/README.md`.
+
+---
+
 ### 2026-09-07 — U-TAE 10-class P3/P4/P5 frozen; novelty plan detailed
 
 **10-class test tile 31UEQ (done)**
