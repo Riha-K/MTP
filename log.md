@@ -14,6 +14,8 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 **Naming:** Novelty is **Task M** (modality MA-UTAE) / **Task H** (hierarchical A1+A2). Keep **P3/P4/P5** only for breast-style phases. Do not say Priority P1/P2.
 
+**Results layout:** frozen stock U-TAE metrics moved under `multisenge_utae/results/concat_utae/`; new MA runs go to `multisenge_utae/results/ma_utae/`.
+
 **Code (scaffold, not trained yet)**
 | Piece | Path |
 |-------|------|
@@ -30,7 +32,7 @@ Water agent skipped. P3 probes still stock U-TAE only.
 1. Smoke: `python -m multisenge_utae.train_ma ... --max-train 8 --max-val 4 --epochs 1`
 2. Task M alone 6c: `sbatch … train_ma.sbatch` (gated P4) → `train_ma_full.sbatch` (P5)
 3. Ablation `--fusion concat`; then optional `--use-a1 --use-a2`
-4. Test eval vs concat U-TAE P5 (W-F1 0.9387 / κ 0.5757) + urban F1
+4. Test eval → `results/ma_utae/…` vs concat U-TAE P5 (W-F1 0.9387 / κ 0.5757) + urban F1
 
 ---
 
@@ -52,7 +54,7 @@ Added [`multisenge_seg/FORMULAS.md`](multisenge_seg/FORMULAS.md): Softmax, wCE, 
 | **P5 full** | 100432 / eval **100503** | **0.8811** | **0.7795** | **beats A4**; near paper (−0.004 W-F1) |
 | P3 probes (val) | **100505** | L1 best **0.8009** | 0.6885 | L3 weakest 0.5335 (unlike 6c where L2 best) |
 
-Artifacts (local + PARAM): `multisenge_utae/results/run_c10_{head,full}_v0/` (test_metrics + history_plot), `probe_c10_v0/`, checkpoints history under `checkpoints/run_c10_*_v0/`.
+Artifacts (local + PARAM): `multisenge_utae/results/concat_utae/run_c10_{head,full}_v0/` (test_metrics + history_plot), `probe_c10_v0/`, checkpoints history under `checkpoints/run_c10_*_v0/`.
 
 **Novelty plan** updated: [`BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md`](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md) — baselines frozen; detailed §3 for **P1 MA-UTAE**, **P2 hierarchical/confusion**, **P3 probe-guided FT**; recommend main **P1**, optional support P2/P3. Await sir decision before coding.
 
@@ -70,13 +72,13 @@ Artifacts (local + PARAM): `multisenge_utae/results/run_c10_{head,full}_v0/` (te
 | Job | Role | Status (2026-09-06 evening) |
 |-----|------|------------------------------|
 | **100432** | P5 full `train_c10_full.sbatch` | **R** on `ragpu008` |
-| **100433** | P4 test eval → `results/run_c10_head_v0/` | **PD (Priority)** — waiting for free GPU |
+| **100433** | P4 test eval → `results/concat_utae/run_c10_head_v0/` | **PD (Priority)** — waiting for free GPU |
 
 Duplicates 100442/100443 cancelled (kept earlier 100432/100433 with exclude). Cluster often full (003/004/006/008); eval may wait hours.
 
 **A4 10c target (test):** W-F1 **0.8711** / kappa **0.7588**. Head val 0.827 is val-only; fair compare after test eval + P5 test.
 
-**Next:** when 100433 finishes → copy `test_metrics.json`; when 100432 finishes → eval full ckpt with `eval_c10.sbatch` (`OUT=results/run_c10_full_v0`).
+**Next:** when 100433 finishes → copy `test_metrics.json`; when 100432 finishes → eval full ckpt with `eval_c10.sbatch` (`OUT=results/concat_utae/run_c10_full_v0`).
 
 ---
 
@@ -91,8 +93,8 @@ Duplicates 100442/100443 cancelled (kept earlier 100432/100433 with exclude). Cl
 
 **Sir plots done**
 - A4 6c / 10c: `multisenge_seg/results/run_c{6,10}_v0/history_plot.png`
-- U-TAE P4 / P5: `multisenge_utae/results/run_c6_{head,full}_v0/history_plot.png`
-- P3 bar chart: `multisenge_utae/results/probe_c6_v0/probe_summary_linear.png` (L2 best W-F1 0.7477)
+- U-TAE P4 / P5: `multisenge_utae/results/concat_utae/run_c6_{head,full}_v0/history_plot.png`
+- P3 bar chart: `multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.png` (L2 best W-F1 0.7477)
 
 **10-class U-TAE**
 - Scripts: `train_c10_head.sbatch` → `train_c10_full.sbatch` → `eval_c10.sbatch` (+ `probe_c10.sbatch`)
@@ -122,7 +124,7 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_head.sbatc
 
 **Train** **99416** COMPLETED · early stop ep 40 · best val W-F1 **0.9585**, kappa **0.560** → `checkpoints/run_c6_full_v0/best.pt`.
 
-**Test** **99628** (31UEQ): W-F1 **0.9387**, kappa **0.5757** → `results/run_c6_full_v0/test_metrics.json`. Report: [`RESULTS_UTAE_6CLASS_FULL.md`](multisenge_utae/RESULTS_UTAE_6CLASS_FULL.md).
+**Test** **99628** (31UEQ): W-F1 **0.9387**, kappa **0.5757** → `results/concat_utae/run_c6_full_v0/test_metrics.json`. Report: [`RESULTS_UTAE_6CLASS_FULL.md`](multisenge_utae/RESULTS_UTAE_6CLASS_FULL.md).
 
 | Model | Test W-F1 | Test kappa |
 |-------|-----------|------------|
@@ -150,7 +152,7 @@ Urban F1 up vs P4; classes **2, 3, 5, 6** above A4. Class 1 still below A4 (0.40
 
 ### 2026-09-02 — U-TAE P3 layer probes done (job 99281)
 
-**P3** linear probes on val (31UFP+31UGP), ckpt `run_c6_head_v0/best.pt`. Summary: [`multisenge_utae/results/probe_c6_v0/probe_summary_linear.md`](multisenge_utae/results/probe_c6_v0/probe_summary_linear.md).
+**P3** linear probes on val (31UFP+31UGP), ckpt `run_c6_head_v0/best.pt`. Summary: [`multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.md`](multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.md).
 
 | Level | W-F1 | Kappa |
 |-------|------|-------|
@@ -173,7 +175,7 @@ sbatch multisenge_utae/probe_smoke.sbatch   # optional
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe.sbatch
 ```
 
-Outputs → `multisenge_utae/results/probe_c6_v0/`. **Note:** encoder was frozen in P4, so probes reflect init encoder (+ shared norm); re-run after P5 for fine-tuned encoder features.
+Outputs → `multisenge_utae/results/concat_utae/probe_c6_v0/`. **Note:** encoder was frozen in P4, so probes reflect init encoder (+ shared norm); re-run after P5 for fine-tuned encoder features.
 
 ---
 
@@ -181,9 +183,9 @@ Outputs → `multisenge_utae/results/probe_c6_v0/`. **Note:** encoder was frozen
 
 **Train:** PARAM **99003** COMPLETED (~5h 13m); early stop ep 30; best val **ep ~10** W-F1 **0.9494**, kappa **0.4904** → `multisenge_utae/checkpoints/run_c6_head_v0/best.pt`.
 
-**Val best** (tiles 31UFP+31UGP, ep ~10): W-F1 **0.9494**, kappa **0.4904** → [`multisenge_utae/results/run_c6_head_v0/best_metrics.json`](multisenge_utae/results/run_c6_head_v0/best_metrics.json). Early stop ep 30; slurm **99003** log on PARAM.
+**Val best** (tiles 31UFP+31UGP, ep ~10): W-F1 **0.9494**, kappa **0.4904** → [`multisenge_utae/results/concat_utae/run_c6_head_v0/best_metrics.json`](multisenge_utae/results/concat_utae/run_c6_head_v0/best_metrics.json). Early stop ep 30; slurm **99003** log on PARAM.
 
-**Test eval** (head `best.pt`, tile **31UEQ**): [`multisenge_utae/results/run_c6_head_v0/test_metrics.json`](multisenge_utae/results/run_c6_head_v0/test_metrics.json). Report: [`multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md`](multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md).
+**Test eval** (head `best.pt`, tile **31UEQ**): [`multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json`](multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json). Report: [`multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md`](multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md).
 
 | Split | W-F1 | Kappa |
 |-------|------|-------|

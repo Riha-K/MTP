@@ -9,7 +9,7 @@
 | Report ckpt | `checkpoints/run_c6_full_v0/best.pt` (PARAM) |
 | Val JSON | `checkpoints/run_c6_full_v0/best_metrics.json` |
 | Test eval | job **99628** |
-| Test JSON | [`results/run_c6_full_v0/test_metrics.json`](results/run_c6_full_v0/test_metrics.json) |
+| Test JSON | [`results/concat_utae/run_c6_full_v0/test_metrics.json`](results/concat_utae/run_c6_full_v0/test_metrics.json) |
 
 ---
 

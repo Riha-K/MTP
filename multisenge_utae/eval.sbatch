@@ -2,7 +2,7 @@
 # PARAM: sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
 # P5 example:
 #   CKPT=multisenge_utae/checkpoints/run_c6_full_v0/best.pt \
-#   OUT=multisenge_utae/results/run_c6_full_v0 \
+#   OUT=multisenge_utae/results/concat_utae/run_c6_full_v0 \
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
 #SBATCH -J msge_utae_eval
 #SBATCH -N 1
@@ -17,7 +17,7 @@ set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
 
 CKPT="${CKPT:-multisenge_utae/checkpoints/run_c6_head_v0/best.pt}"
-OUT="${OUT:-multisenge_utae/results/run_c6_head_v0}"
+OUT="${OUT:-multisenge_utae/results/concat_utae/run_c6_head_v0}"
 mkdir -p multisenge_utae/artifacts "${OUT}"
 
 module purge

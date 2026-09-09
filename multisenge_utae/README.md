@@ -36,9 +36,9 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 |------|---------|--------|
 | **Task M** | MA-UTAE dual-stream + gated/concat fuse | `models/ma_utae.py`, `models/fusion.py` |
 | **Task H** | Hierarchical agents A1+A2 (UF/rest, Dense/Sparse) | `heads.py` (`--use-a1 --use-a2`) |
-| Train | `train_ma.py`, `train_ma.sbatch` | |
+| Train | `train_ma.py`, `train_ma.sbatch`, `train_ma_full.sbatch` | |
 
-Water agent skipped (10c-only). Stock concat U-TAE stays in `train.py`.
+**Results folders:** stock concat U-TAE → `results/concat_utae/`; MA-UTAE → `results/ma_utae/` (see `results/README.md`).
 
 **Phases on MA-UTAE:** P4 = `--mode head`, P5 = `--mode full --init-ckpt …/best.pt`. **P3 probes:** stock U-TAE only for now.
 
@@ -87,7 +87,7 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_head.sbatc
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_full.sbatch
 # test vs A4 10c W-F1 0.8711 / kappa 0.7588:
 CKPT=multisenge_utae/checkpoints/run_c10_full_v0/best.pt \
-OUT=multisenge_utae/results/run_c10_full_v0 \
+OUT=multisenge_utae/results/concat_utae/run_c10_full_v0 \
   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval_c10.sbatch
 ```
 
@@ -127,7 +127,7 @@ sbatch multisenge_utae/probe_smoke.sbatch
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe.sbatch
 ```
 
-Outputs → `multisenge_utae/results/probe_c6_v0/`:
+Outputs → `multisenge_utae/results/concat_utae/probe_c6_v0/`:
 
 - `L0_linear_metrics.json` … `L3_linear_metrics.json` (full per-class table each)
 - `probe_summary_linear.json` + `.md` (headline W-F1 per level)
@@ -153,7 +153,7 @@ python -m multisenge_utae.train \
   --index multisenge_seg/artifacts/patch_index.json \
   --eval-ckpt multisenge_utae/checkpoints/run_c6_head_v0/best.pt \
   --eval-split test \
-  --out-dir multisenge_utae/results/run_c6_head_v0
+  --out-dir multisenge_utae/results/concat_utae/run_c6_head_v0
 ```
 
 ## Model
@@ -183,12 +183,12 @@ Copy JSON from PARAM into `multisenge_utae/results/` then export markdown for `l
 
 ```bash
 python -m multisenge_utae.export_notes \
-  --metrics multisenge_utae/results/run_c6_head_v0/test_metrics.json \
+  --metrics multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json \
   --num-classes 6 \
   --title "U-TAE 6-class test" \
-  --probe-summary multisenge_utae/results/probe_c6_v0/probe_summary_linear.json
+  --probe-summary multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.json
 ```
 
 Or use `sbatch multisenge_utae/eval.sbatch` (test eval + auto `.md`).
 
-**Results:** P4 head — [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/run_c6_head_v0/best_metrics.json`](results/run_c6_head_v0/best_metrics.json) · test [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json) · P3 [`results/probe_c6_v0/probe_summary_linear.md`](results/probe_c6_v0/probe_summary_linear.md).
+**Results:** P4 head — [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/concat_utae/run_c6_head_v0/best_metrics.json`](results/concat_utae/run_c6_head_v0/best_metrics.json) · test [`results/concat_utae/run_c6_head_v0/test_metrics.json`](results/concat_utae/run_c6_head_v0/test_metrics.json) · P3 [`results/concat_utae/probe_c6_v0/probe_summary_linear.md`](results/concat_utae/probe_c6_v0/probe_summary_linear.md).

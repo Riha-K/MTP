@@ -12,7 +12,7 @@
 
 set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
-mkdir -p multisenge_utae/artifacts multisenge_utae/results/probe_c6_smoke
+mkdir -p multisenge_utae/artifacts multisenge_utae/results/concat_utae/probe_c6_smoke
 
 module purge
 module load MLDL/Pytorch-gpu
@@ -30,4 +30,4 @@ python -m multisenge_utae.probe_layers \
   --max-train-patches 24 \
   --max-val-patches 12 \
   --pixels-per-patch 256 \
-  --out-dir multisenge_utae/results/probe_c6_smoke
+  --out-dir multisenge_utae/results/concat_utae/probe_c6_smoke

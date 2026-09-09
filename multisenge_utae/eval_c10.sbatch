@@ -1,7 +1,7 @@
 #!/bin/bash
 # PARAM test eval 10-class (after P4 or P5):
 #   CKPT=multisenge_utae/checkpoints/run_c10_full_v0/best.pt \
-#   OUT=multisenge_utae/results/run_c10_full_v0 \
+#   OUT=multisenge_utae/results/concat_utae/run_c10_full_v0 \
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval_c10.sbatch
 #SBATCH -J utae_c10_eval
 #SBATCH -N 1
@@ -16,7 +16,7 @@ set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
 
 CKPT="${CKPT:-multisenge_utae/checkpoints/run_c10_full_v0/best.pt}"
-OUT="${OUT:-multisenge_utae/results/run_c10_full_v0}"
+OUT="${OUT:-multisenge_utae/results/concat_utae/run_c10_full_v0}"
 mkdir -p multisenge_utae/artifacts "${OUT}"
 
 module purge

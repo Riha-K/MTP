@@ -2,7 +2,7 @@
 
 Example:
   python -m multisenge_utae.plot_probe_summary \\
-    multisenge_utae/results/probe_c6_v0/probe_summary_linear.json \\
+    multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.json \\
     --title "U-TAE P3 linear probes (val)"
 """
 

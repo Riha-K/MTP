@@ -15,7 +15,7 @@
 
 set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
-OUT="multisenge_utae/results/probe_c10_v0"
+OUT="multisenge_utae/results/concat_utae/probe_c10_v0"
 mkdir -p multisenge_utae/artifacts "${OUT}"
 
 module purge

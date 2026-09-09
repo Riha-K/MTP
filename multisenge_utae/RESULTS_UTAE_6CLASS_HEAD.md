@@ -8,9 +8,9 @@
 | Train job | PARAM **99003** (~5h 13m, early stop ep 30) |
 | Val best | **epoch ~10** · W-F1 **0.9494** · kappa **0.4904** |
 | Report ckpt | `checkpoints/run_c6_head_v0/best.pt` (on PARAM; `.pt` not in git) |
-| Val JSON | [`results/run_c6_head_v0/best_metrics.json`](results/run_c6_head_v0/best_metrics.json) — tiles **31UFP + 31UGP** |
-| Test JSON | [`results/run_c6_head_v0/test_metrics.json`](results/run_c6_head_v0/test_metrics.json) — tile **31UEQ** |
-| P3 probes | [`results/probe_c6_v0/probe_summary_linear.md`](results/probe_c6_v0/probe_summary_linear.md) — job **99281** |
+| Val JSON | [`results/concat_utae/run_c6_head_v0/best_metrics.json`](results/concat_utae/run_c6_head_v0/best_metrics.json) — tiles **31UFP + 31UGP** |
+| Test JSON | [`results/concat_utae/run_c6_head_v0/test_metrics.json`](results/concat_utae/run_c6_head_v0/test_metrics.json) — tile **31UEQ** |
+| P3 probes | [`results/concat_utae/probe_c6_v0/probe_summary_linear.md`](results/concat_utae/probe_c6_v0/probe_summary_linear.md) — job **99281** |
 
 **Not done yet:** P3 bar chart for sir · P5 learning-curve plot · 10-class.  
 **P5 done:** see [`RESULTS_UTAE_6CLASS_FULL.md`](RESULTS_UTAE_6CLASS_FULL.md) — test W-F1 **0.9387** / kappa **0.5757** (beats A4).
@@ -106,7 +106,7 @@ Best linear probe: **L2**. L3 low (coarse L-TAE map; trained decoder does better
 **Sir plot (bar chart — not an epoch curve):**
 ```bash
 python -m multisenge_utae.plot_probe_summary \
-  multisenge_utae/results/probe_c6_v0/probe_summary_linear.json \
+  multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.json \
   --title "U-TAE P3 linear probes (val)"
 ```
 
@@ -115,5 +115,5 @@ python -m multisenge_utae.plot_probe_summary \
 ## Next steps
 
 1. **P5** — job **99416** full fine-tune → test eval (target: beat A4 W-F1 **0.9037**)
-2. **P3 plot** — bar chart for sir: `python -m multisenge_utae.plot_probe_summary results/probe_c6_v0/probe_summary_linear.json`
+2. **P3 plot** — bar chart for sir: `python -m multisenge_utae.plot_probe_summary results/concat_utae/probe_c6_v0/probe_summary_linear.json`
 3. **Optional** — re-run P3 probes after P5 (fine-tuned encoder)

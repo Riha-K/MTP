@@ -16,14 +16,14 @@
 
 set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
-mkdir -p multisenge_utae/artifacts multisenge_utae/results/probe_c6_v0
+mkdir -p multisenge_utae/artifacts multisenge_utae/results/concat_utae/probe_c6_v0
 
 module purge
 module load MLDL/Pytorch-gpu
 export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
 
 CKPT="${CKPT:-multisenge_utae/checkpoints/run_c6_head_v0/best.pt}"
-OUT="multisenge_utae/results/probe_c6_v0"
+OUT="multisenge_utae/results/concat_utae/probe_c6_v0"
 
 if [[ ! -f "${CKPT}" ]]; then
   echo "ERROR: checkpoint not found: ${CKPT}"

@@ -6,7 +6,7 @@ Example:
     --num-classes 6 --probe linear \\
     --max-train-patches 32 --max-val-patches 16 \\
     --pixels-per-patch 256 \\
-    --out-dir multisenge_utae/results/probe_c6_v0
+    --out-dir multisenge_utae/results/concat_utae/probe_c6_v0
 """
 
 from __future__ import annotations
@@ -231,7 +231,7 @@ def main() -> int:
     p.add_argument("--batch-size", type=int, default=2)
     p.add_argument("--workers", type=int, default=2)
     p.add_argument("--seed", type=int, default=0)
-    p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/results/probe_c6_v0"))
+    p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/results/concat_utae/probe_c6_v0"))
     p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     args = p.parse_args()
 
