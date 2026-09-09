@@ -52,7 +52,8 @@ Paper + your runs: Dense vs Sparse Built-Up confuse; class 4 (vegetative special
 **Your evidence:**
 
 - 6c P5: class 1 still below A4 (≈0.408 vs 0.489).
-- 10c P5: class 4 F1 still ~0.16; water precision low; grassland recall weak; Dense F1 ~0.48.
+- 10c P5: class 4 F1 still ~0.16; **water (class 10 only)** precision low; grassland recall weak; Dense F1 ~0.48.
+  - Note: **6-class has no separate water class** (water is inside class 6 “other”). Water agent / water metrics only apply to **10-class**.
 
 
 
@@ -73,6 +74,10 @@ On 6c, P4 ≈ A4; on 10c, P4 collapses (−0.04 W-F1 vs A4). Encoder features al
 
 
 ## 2. Publishable directions (U-TAE only) - ranked
+
+> **Naming (2026-09-09):** Do **not** call novelty items P1/P2/P3 — those are reserved for breast-style **phases** (P3 probes / P4 head / P5 full).  
+> Use instead: **Task M** = MA-UTAE modality fusion · **Task H** = hierarchical agents · **Task C** = probe-guided curriculum (optional).  
+> Below, older “Priority 1/2/3” text means Task M / H / C.
 
 
 
@@ -207,7 +212,8 @@ s1: B×T×2×H×W  ──► Encoder_S1 (narrow)            ──► feat_S1 @ 
 **Fusion block (choose + ablate):**
 
 1. **Concat + 1×1 conv** (simplest baseline fusion).
-2. **Gated fusion:** `σ(W[f_s2;f_s1]) ⊙ f_s2 + (1−σ) ⊙ f_s1` (or FiLM: S1 modulates S2).
+2. **Gated fusion (modality gate / “S1 vs S2 agent”):** `σ(W[f_s2;f_s1]) ⊙ f_s2 + (1−σ) ⊙ f_s1` (or FiLM: S1 modulates S2).
+   - Same idea as sir’s “trust S2 vs S1 agent”: **not a new Priority**, it **is** P1 gated fuse.
 3. Optional: fuse also at skip levels (heavier).
 
 **Reuse from our code:**
@@ -315,8 +321,6 @@ Optional: only apply fine UF loss on pixels where coarse = urban (or use soft we
 
 ---
 
-
-
 #### 3.2.B Pairwise confusion-aware penalty (CM-guided)
 
 **Idea:** From a **frozen** confusion matrix (A4 or our U-TAE P5 on **val**, not test; avoid leakage):
@@ -338,6 +342,35 @@ Optional: only apply fine UF loss on pixels where coarse = urban (or use soft we
 **Sir caveat:** Must freeze CM from val (or train) and state that clearly; do not tune pairs on test 31UEQ.
 
 ---
+
+
+
+#### 3.2.C Conditional “agents” (sir discussion language)
+
+**What “agent” means here:** not a chatbot. An **agent** = a small specialist head / loss term that runs under a **gate (condition)**.  
+One coarse UF-vs-rest head = **only one agent**. Sir asked to add **more conditions / agents**.
+
+| Agent | Gate (condition) | Specialist role | Gap | Publishable alone? |
+|-------|------------------|-----------------|-----|--------------------|
+| **A1** | UF (1-5) vs Rest | Coarse urban bag | D, A | Weak alone (known hierarchy) |
+| **A2** | If UF: Dense vs Sparse | Fix 1↔2 confusion | A, B | Support / ablation if gains clear |
+| **A3** | If UF: class 4 vs other UF | Rare vegetative specialized | A | Support only |
+| **A4** | Water vs land | Water / SAR-useful | (10c only) | Optional; **no separate water in 6-class** |
+| **A5** | Trust S2 vs S1 | Modality gate | C | **= Priority 1 gated fusion** (not a third novelty) |
+
+**Minimal build (recommended):** A1 + A2 on shared U-TAE (or on MA-UTAE after P1).  
+**Do not** implement A1–A5 all at once.
+
+**Soft training sketch:**
+```text
+L = L_fine(wCE) + λ1·L_A1 + λ2·L_A2 + …
+```
+Hard gate: apply Dense/Sparse specialist loss only where gate says UF (or soft weight by gate probability).
+
+**Honest novelty of A1–A3:** useful **error-driven modules** for MultiSenGE UF; **not** enough as the sole paper claim (hierarchical / auxiliary heads are well known). Cite multi-task / MoE / gating priors; your contribution is **protocol + named combo + ablations on frozen baselines**.
+
+---
+
 
 
 
@@ -490,39 +523,45 @@ Optional: only apply fine UF loss on pixels where coarse = urban (or use soft we
 
 
 
-### 3.4 How to combine (for the decision meeting)
+### 3.4 How to combine + publishability (honest)
 
+| Choice | Verdict | Gaps | Notes for sir |
+|--------|---------|------|---------------|
+| **P1 alone** | **Best single paper** | C (+A) | Strongest architecture story |
+| **P2 alone** (A1 only) | MTech / thin paper | A, B, D | Known hierarchy; need big UF gains |
+| **P2 agents A1+A2** | Good **support** under P1 | A, B, D | Sir multiple agents; start with 2 |
+| **P3 alone** | Not sole novelty | support | Curriculum |
+| **P1 + P2 (A1+A2)** | **Best duo** | C + A/B/D | Main = MA-UTAE; agents = heads/ablation |
+| **P1 gated fuse** | Same as **A5** | C | Do not list A5 as separate novelty |
+| **P1+P2+P3** | Engineering overload | All | Bad as three equal claims |
 
-| Choice       | Verdict                                    | Gaps covered  | Notes for sir                                                                |
-| ------------ | ------------------------------------------ | ------------- | ---------------------------------------------------------------------------- |
-| **P1 alone** | **Best single paper**                      | C (+A)        | Strongest novelty; do this if only one.                                      |
-| **P2 alone** | Good method paper / strong MTech           | A, B, D       | Faster; UF-focused; weaker multimodal story.                                 |
-| **P3 alone** | **Not recommended as sole novelty**        | A/B/D support | Curriculum; keep as ablation.                                                |
-| **P1 + P2**  | **Best duo**                               | C + A/B/D     | Main = MA-UTAE; hierarchical/confusion as second module/ablation.            |
-| **P1 + P3**  | Good duo                                   | C + training  | Main = MA-UTAE; staged FT as training ablation.                              |
-| **P2 + P3**  | OK duo, no fusion                          | A/B/D         | If rejecting architecture change.                                            |
-| **P1+P2+P3** | Possible engineering, **bad single claim** | All           | Too many moving parts; hard to ablate; don’t pitch as three equal novelties. |
-
+**Copying / prior-art risk (read before claiming first):**
+- Dual-stream / gated multimodal fusion and hierarchical heads **exist in other papers/domains**.
+- We are **not** copying a MultiSenGE author method if we implement ourselves, cite U-TAE / MultiSenGE / multi-task / gating, and evaluate under **our** frozen protocol.
+- Safe claim: *MA-UTAE + optional conditional UF agents on MultiSenGE under Wenger split, vs concat U-TAE P5 and ConvLSTM.*
+- Unsafe claim: *We invent hierarchy / invent gating.*
 
 **Recommended pitch to sir:**
 
-1. **Main:** P1 MA-UTAE (Gap C).
-2. **Optional add-on:** P2 hierarchical head (Gaps A/D) **or** P3 probe staging as ablation.
-3. Keep concat U-TAE P5 + A4 as frozen baselines in every table.
+1. **Main:** **Task M** MA-UTAE (dual-stream + **gated** S1/S2 fuse = modality agent **A5**).
+2. **Support:** **Task H** agents **A1 (UF/rest) + A2 (Dense↔Sparse)**; A3 later if needed; skip water agent on 6-class.
+3. Keep concat U-TAE P5 + A4 ConvLSTM as frozen baselines in every table.
+4. **Task C** probe staging = ablation only (optional).
+
+Code (under `multisenge_utae/`): `models/ma_utae.py`, `models/fusion.py`, `heads.py`, `train_ma.py`.
 
 ---
 
-
-
 ### 3.5 Decision checklist (fill after meeting)
 
-- [ ] Main novelty: **P1** / **P2** / **P3**
-- [ ] Support novelty (optional): **P2** / **P3** / none
-- [ ] P2 flavor if chosen: hierarchical head / confusion pairs / both
-- [ ] Start taxonomy: **6-class first** / 10-class first
+- [x] Main novelty: **Task M** (MA-UTAE)
+- [x] Support: **Task H** agents (A1+A2); water agent skipped
+- [x] Task M fusion: **gated** main + **concat** ablation
+- [ ] Task H flavor locked with sir: A1 only / A1+A2 / + confusion pairs
+- [x] Start taxonomy: **6-class first**
 - [ ] Must beat paper 10c W-F1? **Yes** / **No** (beat A4 + UF classes enough)
 - [ ] Timeline / PARAM budget: ________
 
 ---
 
-*Section 3 added 2026-09-07 for sir discussion before implementation.*
+*Section 3 added 2026-09-07; updated 2026-09-09 (sir agent/gate language, A1-A5 map, water 10c-only, publishability honesty).*

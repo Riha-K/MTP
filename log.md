@@ -10,6 +10,30 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-09 — Task M (MA-UTAE) + Task H scaffold; naming fix
+
+**Naming:** Novelty is **Task M** (modality MA-UTAE) / **Task H** (hierarchical A1+A2). Keep **P3/P4/P5** only for breast-style phases. Do not say Priority P1/P2.
+
+**Code (scaffold, not trained yet)**
+| Piece | Path |
+|-------|------|
+| Fusion concat / gated | `multisenge_utae/models/fusion.py` |
+| Dual-stream MA-UTAE | `multisenge_utae/models/ma_utae.py` |
+| A1+A2 heads + loss | `multisenge_utae/heads.py` (masks **0-indexed**; UF=0..4) |
+| Train P4/P5 | `train_ma.py`, `train_ma.sbatch`, `train_ma_full.sbatch` |
+
+Water agent skipped. P3 probes still stock U-TAE only.
+
+**Docs:** `multisenge_utae/README.md`, novelty plan checklist → Task M/H.
+
+**Next on PARAM**
+1. Smoke: `python -m multisenge_utae.train_ma ... --max-train 8 --max-val 4 --epochs 1`
+2. Task M alone 6c: `sbatch … train_ma.sbatch` (gated P4) → `train_ma_full.sbatch` (P5)
+3. Ablation `--fusion concat`; then optional `--use-a1 --use-a2`
+4. Test eval vs concat U-TAE P5 (W-F1 0.9387 / κ 0.5757) + urban F1
+
+---
+
 ### 2026-09-08 — Phase 2 formula notes (loss / metrics / U-TAE / P3 LR)
 
 Added [`multisenge_seg/FORMULAS.md`](multisenge_seg/FORMULAS.md): Softmax, wCE, U-TAE/L-TAE, multinomial logistic probes, CM → P/R/Sens/Spec/F1/W-F1/Kappa. Linked from `PROTOCOL.md` and `multisenge_utae/README.md`.

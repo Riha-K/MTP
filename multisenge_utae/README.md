@@ -30,6 +30,32 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 | P4 | `train.py --mode head` | Freeze encoder + L-TAE; train decoder/head |
 | P5 | `train.py --mode full` | Fine-tune all weights (`--init-ckpt` from best head run) |
 
+## Novelty tracks (not P1/P2 — those clash with U-TAE phases)
+
+| Name | Meaning | Files |
+|------|---------|--------|
+| **Task M** | MA-UTAE dual-stream + gated/concat fuse | `models/ma_utae.py`, `models/fusion.py` |
+| **Task H** | Hierarchical agents A1+A2 (UF/rest, Dense/Sparse) | `heads.py` (`--use-a1 --use-a2`) |
+| Train | `train_ma.py`, `train_ma.sbatch` | |
+
+Water agent skipped (10c-only). Stock concat U-TAE stays in `train.py`.
+
+**Phases on MA-UTAE:** P4 = `--mode head`, P5 = `--mode full --init-ckpt …/best.pt`. **P3 probes:** stock U-TAE only for now.
+
+```bash
+# smoke
+python -m multisenge_utae.train_ma --index multisenge_seg/artifacts/patch_index.json \
+  --num-classes 6 --mode head --fusion gated --epochs 1 \
+  --max-train 4 --max-val 2 --out-dir multisenge_utae/checkpoints/ma_c6_smoke
+
+# PARAM (6c gated head); later full with --mode full --init-ckpt .../best.pt
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma.sbatch
+
+# Ablation: --fusion concat · Task H: add --use-a1 --use-a2
+```
+
+Start **Task M alone** (gated, no agents); add Task H in a second run.
+
 ## Quick start (smoke)
 
 ```bash
