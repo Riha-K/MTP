@@ -40,6 +40,19 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 
 **Results folders:** stock concat U-TAE → `results/concat_utae/`; MA-UTAE → `results/ma_utae/` (see `results/README.md`).
 
+### Modality ablations (paper-style S1-only / S2-only)
+
+Like MultiSenGE ConvLSTM-S1 / ConvLSTM-S2: stock U-TAE with `--modality s2` (10ch) or `s1` (2ch).
+
+```bash
+# both heads can queue in parallel
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_head.sbatch
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_head.sbatch
+# after each best.pt:
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_full.sbatch
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_full.sbatch
+```
+
 **Phases on MA-UTAE:** P4 = `--mode head`, P5 = `--mode full --init-ckpt …/best.pt`. **P3 probes:** stock U-TAE only for now.
 
 ```bash

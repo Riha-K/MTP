@@ -46,16 +46,22 @@ from multisenge_seg.train import (
     set_seed,
     _seed_worker,
 )
-from multisenge_utae.data import batch_positions, collate_utae
+from multisenge_utae.data import batch_positions, collate_utae, modality_input_dim, select_modality
 from multisenge_utae.models import UTAE
 
 
 @torch.no_grad()
-def evaluate(model: UTAE, loader: DataLoader, device: torch.device, num_classes: int) -> dict:
+def evaluate(
+    model: UTAE,
+    loader: DataLoader,
+    device: torch.device,
+    num_classes: int,
+    modality: str = "both",
+) -> dict:
     model.eval()
     cm = np.zeros((num_classes, num_classes), dtype=np.int64)
     for batch in loader:
-        x = batch["x"].to(device)
+        x = select_modality(batch["x"].to(device), modality)
         mask = batch["mask"].numpy()
         bp = batch_positions(x.shape[0], device)
         logits = model(x, batch_positions=bp)
@@ -71,6 +77,7 @@ def train_one_epoch(
     criterion: nn.Module,
     device: torch.device,
     accum_steps: int = 1,
+    modality: str = "both",
 ) -> float:
     model.train()
     accum_steps = max(int(accum_steps), 1)
@@ -78,7 +85,7 @@ def train_one_epoch(
     n = 0
     opt.zero_grad(set_to_none=True)
     for i, batch in enumerate(loader):
-        x = batch["x"].to(device)
+        x = select_modality(batch["x"].to(device), modality)
         mask = batch["mask"].to(device)
         bp = batch_positions(x.shape[0], device)
         logits = model(x, batch_positions=bp)
@@ -130,7 +137,9 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
             raise RuntimeError("checkpoint has no norm_stats; expected sibling norm_stats.json")
         stats = json.loads(stats_path.read_text(encoding="utf-8"))
     n_cls = int(ckpt.get("num_classes", n_cls))
-    input_dim = int(ckpt.get("input_dim", 12))
+    meta = ckpt.get("args") or {}
+    modality = str(meta.get("modality", args.modality))
+    input_dim = int(ckpt.get("input_dim", modality_input_dim(modality)))
     ds = MultiSenGETemporalDataset(
         records,
         args.eval_split,
@@ -152,8 +161,8 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
     )
     model = UTAE(input_dim=input_dim, num_classes=n_cls).to(device)
     model.load_state_dict(ckpt["model"])
-    print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls}")
-    scores = evaluate(model, loader, device, n_cls)
+    print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls} modality={modality}")
+    scores = evaluate(model, loader, device, n_cls, modality=modality)
     out = args.out_dir
     out.mkdir(parents=True, exist_ok=True)
     dest = out / f"{args.eval_split}_metrics.json"
@@ -196,6 +205,13 @@ def main() -> int:
     p.add_argument("--class-boost", type=str, default="")
     p.add_argument("--max-train", type=int, default=None)
     p.add_argument("--max-val", type=int, default=None)
+    p.add_argument(
+        "--modality",
+        type=str,
+        default="both",
+        choices=["both", "s2", "s1"],
+        help="both=S2+S1 (12ch); s2=optical-only (10ch); s1=SAR-only (2ch) — paper-style ablation",
+    )
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/checkpoints/run_c6_head_v0"))
     p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     p.add_argument("--eval-ckpt", type=Path, default=None)
@@ -260,9 +276,11 @@ def main() -> int:
         collate_fn=collate_utae,
     )
 
-    sample = collate_utae([train_ds[0]])
-    input_dim = int(sample["x"].shape[2])
-    print("input_dim", input_dim, "train/val", len(train_ds), len(val_ds), "mode", args.mode)
+    input_dim = modality_input_dim(args.modality)
+    print(
+        "modality", args.modality, "input_dim", input_dim,
+        "train/val", len(train_ds), len(val_ds), "mode", args.mode,
+    )
 
     device = torch.device(args.device)
     model = build_model(input_dim, n_cls, args.mode, args.init_ckpt, device)
@@ -296,9 +314,12 @@ def main() -> int:
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()
         print(f"epoch {epoch}/{args.epochs} train…", flush=True)
-        loss = train_one_epoch(model, train_loader, opt, criterion, device, accum_steps=args.accum_steps)
+        loss = train_one_epoch(
+            model, train_loader, opt, criterion, device,
+            accum_steps=args.accum_steps, modality=args.modality,
+        )
         print(f"epoch {epoch}/{args.epochs} val…", flush=True)
-        val = evaluate(model, val_loader, device, n_cls)
+        val = evaluate(model, val_loader, device, n_cls, modality=args.modality)
         mon = float(val[monitor_key])
         scheduler.step(mon)
         row = {
@@ -314,6 +335,7 @@ def main() -> int:
             "val_mean_f1": val["mean_f1"],
             "lr": opt.param_groups[0]["lr"],
             "mode": args.mode,
+            "modality": args.modality,
             "sec": round(time.time() - t0, 1),
         }
         history.append(row)
@@ -327,6 +349,7 @@ def main() -> int:
             "model": model.state_dict(),
             "num_classes": n_cls,
             "input_dim": input_dim,
+            "modality": args.modality,
             "val": val,
             "norm_stats": stats,
             "mode": args.mode,

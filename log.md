@@ -10,6 +10,19 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-11 — S1/S2-only U-TAE ablation (--modality); MA P4 test + P5 train done
+
+**MA gated 6c (Task M)**
+| Stage | Result |
+|-------|--------|
+| P4 test 31UEQ | W-F1 **0.9169** / κ **0.4705** (beats concat P4 0.9012 / 0.4033) |
+| P5 train | done; best val W-F1 **0.9602** → `checkpoints/ma_c6_gated_full_v0/` |
+| P5 test | submitted / pending eval |
+
+**Ablation coding:** `--modality both|s2|s1` in `train.py` + `data.select_modality`. Sbatches: `train_s{1,2}_{head,full}.sbatch`. Queue S2+S1 **heads** in parallel after `git pull`; full after each `best.pt`.
+
+---
+
 ### 2026-09-09 — Task M (MA-UTAE) + Task H scaffold; naming fix
 
 **Naming:** Novelty is **Task M** (modality MA-UTAE) / **Task H** (hierarchical A1+A2). Keep **P3/P4/P5** only for breast-style phases. Do not say Priority P1/P2.
