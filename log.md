@@ -10,6 +10,87 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-14 — Paper modality tables (S1/S2/S1S2) transcribed; fair S1 compare
+
+**Source:** RS 2023 — ConvLSTM-S1 / S2 / S1S2 / +Inception. Saved: `results/PAPER_MODALITY_6CLASS.md`.
+
+**Neutral S1 vs ConvLSTM-S1 (paper Table 6 κ = 0.3929):**
+
+| Ours | Δ W-F1 | Δ κ |
+|------|--------|-----|
+| P4 | +0.0110 | **+0.0045** |
+| P5 | −0.0031 | **−0.0392** |
+
+Earlier draft used wrong paper κ (0.4087 from another figure). Corrected to Table 6. S2 paper κ = **0.4223**; our S2 P4 = 0.4658 (Δ +0.0435).
+
+---
+
+### 2026-09-14 — S1-only P5 test (worse than P4); MA concat full best.pt appears
+
+**S1-only U-TAE test 31UEQ**
+| Phase | W-F1 | Kappa | Notes |
+|-------|------|-------|-------|
+| P4 | **0.9111** | **0.3974** | stronger |
+| **P5** | **0.8970** | **0.3537** | job 102263; full FT hurt test (val had looked good ~0.932) |
+
+Report **P5** as the paper-facing S1 row, but note P4 > P5 (possible overfit / SAR-only full FT instability).
+
+**PARAM status**
+- `ma_c6_concat_full_v0/best.pt` **exists** (102150 still training or finishing) → queue P5 test when `done.` in log
+- MA concat P4 eval **102267** pending
+- S2 full **102260** still no `best.pt`
+
+**Local:** `results/concat_utae/run_c6_s1_full_v0/test_metrics.json` + board regen.
+
+---
+
+### 2026-09-14 — Doc: breast schedule vs PASTIS transfer (why scratch on MultiSenGE)
+
+**Why:** Clarify for sir / thesis that following the breast paper means **P3→P4→P5 training recipe**, not loading PASTIS or ImageNet weights into U-TAE.
+
+**Decision (frozen for bake-off):**
+- **Yes:** layer probes, head-only, full FT from our P4 `best.pt`.
+- **No:** PASTIS / external pretrain — keeps parity with A4 and Wenger from-scratch protocol; PASTIS also mismatches 12ch S1+S2 urban LULC.
+
+**Files**
+- `multisenge_utae/TRAINING_AND_TRANSFER.md` — full reference + one-liner for report.
+- `multisenge_utae/README.md` — short pointer under Breast-paper phases.
+
+**Optional later:** explicit ablation PASTIS-init vs scratch (extra row on results board, not baseline replacement).
+
+---
+
+### 2026-09-14 — Task M 6c bake-off update (gated P5 test; S1/S2 heads; concat full queued)
+
+**Frozen baselines (test 31UEQ, 6-class)** — concat U-TAE P5 still strongest on headlines:
+
+| Model | Phase | Test W-F1 | Kappa | Notes |
+|-------|-------|-----------|-------|-------|
+| Concat U-TAE (12ch) | P5 | **0.9387** | **0.5757** | frozen baseline |
+| A4 ConvLSTM | full | 0.9037 | 0.4424 | frozen |
+| **MA gated** | P4 | 0.9169 | 0.4705 | beats concat P4 |
+| **MA gated** | **P5** | **0.9353** | **0.5520** | job 101547; **below** concat P5 (−0.003 W-F1 / −0.024 κ) |
+| U-TAE **S2-only** | P4 | 0.9171 | 0.4658 | jobs 101553 / eval **101721** |
+| U-TAE **S1-only** | P4 | 0.9111 | 0.3974 | jobs 101554 / eval **101722** |
+| U-TAE S1-only | P5 train | — | — | **101720** COMPLETED; `run_c6_s1_full_v0/best.pt`; P5 test TBD |
+| U-TAE S2-only | P5 | — | — | confirm `run_c6_s2_full_v0/best.pt` (was job 101719) |
+| **MA concat fuse** | P4 | — | — | `ma_c6_concat_head_v0/best.pt` exists (~ep 22 val W-F1 ~0.946); head job killed mid-run |
+| **MA concat fuse** | P5 | — | — | **102150** queued (`train_ma_concat_full.sbatch`) |
+
+**Takeaway:** Gated dual-stream did **not** beat concat U-TAE on 6c W-F1/κ. Keep ablations (S1/S2 + MA concat-fuse) + later Task H / 10c. Do not claim “MA gated wins 6c” on headlines.
+
+**Artifacts**
+- MA gated: `results/ma_utae/ma_c6_gated_{head,full}_v0/` (test JSON + history plots on laptop)
+- S1/S2 head tests: `results/concat_utae/run_c6_s{1,2}_head_v0/test_metrics.json`
+- Ckpt pack pulled earlier: `ma_utae_ckpts.tgz` → local `checkpoints/ma_c6_gated_*` + concat U-TAE 6c best.pt
+
+**Next**
+1. Let **102150** MA concat P5 finish → test eval → compare gated vs concat-fuse vs concat U-TAE.
+2. S1 (and S2 if ckpt ready) **P5 test** on 31UEQ.
+3. Optional: Task H (A1+A2); 10-class Task M.
+
+---
+
 ### 2026-09-11 — S1/S2-only U-TAE ablation (--modality); MA P4 test + P5 train done
 
 **MA gated 6c (Task M)**
@@ -17,7 +98,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 |-------|--------|
 | P4 test 31UEQ | W-F1 **0.9169** / κ **0.4705** (beats concat P4 0.9012 / 0.4033) |
 | P5 train | done; best val W-F1 **0.9602** → `checkpoints/ma_c6_gated_full_v0/` |
-| P5 test | submitted / pending eval |
+| P5 test | done later (see 2026-09-14): W-F1 **0.9353** / κ **0.5520** |
 
 **Ablation coding:** `--modality both|s2|s1` in `train.py` + `data.select_modality`. Sbatches: `train_s{1,2}_{head,full}.sbatch`. Queue S2+S1 **heads** in parallel after `git pull`; full after each `best.pt`.
 

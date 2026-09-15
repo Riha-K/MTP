@@ -30,6 +30,8 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 | P4 | `train.py --mode head` | Freeze encoder + L-TAE; train decoder/head |
 | P5 | `train.py --mode full` | Fine-tune all weights (`--init-ckpt` from best head run) |
 
+**Transfer learning:** We use the breast **schedule** only, not breast-style **pretrained weights**. U-TAE is trained **from scratch on MultiSenGE** (no PASTIS/ImageNet init) so comparisons stay fair vs A4 and the RS 2023 paper. P4→P5 `--init-ckpt` is same-dataset continuation, not cross-dataset TL. Full rationale: [`TRAINING_AND_TRANSFER.md`](TRAINING_AND_TRANSFER.md).
+
 ## Novelty tracks (not P1/P2 — those clash with U-TAE phases)
 
 | Name | Meaning | Files |
