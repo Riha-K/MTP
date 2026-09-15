@@ -4,7 +4,7 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 
 **Legend:** `[ok]` on laptop | `[head]` headline only (JSON still on PARAM) | `[todo]` not run / missing | `~(val)` = validation only
 
-**Last updated:** 2026-09-14
+**Last updated:** 2026-09-16
 
 ---
 
@@ -24,13 +24,28 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | MA gated 6c P5 | [ok] | [ok] | `results/ma_utae/ma_c6_gated_full_v0/` |
 | S2-only 6c P4 | [ok] | [ok] | `results/concat_utae/run_c6_s2_head_v0/` |
 | S1-only 6c P4 | [ok] | [ok] | `results/concat_utae/run_c6_s1_head_v0/` |
-| S1-only 6c P5 | [ok] test | [ok] plot | test W-F1 0.8970 < P4 0.9111 (report P5) |
-| S2-only 6c P5 | [todo] | [todo] | job 102260; no best.pt yet |
-| MA concat 6c P4 | [todo] | [todo] | eval 102267 pending |
-| MA concat 6c P5 | [todo] | [todo] | best.pt exists; wait train done then test |
+| S1-only 6c P5 | [ok] | [ok] | W-F1 0.8970 / κ 0.3537 confirmed (102355 wrote JSON; job exit 9 after write) |
+| S2-only 6c P5 | [todo] | [todo] | train **102359** + eval **102628** queued; scp after test |
+| MA concat 6c P4 | [ok] | [todo] | on laptop: W-F1 **0.9218** / κ **0.4961** (P4 > P5) |
+| MA concat 6c P5 | [ok] | [todo] | on laptop: W-F1 **0.9143** / κ **0.4672** (below gated + concat U-TAE) |
 | MA / S1 / S2 10c | [todo] | [todo] | Not started |
 | Task H | [todo] | [todo] | Not started |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
+
+### PARAM snapshot (2026-09-16)
+
+| Job | Name | State | Result |
+|-----|------|-------|--------|
+| **102358** | `ma_c_p5_eval` | COMPLETED | MA concat P5 on laptop: W-F1 **0.9143**, κ **0.4672** |
+| **102267** | `ma_c_p4_eval` | COMPLETED | MA concat P4 on laptop: W-F1 **0.9218**, κ **0.4961** |
+| **102355** | `msge_utae_eval` | FAILED 0:9 after write | S1 P5 JSON OK (+ CM on laptop) |
+| **102150** | `ma_utae_c_full` | TIMEOUT | `best.pt` used for 102358 |
+| **102359** | `utae_s2_full` | RUNNING | S2 P5 train; `best.pt` exists |
+| **102628** | `msge_utae_eval` | queued | S2 P5 **test** after 102359 |
+
+**6c W-F1 order (laptop):** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) > MA concat P4 (0.9218) > S2 P4 (0.9171) ≈ MA gated P4 (0.9169) > MA concat P5 (0.9143) > S1 P4 (0.9111) > … > S1 P5 (0.8970).
+
+**Remaining 6c:** wait for S2 P5 test (**102628**), then scp `run_c6_s2_full_v0`.
 
 ---
 
@@ -42,15 +57,15 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 |-----:|-------|-------|----:|----:|---------:|----------:|----:|--------:|------------------:|
 | 1 | Concat U-TAE | P5 | 0.9618 | 0.9225 | **0.9387** | **0.5757** | 0.9225 | 0.5540 | - |
 | 2 | MA gated | P5 | 0.9607 | 0.9165 | **0.9353** | **0.5520** | 0.9165 | 0.5384 | -0.0034 |
-| 3 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | (head only) |
-| 4 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 |  |
-| 5 | S1-only U-TAE | P4 | 0.9320 | 0.9026 | **0.9111** | **0.3974** | 0.9026 | 0.3100 |  |
-| 6 | A4 ConvLSTM (report last.pt) | - | 0.9559 | 0.8681 | **0.9037** | **0.4424** | 0.8681 | - |  |
-| 7 | **Paper** ConvLSTM+Inception | - | 0.9591 | 0.8596 | **0.9018** | **0.4186** | - | - |  |
-| 8 | Concat U-TAE | P4 | 0.9357 | 0.8778 | **0.9012** | **0.4033** | 0.8778 | 0.3718 |  |
-| 9 | S1-only U-TAE | P5 | 0.9395 | 0.8715 | **0.8970** | **0.3537** | 0.8715 | 0.3168 | worse than S1 P4 |
-| - | MA concat fuse | P4 | - | - | [todo] | [todo] | - | - |  |
-| - | MA concat fuse | P5 | - | - | [todo] | [todo] | - | - | [todo] |
+| 3 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
+| 4 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | -0.0216 (head) |
+| 5 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 | -0.0218 |
+| 6 | MA concat fuse | P5 | 0.9502 | 0.8910 | **0.9143** | **0.4672** | 0.8910 | 0.4667 | -0.0244 |
+| 7 | S1-only U-TAE | P4 | 0.9320 | 0.9026 | **0.9111** | **0.3974** | 0.9026 | 0.3100 | -0.0276 |
+| 8 | A4 ConvLSTM (report last.pt) | - | 0.9559 | 0.8681 | **0.9037** | **0.4424** | 0.8681 | - | -0.0350 |
+| 9 | **Paper** ConvLSTM+Inception | - | 0.9591 | 0.8596 | **0.9018** | **0.4186** | - | - | -0.0369 |
+| 10 | Concat U-TAE | P4 | 0.9357 | 0.8778 | **0.9012** | **0.4033** | 0.8778 | 0.3718 | -0.0375 |
+| 11 | S1-only U-TAE | P5 | 0.9395 | 0.8715 | **0.8970** | **0.3537** | 0.8715 | 0.3168 | -0.0417 (worse than S1 P4) |
 | - | S2-only U-TAE | P5 | - | - | [todo] | [todo] | - | - | [todo] |
 
 ### 1.2 Ten-class test (31UEQ)
@@ -85,8 +100,8 @@ _Paper 10c per-class P/R/F1 not transcribed in-repo yet (only headlines). If you
 | S1-only P5 test | 0.8715 | 0.9395 | 0.8715 | 0.8715 | 0.7992 | **0.8970** | 0.3168 | 0.4000 | 0.9451 | **0.3537** |
 | S1-only P5 ~(val) best | 0.9134 | 0.9605 | 0.9134 | 0.9134 | 0.7721 | **0.9322** | 0.3364 | 0.3925 | 0.9476 | **0.3601** |
 | S2-only P5 | - | - | - | - | - | [todo] | - | - | - | [todo] |
-| MA concat P4 | - | - | - | - | - | [todo] | - | - | - | [todo] |
-| MA concat P5 | - | - | - | - | - | [todo] | - | - | - | [todo] |
+| MA concat P4 | 0.9048 | 0.9473 | 0.9048 | 0.9048 | 0.8927 | **0.9218** | 0.4606 | 0.6125 | 0.9663 | **0.4961** |
+| MA concat P5 | 0.8910 | 0.9502 | 0.8910 | 0.8910 | 0.8977 | **0.9143** | 0.4667 | 0.5952 | 0.9648 | **0.4672** |
 
 ### 2.2 Per-class Precision / Recall / Sens / Spec / F1
 
@@ -246,11 +261,31 @@ Acc 0.9134 | Kappa 0.3601 | Mean F1 0.3364
 
 #### MA concat P4 test
 
-_Missing on laptop - download from PARAM (see section Download)._
+| Class | Name | Precision | Recall | Sensitivity | Specificity | F1 | Support |
+|------:|------|----------:|-------:|------------:|------------:|---:|--------:|
+| 1 | Dense Built-Up | 0.2715 | 0.6882 | 0.6882 | 0.9937 | 0.3894 | 135479 |
+| 2 | Sparse Built-Up | 0.4611 | 0.7741 | 0.7741 | 0.9716 | 0.5779 | 1216210 |
+| 3 | Specialized Built-Up | 0.4304 | 0.4176 | 0.4176 | 0.9885 | 0.4239 | 818189 |
+| 4 | Specialized but Vegetative | 0.1337 | 0.1372 | 0.1372 | 0.9950 | 0.1354 | 222108 |
+| 5 | Large Scale Networks | 0.1724 | 0.7305 | 0.7305 | 0.9625 | 0.2790 | 423239 |
+| 6 | Non-urban / other | 0.9908 | 0.9272 | 0.9272 | 0.8863 | 0.9579 | 37161735 |
+| **W-Avg** | | 0.9473 | 0.9048 | 0.9048 | 0.8927 | **0.9218** | |
+
+Acc 0.9048 | Kappa 0.4961 | Mean F1 0.4606
 
 #### MA concat P5 test
 
-_Missing on laptop - download from PARAM (see section Download)._
+| Class | Name | Precision | Recall | Sensitivity | Specificity | F1 | Support |
+|------:|------|----------:|-------:|------------:|------------:|---:|--------:|
+| 1 | Dense Built-Up | 0.6011 | 0.2246 | 0.2246 | 0.9995 | 0.3271 | 135479 |
+| 2 | Sparse Built-Up | 0.4256 | 0.8667 | 0.8667 | 0.9633 | 0.5709 | 1216210 |
+| 3 | Specialized Built-Up | 0.5364 | 0.4278 | 0.4278 | 0.9923 | 0.4759 | 818189 |
+| 4 | Specialized but Vegetative | 0.0626 | 0.4097 | 0.4097 | 0.9657 | 0.1086 | 222108 |
+| 5 | Large Scale Networks | 0.2470 | 0.7331 | 0.7331 | 0.9761 | 0.3696 | 423239 |
+| 6 | Non-urban / other | 0.9911 | 0.9091 | 0.9091 | 0.8918 | 0.9483 | 37161735 |
+| **W-Avg** | | 0.9502 | 0.8910 | 0.8910 | 0.8977 | **0.9143** | |
+
+Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 
 ### 2.3 Per-class F1 side-by-side (paper + ours)
 
@@ -420,7 +455,7 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - **Fair modality match:** S1-only vs paper **ConvLSTM-S1**, S2-only vs **ConvLSTM-S2** (not vs Inception-S1S2). Full tables: [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md).
 - **S1 vs paper ConvLSTM-S1 (Table 6 kappa=0.3929, neutral):** P4 = +0.011 W-F1 / +0.0045 kappa; P5 = -0.003 W-F1 / -0.039 kappa. Report both; do not soft-word one delta and hype the other.
 - **S2 P4 vs paper ConvLSTM-S2 (Table 6 kappa=0.4223):** +0.021 W-F1 / +0.0435 kappa.
-- **6c both:** Concat U-TAE **P5** still leads W-F1/kappa. MA gated P5 is close but does **not** beat it.
+- **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower — full FT did not help that branch.
 - **10c:** Concat P5 beats **our** A4 but not the **paper**. Stronger motivation for Task M / Task H.
 - Always quote **per-class F1 (esp. 1, 2, 4)** beside W-F1; W-F1 is majority-dominated (class 6 / arable).
 - A4 6c **report** = `last.pt` ep25 (W-F1 0.9037), not `best.pt` (0.9098) - see `TABLE5_TEST_FOR_SIR.md`.
@@ -430,8 +465,9 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 
 ## 6. Checklist - remaining
 
-- [ ] S2-only 6c **P5** train (102260) + **test**
-- [ ] MA concat 6c **P4 test** (102267) + **P5 test** after 102150 done
+- [x] S1 P5 re-test metrics confirmed (102355; ignore exit 9 if JSON written)
+- [x] MA concat 6c **P4+P5 test** on laptop (P4 0.9218 / P5 0.9143)
+- [ ] S2-only 6c **P5** train (**102359**) + test (**102628**) → scp
 - [ ] Paste **paper Table 7** per-class into section 3
 - [ ] MA gated **10c** P4 -> P5 -> test
 - [ ] Task H on best 6c backbone
@@ -477,15 +513,17 @@ scp rihak_iitp@paramrudra.iitp.ac.in:/tmp/msge_results_light.tgz .
 tar xzf msge_results_light.tgz
 ```
 
-### What I still need from you (paste or scp)
+### Still missing on **this laptop** (already on laptop = skip)
 
-1. **Must-have for complete board:**
-   - `results/concat_utae/run_c6_s{1,2}_head_v0/test_metrics.json` (full per-class)
-   - matching `history_plot.png`
-2. **When ready:**
-   - S1/S2 P5 `test_metrics.json` + plots
-   - MA concat P5 `test_metrics.json` + plot
-3. **Optional:** paper **Table 7** per-class P/R/F1 (screenshot or typed) for 10c paper column
+| Path | Why |
+|------|-----|
+| `results/ma_utae/ma_c6_concat_head_v0/test_metrics.json` (+ plot) | P4 test on PARAM only |
+| `results/ma_utae/ma_c6_concat_full_v0/test_metrics.json` (+ plot) | after P5 eval job |
+| `results/concat_utae/run_c6_s2_full_v0/test_metrics.json` (+ plot) | after S2 P5 train+eval |
+| `results/concat_utae/run_c6_s1_full_v0/test_metrics.json` (with CM) | after job **102355** |
+| `results/ma_utae/ma_c6_concat_*` training artifacts | optional: `history.json`, `best_metrics.json` from checkpoints |
+
+**Optional:** paper **Table 7** per-class for 10c paper column
 
 ### PARAM check before download
 

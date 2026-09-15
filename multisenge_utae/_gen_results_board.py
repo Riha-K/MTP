@@ -47,6 +47,14 @@ def load(path: Path) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def inv_ok(rel: str, filename: str = "test_metrics.json") -> str:
+    return "[ok]" if (ROOT / rel / filename).exists() else "[todo]"
+
+
+def inv_plot(rel: str) -> str:
+    return "[ok]" if (ROOT / rel / "history_plot.png").exists() else "[todo]"
+
+
 def fmt(x, n=4):
     if x is None:
         return "-"
@@ -224,7 +232,7 @@ def main():
         "`[todo]` not run / missing | `~(val)` = validation only"
     )
     parts.append("")
-    parts.append("**Last updated:** 2026-09-14")
+    parts.append("**Last updated:** 2026-09-16")
     parts.append("")
     parts.append("---")
     parts.append("")
@@ -245,16 +253,61 @@ def main():
         ("MA gated 6c P5", "[ok]", "[ok]", "`results/ma_utae/ma_c6_gated_full_v0/`"),
         ("S2-only 6c P4", "[ok]", "[ok]", "`results/concat_utae/run_c6_s2_head_v0/`"),
         ("S1-only 6c P4", "[ok]", "[ok]", "`results/concat_utae/run_c6_s1_head_v0/`"),
-        ("S1-only 6c P5", "[ok] test", "[ok] plot", "test W-F1 0.8970 < P4 0.9111 (report P5)"),
-        ("S2-only 6c P5", "[todo]", "[todo]", "job 102260; no best.pt yet"),
-        ("MA concat 6c P4", "[todo]", "[todo]", "eval 102267 pending"),
-        ("MA concat 6c P5", "[todo]", "[todo]", "best.pt exists; wait train done then test"),
+        (
+            "S1-only 6c P5",
+            inv_ok("results/concat_utae/run_c6_s1_full_v0"),
+            inv_plot("results/concat_utae/run_c6_s1_full_v0"),
+            "W-F1 0.8970 / κ 0.3537 confirmed (102355 wrote JSON; job exit 9 after write)",
+        ),
+        (
+            "S2-only 6c P5",
+            inv_ok("results/concat_utae/run_c6_s2_full_v0"),
+            inv_plot("results/concat_utae/run_c6_s2_full_v0"),
+            "train **102359** + eval **102628** queued; scp after test",
+        ),
+        (
+            "MA concat 6c P4",
+            inv_ok("results/ma_utae/ma_c6_concat_head_v0"),
+            inv_plot("results/ma_utae/ma_c6_concat_head_v0"),
+            "on laptop: W-F1 **0.9218** / κ **0.4961** (P4 > P5)",
+        ),
+        (
+            "MA concat 6c P5",
+            inv_ok("results/ma_utae/ma_c6_concat_full_v0"),
+            inv_plot("results/ma_utae/ma_c6_concat_full_v0"),
+            "on laptop: W-F1 **0.9143** / κ **0.4672** (below gated + concat U-TAE)",
+        ),
         ("MA / S1 / S2 10c", "[todo]", "[todo]", "Not started"),
         ("Task H", "[todo]", "[todo]", "Not started"),
         ("P3 probes 6c/10c", "[ok] summaries", "[ok]", "`results/concat_utae/probe_c{6,10}_v0/`"),
     ]
     for row in inventory:
         parts.append(f"| {row[0]} | {row[1]} | {row[2]} | {row[3]} |")
+    parts.append("")
+    parts.append("### PARAM snapshot (2026-09-16)")
+    parts.append("")
+    parts.append("| Job | Name | State | Result |")
+    parts.append("|-----|------|-------|--------|")
+    parts.append(
+        "| **102358** | `ma_c_p5_eval` | COMPLETED | MA concat P5 on laptop: W-F1 **0.9143**, κ **0.4672** |"
+    )
+    parts.append(
+        "| **102267** | `ma_c_p4_eval` | COMPLETED | MA concat P4 on laptop: W-F1 **0.9218**, κ **0.4961** |"
+    )
+    parts.append(
+        "| **102355** | `msge_utae_eval` | FAILED 0:9 after write | S1 P5 JSON OK (+ CM on laptop) |"
+    )
+    parts.append("| **102150** | `ma_utae_c_full` | TIMEOUT | `best.pt` used for 102358 |")
+    parts.append("| **102359** | `utae_s2_full` | RUNNING | S2 P5 train; `best.pt` exists |")
+    parts.append("| **102628** | `msge_utae_eval` | queued | S2 P5 **test** after 102359 |")
+    parts.append("")
+    parts.append(
+        "**6c W-F1 order (laptop):** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) "
+        "> MA concat P4 (0.9218) > S2 P4 (0.9171) ≈ MA gated P4 (0.9169) "
+        "> MA concat P5 (0.9143) > S1 P4 (0.9111) > … > S1 P5 (0.8970)."
+    )
+    parts.append("")
+    parts.append("**Remaining 6c:** wait for S2 P5 test (**102628**), then scp `run_c6_s2_full_v0`.")
     parts.append("")
     parts.append("---")
     parts.append("")
@@ -268,18 +321,23 @@ def main():
     parts.append(
         "|-----:|-------|-------|----:|----:|---------:|----------:|----:|--------:|------------------:|"
     )
+    def vs_c5(d: dict | None) -> str:
+        if d is None or c6_full is None:
+            return "[todo]"
+        return f"{d['weighted_f1'] - c6_full['weighted_f1']:+.4f}"
+
     headline_6 = [
         (1, "Concat U-TAE", "P5", c6_full, "-"),
-        (2, "MA gated", "P5", ma_full, "-0.0034"),
-        (3, "S2-only U-TAE", "P4", s2_head, "(head only)"),
-        (4, "MA gated", "P4", ma_head, ""),
-        (5, "S1-only U-TAE", "P4", s1_head, ""),
-        (6, "A4 ConvLSTM (report last.pt)", "-", a4_6, ""),
-        (7, "**Paper** ConvLSTM+Inception", "-", paper6, ""),
-        (8, "Concat U-TAE", "P4", c6_head, ""),
-        (9, "S1-only U-TAE", "P5", s1_full, "worse than S1 P4"),
-        (None, "MA concat fuse", "P4", ma_concat_head, ""),
-        (None, "MA concat fuse", "P5", ma_concat_full, "[todo]"),
+        (2, "MA gated", "P5", ma_full, vs_c5(ma_full)),
+        (3, "MA concat fuse", "P4", ma_concat_head, vs_c5(ma_concat_head)),
+        (4, "S2-only U-TAE", "P4", s2_head, vs_c5(s2_head) + " (head)"),
+        (5, "MA gated", "P4", ma_head, vs_c5(ma_head)),
+        (6, "MA concat fuse", "P5", ma_concat_full, vs_c5(ma_concat_full)),
+        (7, "S1-only U-TAE", "P4", s1_head, vs_c5(s1_head)),
+        (8, "A4 ConvLSTM (report last.pt)", "-", a4_6, vs_c5(a4_6)),
+        (9, "**Paper** ConvLSTM+Inception", "-", paper6, vs_c5(paper6)),
+        (10, "Concat U-TAE", "P4", c6_head, vs_c5(c6_head)),
+        (11, "S1-only U-TAE", "P5", s1_full, vs_c5(s1_full) + " (worse than S1 P4)"),
         (None, "S2-only U-TAE", "P5", None, "[todo]"),
     ]
     for rank, model, phase, d, vs in headline_6:
@@ -526,7 +584,8 @@ def main():
         "- **S2 P4 vs paper ConvLSTM-S2 (Table 6 kappa=0.4223):** +0.021 W-F1 / +0.0435 kappa."
     )
     parts.append(
-        "- **6c both:** Concat U-TAE **P5** still leads W-F1/kappa. MA gated P5 is close but does **not** beat it."
+        "- **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. "
+        "MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower — full FT did not help that branch."
     )
     parts.append(
         "- **10c:** Concat P5 beats **our** A4 but not the **paper**. Stronger motivation for Task M / Task H."
@@ -545,8 +604,9 @@ def main():
     parts.append("")
     parts.append("## 6. Checklist - remaining")
     parts.append("")
-    parts.append("- [ ] S2-only 6c **P5** train (102260) + **test**")
-    parts.append("- [ ] MA concat 6c **P4 test** (102267) + **P5 test** after 102150 done")
+    parts.append("- [x] S1 P5 re-test metrics confirmed (102355; ignore exit 9 if JSON written)")
+    parts.append("- [x] MA concat 6c **P4+P5 test** on laptop (P4 0.9218 / P5 0.9143)")
+    parts.append("- [ ] S2-only 6c **P5** train (**102359**) + test (**102628**) → scp")
     parts.append("- [ ] Paste **paper Table 7** per-class into section 3")
     parts.append("- [ ] MA gated **10c** P4 -> P5 -> test")
     parts.append("- [ ] Task H on best 6c backbone")
@@ -592,15 +652,27 @@ def main():
     parts.append("tar xzf msge_results_light.tgz")
     parts.append("```")
     parts.append("")
-    parts.append("### What I still need from you (paste or scp)")
+    parts.append("### Still missing on **this laptop** (already on laptop = skip)")
     parts.append("")
-    parts.append("1. **Must-have for complete board:**")
-    parts.append("   - `results/concat_utae/run_c6_s{1,2}_head_v0/test_metrics.json` (full per-class)")
-    parts.append("   - matching `history_plot.png`")
-    parts.append("2. **When ready:**")
-    parts.append("   - S1/S2 P5 `test_metrics.json` + plots")
-    parts.append("   - MA concat P5 `test_metrics.json` + plot")
-    parts.append("3. **Optional:** paper **Table 7** per-class P/R/F1 (screenshot or typed) for 10c paper column")
+    parts.append("| Path | Why |")
+    parts.append("|------|-----|")
+    parts.append(
+        "| `results/ma_utae/ma_c6_concat_head_v0/test_metrics.json` (+ plot) | P4 test on PARAM only |"
+    )
+    parts.append(
+        "| `results/ma_utae/ma_c6_concat_full_v0/test_metrics.json` (+ plot) | after P5 eval job |"
+    )
+    parts.append(
+        "| `results/concat_utae/run_c6_s2_full_v0/test_metrics.json` (+ plot) | after S2 P5 train+eval |"
+    )
+    parts.append(
+        "| `results/concat_utae/run_c6_s1_full_v0/test_metrics.json` (with CM) | after job **102355** |"
+    )
+    parts.append(
+        "| `results/ma_utae/ma_c6_concat_*` training artifacts | optional: `history.json`, `best_metrics.json` from checkpoints |"
+    )
+    parts.append("")
+    parts.append("**Optional:** paper **Table 7** per-class for 10c paper column")
     parts.append("")
     parts.append("### PARAM check before download")
     parts.append("")

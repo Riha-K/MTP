@@ -10,6 +10,94 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-16 — Board regen: MA concat P4/P5 on laptop
+
+scp landed `ma_c6_concat_{head,full}_v0/test_metrics.json` + S1 P5 JSON with confusion matrix. Regenerated `RESULTS_BOARD.md`.
+
+| Model | Phase | W-F1 | Kappa |
+|-------|-------|------|------:|
+| Concat U-TAE | P5 | **0.9387** | **0.5757** |
+| MA gated | P5 | 0.9353 | 0.5520 |
+| **MA concat fuse** | **P4** | **0.9218** | **0.4961** |
+| S2-only | P4 | 0.9171 | 0.4658 |
+| **MA concat fuse** | **P5** | **0.9143** | **0.4672** |
+
+MA concat: **P4 > P5**. Still below early-concat U-TAE and MA gated P5. Remaining 6c: S2 P5 (**102359** train / **102628** eval).
+
+---
+
+### 2026-09-15 — MA concat P5 test done (below gated); S1 retest OK; S2 train pending
+
+| Job | State | Outcome |
+|-----|-------|---------|
+| **102358** | COMPLETED | MA concat fuse **P5 test** 31UEQ: W-F1 **0.9143**, κ **0.4672**, Acc 0.8910 |
+| **102355** | FAILED 0:9 | Metrics **wrote** before fail — S1 P5 same as before: W-F1 **0.8970**, κ **0.3537** |
+| **102267** | COMPLETED earlier | MA concat **P4** test JSON on PARAM (scp) |
+| **102359** | train | S2 P5 full — do **not** eval until `best.pt` |
+
+**6c compare (both-modality):**
+
+| Model | Phase | W-F1 | Kappa |
+|-------|-------|------|------:|
+| Concat U-TAE | P5 | **0.9387** | **0.5757** |
+| MA gated | P5 | 0.9353 | 0.5520 |
+| MA concat fuse | P5 | **0.9143** | **0.4672** |
+| MA gated | P4 | 0.9169 | 0.4705 |
+
+MA concat-fuse P5 does **not** beat gated or early-concat U-TAE on 6c. Keep as ablation; headline stays concat U-TAE P5.
+
+**Laptop scp (PowerShell from `E:\MTP\earth2`):**
+
+```powershell
+scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_head_v0 ./multisenge_utae/results/ma_utae/
+scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_full_v0 ./multisenge_utae/results/ma_utae/
+scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/concat_utae/run_c6_s1_full_v0/test_metrics.json ./multisenge_utae/results/concat_utae/run_c6_s1_full_v0/
+python multisenge_utae/_gen_results_board.py
+```
+
+**Next on PARAM only:** when S2 train finishes → `eval.sbatch` for `run_c6_s2_full_v0`. Then 6c modality set is closed → 10c.
+
+---
+
+### 2026-09-15 — PARAM queue: S1 re-test running; queue MA concat P5 + S2 P5 eval
+
+**Now on GPU (user `squeue`):** job **102355** (`msge_uta`, node **racn115**) — S1-only 6c **P5 re-test** via `multisenge_utae/eval.sbatch` (refresh `run_c6_s1_full_v0/test_metrics.json`, incl. confusion matrix). Laptop copy still has W-F1 **0.8970** / κ **0.3537** but **no** `confusion_matrix` field.
+
+**Submit next on PARAM** (OK to `sbatch` while 102355 runs; jobs wait for GPU):
+
+```bash
+cd ~/MTP/earth2
+
+# MA concat P5 test
+sbatch --exclude=ragpu004,ragpu005,ragpu007 --partition=gpu --gres=gpu:1 --time=02:00:00 \
+  --job-name=ma_c_p5_eval \
+  --output=multisenge_utae/artifacts/slurm-ma-c-p5-eval-%j.out \
+  --error=multisenge_utae/artifacts/slurm-ma-c-p5-eval-%j.err \
+  --wrap='cd ~/MTP/earth2 && module purge && module load MLDL/Pytorch-gpu && export PYTHONPATH=$PWD && mkdir -p multisenge_utae/results/ma_utae/ma_c6_concat_full_v0 && python -m multisenge_utae.train_ma --index multisenge_seg/artifacts/patch_index.json --eval-ckpt multisenge_utae/checkpoints/ma_c6_concat_full_v0/best.pt --eval-split test --fusion concat --batch-size 2 --out-dir multisenge_utae/results/ma_utae/ma_c6_concat_full_v0'
+
+# S2 P5 test — only if checkpoint exists
+ls -la multisenge_utae/checkpoints/run_c6_s2_full_v0/best.pt && \
+CKPT=multisenge_utae/checkpoints/run_c6_s2_full_v0/best.pt \
+OUT=multisenge_utae/results/concat_utae/run_c6_s2_full_v0 \
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
+```
+
+**Also verify:** `sacct -j 102150,102260,102267 --format=JobID,State,ExitCode,Elapsed` (MA concat P5 train, S2 P5 train, MA concat P4 test).
+
+**Laptop download (PowerShell, `E:\MTP\earth2`)** — see `multisenge_utae/results/RESULTS_BOARD.md` §7. Priority after jobs finish:
+
+```powershell
+scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_head_v0 ./multisenge_utae/results/ma_utae/
+scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_full_v0 ./multisenge_utae/results/ma_utae/
+scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/concat_utae/run_c6_s2_full_v0 ./multisenge_utae/results/concat_utae/
+scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/concat_utae/run_c6_s1_full_v0/test_metrics.json ./multisenge_utae/results/concat_utae/run_c6_s1_full_v0/
+python multisenge_utae/_gen_results_board.py
+```
+
+**Docs:** regenerated `RESULTS_BOARD.md` (inventory + PARAM snapshot + missing-on-laptop table).
+
+---
+
 ### 2026-09-14 — Paper modality tables (S1/S2/S1S2) transcribed; fair S1 compare
 
 **Source:** RS 2023 — ConvLSTM-S1 / S2 / S1S2 / +Inception. Saved: `results/PAPER_MODALITY_6CLASS.md`.
