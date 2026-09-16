@@ -209,6 +209,7 @@ def main():
     ma_full = load(ROOT / "results/ma_utae/ma_c6_gated_full_v0/test_metrics.json")
 
     s2_head = load(ROOT / "results/concat_utae/run_c6_s2_head_v0/test_metrics.json")
+    s2_full = load(ROOT / "results/concat_utae/run_c6_s2_full_v0/test_metrics.json")
     s1_head = load(ROOT / "results/concat_utae/run_c6_s1_head_v0/test_metrics.json")
     s1_full_val = load(ROOT / "results/concat_utae/run_c6_s1_full_v0/best_metrics.json")  # val only
     s1_full = load(ROOT / "results/concat_utae/run_c6_s1_full_v0/test_metrics.json")  # test 31UEQ
@@ -263,7 +264,7 @@ def main():
             "S2-only 6c P5",
             inv_ok("results/concat_utae/run_c6_s2_full_v0"),
             inv_plot("results/concat_utae/run_c6_s2_full_v0"),
-            "train **102359** + eval **102628** queued; scp after test",
+            "P5 test **102628**: W-F1 **0.9199** / κ **0.4809** (train 102359 exit 9; early `best.pt`)",
         ),
         (
             "MA concat 6c P4",
@@ -284,30 +285,18 @@ def main():
     for row in inventory:
         parts.append(f"| {row[0]} | {row[1]} | {row[2]} | {row[3]} |")
     parts.append("")
-    parts.append("### PARAM snapshot (2026-09-16)")
-    parts.append("")
-    parts.append("| Job | Name | State | Result |")
-    parts.append("|-----|------|-------|--------|")
-    parts.append(
-        "| **102358** | `ma_c_p5_eval` | COMPLETED | MA concat P5 on laptop: W-F1 **0.9143**, κ **0.4672** |"
-    )
-    parts.append(
-        "| **102267** | `ma_c_p4_eval` | COMPLETED | MA concat P4 on laptop: W-F1 **0.9218**, κ **0.4961** |"
-    )
-    parts.append(
-        "| **102355** | `msge_utae_eval` | FAILED 0:9 after write | S1 P5 JSON OK (+ CM on laptop) |"
-    )
-    parts.append("| **102150** | `ma_utae_c_full` | TIMEOUT | `best.pt` used for 102358 |")
-    parts.append("| **102359** | `utae_s2_full` | RUNNING | S2 P5 train; `best.pt` exists |")
-    parts.append("| **102628** | `msge_utae_eval` | queued | S2 P5 **test** after 102359 |")
+    parts.append("### 6c closure (2026-09-16)")
     parts.append("")
     parts.append(
-        "**6c W-F1 order (laptop):** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) "
-        "> MA concat P4 (0.9218) > S2 P4 (0.9171) ≈ MA gated P4 (0.9169) "
-        "> MA concat P5 (0.9143) > S1 P4 (0.9111) > … > S1 P5 (0.8970)."
+        "**All scheduled 6c test JSONs on laptop.** S2 P5: train **102359** FAILED 0:9 (~10h); "
+        "eval **102628** COMPLETED using Sep-15 `best.pt` → W-F1 **0.9199**, κ **0.4809** "
+        "(slightly above S2 P4 0.9171 / 0.4658). Cancel accidental **102796/102797** if still queued."
     )
     parts.append("")
-    parts.append("**Remaining 6c:** wait for S2 P5 test (**102628**), then scp `run_c6_s2_full_v0`.")
+    parts.append(
+        "**W-F1 order:** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) "
+        "> MA concat P4 (0.9218) > S2 P5 (0.9199) > … > S1 P5 (0.8970). **Next:** 10c MA / S1 / S2."
+    )
     parts.append("")
     parts.append("---")
     parts.append("")
@@ -329,16 +318,16 @@ def main():
     headline_6 = [
         (1, "Concat U-TAE", "P5", c6_full, "-"),
         (2, "MA gated", "P5", ma_full, vs_c5(ma_full)),
-        (3, "MA concat fuse", "P4", ma_concat_head, vs_c5(ma_concat_head)),
-        (4, "S2-only U-TAE", "P4", s2_head, vs_c5(s2_head) + " (head)"),
-        (5, "MA gated", "P4", ma_head, vs_c5(ma_head)),
-        (6, "MA concat fuse", "P5", ma_concat_full, vs_c5(ma_concat_full)),
-        (7, "S1-only U-TAE", "P4", s1_head, vs_c5(s1_head)),
-        (8, "A4 ConvLSTM (report last.pt)", "-", a4_6, vs_c5(a4_6)),
-        (9, "**Paper** ConvLSTM+Inception", "-", paper6, vs_c5(paper6)),
-        (10, "Concat U-TAE", "P4", c6_head, vs_c5(c6_head)),
-        (11, "S1-only U-TAE", "P5", s1_full, vs_c5(s1_full) + " (worse than S1 P4)"),
-        (None, "S2-only U-TAE", "P5", None, "[todo]"),
+        (3, "S2-only U-TAE", "P5", s2_full, vs_c5(s2_full)),
+        (4, "MA concat fuse", "P4", ma_concat_head, vs_c5(ma_concat_head)),
+        (5, "S2-only U-TAE", "P4", s2_head, vs_c5(s2_head) + " (head)"),
+        (6, "MA gated", "P4", ma_head, vs_c5(ma_head)),
+        (7, "MA concat fuse", "P5", ma_concat_full, vs_c5(ma_concat_full)),
+        (8, "S1-only U-TAE", "P4", s1_head, vs_c5(s1_head)),
+        (9, "A4 ConvLSTM (report last.pt)", "-", a4_6, vs_c5(a4_6)),
+        (10, "**Paper** ConvLSTM+Inception", "-", paper6, vs_c5(paper6)),
+        (11, "Concat U-TAE", "P4", c6_head, vs_c5(c6_head)),
+        (12, "S1-only U-TAE", "P5", s1_full, vs_c5(s1_full) + " (worse than S1 P4)"),
     ]
     for rank, model, phase, d, vs in headline_6:
         r = str(rank) if rank else "-"
@@ -425,7 +414,7 @@ def main():
                 ("S1-only P4 test", s1_head),
                 ("S1-only P5 test", s1_full),
                 ("S1-only P5 ~(val) best", s1_full_val),
-                ("S2-only P5", None),
+                ("S2-only P5 test", s2_full),
                 ("MA concat P4", ma_concat_head),
                 ("MA concat P5", ma_concat_full),
             ],
@@ -444,6 +433,7 @@ def main():
                 ("MA gated P4 head", ma_head),
                 ("MA gated P5 full", ma_full),
                 ("S2-only P4 test", s2_head),
+                ("S2-only P5 test", s2_full),
                 ("S1-only P4 test", s1_head),
                 ("S1-only P5 test", s1_full),
                 ("S1-only P5 ~(val) best (not test)", s1_full_val),
@@ -606,7 +596,8 @@ def main():
     parts.append("")
     parts.append("- [x] S1 P5 re-test metrics confirmed (102355; ignore exit 9 if JSON written)")
     parts.append("- [x] MA concat 6c **P4+P5 test** on laptop (P4 0.9218 / P5 0.9143)")
-    parts.append("- [ ] S2-only 6c **P5** train (**102359**) + test (**102628**) → scp")
+    parts.append("- [x] S2-only 6c **P5 test** on laptop (102628; W-F1 0.9199 / κ 0.4809)")
+    parts.append("- [ ] **10c** MA gated / concat / S1 / S2 (not started)")
     parts.append("- [ ] Paste **paper Table 7** per-class into section 3")
     parts.append("- [ ] MA gated **10c** P4 -> P5 -> test")
     parts.append("- [ ] Task H on best 6c backbone")

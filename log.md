@@ -10,6 +10,18 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-16 — 6c closed: S2 P5 test on laptop; board + git
+
+**S2-only U-TAE P5** (job **102628**, checkpoint from failed train **102359** exit 9): test 31UEQ W-F1 **0.9199**, κ **0.4809** (vs S2 P4 0.9171 / 0.4658; vs paper ConvLSTM-S2 W-F1 0.8958 / κ 0.4223 → +0.024 W-F1 / +0.059 κ).
+
+**6c modality set complete** on laptop (concat, MA gated, MA concat, S1/S2 P4+P5). Do **not** re-run **102796/102797** unless intentionally retraining S2.
+
+Regenerated `RESULTS_BOARD.md`; committed S2 `run_c6_s2_full_v0/test_metrics.json` + `.md`.
+
+**Next:** 10c MA / S1 / S2 training schedule on PARAM.
+
+---
+
 ### 2026-09-16 — Board regen: MA concat P4/P5 on laptop
 
 scp landed `ma_c6_concat_{head,full}_v0/test_metrics.json` + S1 P5 JSON with confusion matrix. Regenerated `RESULTS_BOARD.md`.

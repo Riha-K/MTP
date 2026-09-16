@@ -25,27 +25,18 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | S2-only 6c P4 | [ok] | [ok] | `results/concat_utae/run_c6_s2_head_v0/` |
 | S1-only 6c P4 | [ok] | [ok] | `results/concat_utae/run_c6_s1_head_v0/` |
 | S1-only 6c P5 | [ok] | [ok] | W-F1 0.8970 / κ 0.3537 confirmed (102355 wrote JSON; job exit 9 after write) |
-| S2-only 6c P5 | [todo] | [todo] | train **102359** + eval **102628** queued; scp after test |
+| S2-only 6c P5 | [ok] | [todo] | P5 test **102628**: W-F1 **0.9199** / κ **0.4809** (train 102359 exit 9; early `best.pt`) |
 | MA concat 6c P4 | [ok] | [todo] | on laptop: W-F1 **0.9218** / κ **0.4961** (P4 > P5) |
 | MA concat 6c P5 | [ok] | [todo] | on laptop: W-F1 **0.9143** / κ **0.4672** (below gated + concat U-TAE) |
 | MA / S1 / S2 10c | [todo] | [todo] | Not started |
 | Task H | [todo] | [todo] | Not started |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
 
-### PARAM snapshot (2026-09-16)
+### 6c closure (2026-09-16)
 
-| Job | Name | State | Result |
-|-----|------|-------|--------|
-| **102358** | `ma_c_p5_eval` | COMPLETED | MA concat P5 on laptop: W-F1 **0.9143**, κ **0.4672** |
-| **102267** | `ma_c_p4_eval` | COMPLETED | MA concat P4 on laptop: W-F1 **0.9218**, κ **0.4961** |
-| **102355** | `msge_utae_eval` | FAILED 0:9 after write | S1 P5 JSON OK (+ CM on laptop) |
-| **102150** | `ma_utae_c_full` | TIMEOUT | `best.pt` used for 102358 |
-| **102359** | `utae_s2_full` | RUNNING | S2 P5 train; `best.pt` exists |
-| **102628** | `msge_utae_eval` | queued | S2 P5 **test** after 102359 |
+**All scheduled 6c test JSONs on laptop.** S2 P5: train **102359** FAILED 0:9 (~10h); eval **102628** COMPLETED using Sep-15 `best.pt` → W-F1 **0.9199**, κ **0.4809** (slightly above S2 P4 0.9171 / 0.4658). Cancel accidental **102796/102797** if still queued.
 
-**6c W-F1 order (laptop):** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) > MA concat P4 (0.9218) > S2 P4 (0.9171) ≈ MA gated P4 (0.9169) > MA concat P5 (0.9143) > S1 P4 (0.9111) > … > S1 P5 (0.8970).
-
-**Remaining 6c:** wait for S2 P5 test (**102628**), then scp `run_c6_s2_full_v0`.
+**W-F1 order:** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) > MA concat P4 (0.9218) > S2 P5 (0.9199) > … > S1 P5 (0.8970). **Next:** 10c MA / S1 / S2.
 
 ---
 
@@ -57,16 +48,16 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 |-----:|-------|-------|----:|----:|---------:|----------:|----:|--------:|------------------:|
 | 1 | Concat U-TAE | P5 | 0.9618 | 0.9225 | **0.9387** | **0.5757** | 0.9225 | 0.5540 | - |
 | 2 | MA gated | P5 | 0.9607 | 0.9165 | **0.9353** | **0.5520** | 0.9165 | 0.5384 | -0.0034 |
-| 3 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
-| 4 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | -0.0216 (head) |
-| 5 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 | -0.0218 |
-| 6 | MA concat fuse | P5 | 0.9502 | 0.8910 | **0.9143** | **0.4672** | 0.8910 | 0.4667 | -0.0244 |
-| 7 | S1-only U-TAE | P4 | 0.9320 | 0.9026 | **0.9111** | **0.3974** | 0.9026 | 0.3100 | -0.0276 |
-| 8 | A4 ConvLSTM (report last.pt) | - | 0.9559 | 0.8681 | **0.9037** | **0.4424** | 0.8681 | - | -0.0350 |
-| 9 | **Paper** ConvLSTM+Inception | - | 0.9591 | 0.8596 | **0.9018** | **0.4186** | - | - | -0.0369 |
-| 10 | Concat U-TAE | P4 | 0.9357 | 0.8778 | **0.9012** | **0.4033** | 0.8778 | 0.3718 | -0.0375 |
-| 11 | S1-only U-TAE | P5 | 0.9395 | 0.8715 | **0.8970** | **0.3537** | 0.8715 | 0.3168 | -0.0417 (worse than S1 P4) |
-| - | S2-only U-TAE | P5 | - | - | [todo] | [todo] | - | - | [todo] |
+| 3 | S2-only U-TAE | P5 | 0.9432 | 0.9069 | **0.9199** | **0.4809** | 0.9069 | 0.4261 | -0.0188 |
+| 4 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
+| 5 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | -0.0216 (head) |
+| 6 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 | -0.0218 |
+| 7 | MA concat fuse | P5 | 0.9502 | 0.8910 | **0.9143** | **0.4672** | 0.8910 | 0.4667 | -0.0244 |
+| 8 | S1-only U-TAE | P4 | 0.9320 | 0.9026 | **0.9111** | **0.3974** | 0.9026 | 0.3100 | -0.0276 |
+| 9 | A4 ConvLSTM (report last.pt) | - | 0.9559 | 0.8681 | **0.9037** | **0.4424** | 0.8681 | - | -0.0350 |
+| 10 | **Paper** ConvLSTM+Inception | - | 0.9591 | 0.8596 | **0.9018** | **0.4186** | - | - | -0.0369 |
+| 11 | Concat U-TAE | P4 | 0.9357 | 0.8778 | **0.9012** | **0.4033** | 0.8778 | 0.3718 | -0.0375 |
+| 12 | S1-only U-TAE | P5 | 0.9395 | 0.8715 | **0.8970** | **0.3537** | 0.8715 | 0.3168 | -0.0417 (worse than S1 P4) |
 
 ### 1.2 Ten-class test (31UEQ)
 
@@ -99,7 +90,7 @@ _Paper 10c per-class P/R/F1 not transcribed in-repo yet (only headlines). If you
 | S1-only P4 test | 0.9026 | 0.9320 | 0.9026 | 0.9026 | 0.7252 | **0.9111** | 0.3100 | 0.3933 | 0.9380 | **0.3974** |
 | S1-only P5 test | 0.8715 | 0.9395 | 0.8715 | 0.8715 | 0.7992 | **0.8970** | 0.3168 | 0.4000 | 0.9451 | **0.3537** |
 | S1-only P5 ~(val) best | 0.9134 | 0.9605 | 0.9134 | 0.9134 | 0.7721 | **0.9322** | 0.3364 | 0.3925 | 0.9476 | **0.3601** |
-| S2-only P5 | - | - | - | - | - | [todo] | - | - | - | [todo] |
+| S2-only P5 test | 0.9069 | 0.9432 | 0.9069 | 0.9069 | 0.8324 | **0.9199** | 0.4261 | 0.5237 | 0.9565 | **0.4809** |
 | MA concat P4 | 0.9048 | 0.9473 | 0.9048 | 0.9048 | 0.8927 | **0.9218** | 0.4606 | 0.6125 | 0.9663 | **0.4961** |
 | MA concat P5 | 0.8910 | 0.9502 | 0.8910 | 0.8910 | 0.8977 | **0.9143** | 0.4667 | 0.5952 | 0.9648 | **0.4672** |
 
