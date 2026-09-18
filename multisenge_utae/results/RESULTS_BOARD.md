@@ -28,7 +28,7 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | S2-only 6c P5 | [ok] | [todo] | P5 test **102628**: W-F1 **0.9199** / κ **0.4809** (train 102359 exit 9; early `best.pt`) |
 | MA concat 6c P4 | [ok] | [todo] | on laptop: W-F1 **0.9218** / κ **0.4961** (P4 > P5) |
 | MA concat 6c P5 | [ok] | [todo] | on laptop: W-F1 **0.9143** / κ **0.4672** (below gated + concat U-TAE) |
-| MA / S1 / S2 10c | [todo] | [todo] | Not started |
+| MA / S1 / S2 10c | [todo] | [todo] | Scripts ready: `train_ma_c10_*`, `train_s{1,2}_c10_*`, `eval_ma_c10.sbatch` |
 | Task H | [todo] | [todo] | Not started |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
 
@@ -48,8 +48,8 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 |-----:|-------|-------|----:|----:|---------:|----------:|----:|--------:|------------------:|
 | 1 | Concat U-TAE | P5 | 0.9618 | 0.9225 | **0.9387** | **0.5757** | 0.9225 | 0.5540 | - |
 | 2 | MA gated | P5 | 0.9607 | 0.9165 | **0.9353** | **0.5520** | 0.9165 | 0.5384 | -0.0034 |
-| 3 | S2-only U-TAE | P5 | 0.9432 | 0.9069 | **0.9199** | **0.4809** | 0.9069 | 0.4261 | -0.0188 |
-| 4 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
+| 3 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
+| 4 | S2-only U-TAE | P5 | 0.9432 | 0.9069 | **0.9199** | **0.4809** | 0.9069 | 0.4261 | -0.0188 |
 | 5 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | -0.0216 (head) |
 | 6 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 | -0.0218 |
 | 7 | MA concat fuse | P5 | 0.9502 | 0.8910 | **0.9143** | **0.4672** | 0.8910 | 0.4667 | -0.0244 |
@@ -207,6 +207,20 @@ Acc 0.9165 | Kappa 0.5520 | Mean F1 0.5384
 | **W-Avg** | | 0.9482 | 0.8960 | 0.8960 | 0.8767 | **0.9171** | |
 
 Acc 0.8960 | Kappa 0.4658 | Mean F1 0.4617
+
+#### S2-only P5 test
+
+| Class | Name | Precision | Recall | Sensitivity | Specificity | F1 | Support |
+|------:|------|----------:|-------:|------------:|------------:|---:|--------:|
+| 1 | Dense Built-Up | 0.4118 | 0.2481 | 0.2481 | 0.9988 | 0.3097 | 135479 |
+| 2 | Sparse Built-Up | 0.4502 | 0.8262 | 0.8262 | 0.9683 | 0.5828 | 1216210 |
+| 3 | Specialized Built-Up | 0.4521 | 0.2106 | 0.2106 | 0.9947 | 0.2873 | 818189 |
+| 4 | Specialized but Vegetative | 0.0675 | 0.1552 | 0.1552 | 0.9880 | 0.0941 | 222108 |
+| 5 | Large Scale Networks | 0.2052 | 0.7689 | 0.7689 | 0.9681 | 0.3240 | 423239 |
+| 6 | Non-urban / other | 0.9857 | 0.9333 | 0.9333 | 0.8213 | 0.9588 | 37161735 |
+| **W-Avg** | | 0.9432 | 0.9069 | 0.9069 | 0.8324 | **0.9199** | |
+
+Acc 0.9069 | Kappa 0.4809 | Mean F1 0.4261
 
 #### S1-only P4 test
 
@@ -458,7 +472,8 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 
 - [x] S1 P5 re-test metrics confirmed (102355; ignore exit 9 if JSON written)
 - [x] MA concat 6c **P4+P5 test** on laptop (P4 0.9218 / P5 0.9143)
-- [ ] S2-only 6c **P5** train (**102359**) + test (**102628**) → scp
+- [x] S2-only 6c **P5 test** on laptop (102628; W-F1 0.9199 / κ 0.4809)
+- [ ] **10c** MA gated / concat / S1 / S2 (not started)
 - [ ] Paste **paper Table 7** per-class into section 3
 - [ ] MA gated **10c** P4 -> P5 -> test
 - [ ] Task H on best 6c backbone

@@ -38,7 +38,7 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 |------|---------|--------|
 | **Task M** | MA-UTAE dual-stream + gated/concat fuse | `models/ma_utae.py`, `models/fusion.py` |
 | **Task H** | Hierarchical agents A1+A2 (UF/rest, Dense/Sparse) | `heads.py` (`--use-a1 --use-a2`) |
-| Train | `train_ma.py`, `train_ma.sbatch`, `train_ma_full.sbatch` | |
+| Train | `train_ma.py`, `train_ma*.sbatch`, `eval_ma_c10.sbatch` | |
 
 **Results folders:** stock concat U-TAE → `results/concat_utae/`; MA-UTAE → `results/ma_utae/` (see `results/README.md`).
 
@@ -47,12 +47,18 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 Like MultiSenGE ConvLSTM-S1 / ConvLSTM-S2: stock U-TAE with `--modality s2` (10ch) or `s1` (2ch).
 
 ```bash
-# both heads can queue in parallel
+# 6c — both heads can queue in parallel
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_head.sbatch
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_head.sbatch
-# after each best.pt:
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_full.sbatch
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_full.sbatch
+
+# 10c modality ablations (optional table rows)
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_c10_head.sbatch
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_c10_head.sbatch
+# after each best.pt:
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_c10_full.sbatch
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_c10_full.sbatch
 ```
 
 **Phases on MA-UTAE:** P4 = `--mode head`, P5 = `--mode full --init-ckpt …/best.pt`. **P3 probes:** stock U-TAE only for now.
@@ -63,8 +69,21 @@ python -m multisenge_utae.train_ma --index multisenge_seg/artifacts/patch_index.
   --num-classes 6 --mode head --fusion gated --epochs 1 \
   --max-train 4 --max-val 2 --out-dir multisenge_utae/checkpoints/ma_c6_smoke
 
-# PARAM (6c gated head); later full with --mode full --init-ckpt .../best.pt
-sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma.sbatch
+# PARAM 6c gated (done): train_ma.sbatch → train_ma_full.sbatch
+# PARAM 10c Task M — gated main (P4 → P5 → test)
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_gated_head.sbatch
+# after best.pt:
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_gated_full.sbatch
+CKPT=multisenge_utae/checkpoints/ma_c10_gated_full_v0/best.pt \
+  OUT=multisenge_utae/results/ma_utae/ma_c10_gated_full_v0 \
+  sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval_ma_c10.sbatch
+
+# PARAM 10c concat ablation (parallel OK with gated head)
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_concat_head.sbatch
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_concat_full.sbatch
+CKPT=multisenge_utae/checkpoints/ma_c10_concat_full_v0/best.pt \
+  OUT=multisenge_utae/results/ma_utae/ma_c10_concat_full_v0 \
+  sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval_ma_c10.sbatch
 
 # Ablation: --fusion concat · Task H: add --use-a1 --use-a2
 ```
