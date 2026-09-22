@@ -4,7 +4,7 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 
 **Legend:** `[ok]` on laptop | `[head]` headline only (JSON still on PARAM) | `[todo]` not run / missing | `~(val)` = validation only
 
-**Last updated:** 2026-09-16
+**Last updated:** 2026-09-22
 
 ---
 
@@ -24,22 +24,28 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | MA gated 6c P5 | [ok] | [ok] | `results/ma_utae/ma_c6_gated_full_v0/` |
 | S2-only 6c P4 | [ok] | [ok] | `results/concat_utae/run_c6_s2_head_v0/` |
 | S1-only 6c P4 | [ok] | [ok] | `results/concat_utae/run_c6_s1_head_v0/` |
-| S1-only 6c P5 | [ok] | [ok] | W-F1 0.8970 / κ 0.3537 confirmed (102355 wrote JSON; job exit 9 after write) |
-| S2-only 6c P5 | [ok] | [todo] | P5 test **102628**: W-F1 **0.9199** / κ **0.4809** (train 102359 exit 9; early `best.pt`) |
-| MA concat 6c P4 | [ok] | [todo] | on laptop: W-F1 **0.9218** / κ **0.4961** (P4 > P5) |
-| MA concat 6c P5 | [ok] | [todo] | on laptop: W-F1 **0.9143** / κ **0.4672** (below gated + concat U-TAE) |
-| MA / S1 / S2 10c | [todo] | [todo] | Scripts ready: `train_ma_c10_*`, `train_s{1,2}_c10_*`, `eval_ma_c10.sbatch` |
+| S1-only 6c P5 | [ok] | [ok] | W-F1 0.8970 / κ 0.3537 |
+| S2-only 6c P5 | [ok] | [todo] | W-F1 **0.9199** / κ **0.4809** (JSON may be on PARAM) |
+| MA concat 6c P4 | [ok] | [todo] | W-F1 **0.9218** / κ **0.4961** |
+| MA concat 6c P5 | [ok] | [todo] | W-F1 **0.9143** / κ **0.4672** |
+| **MA gated 10c P4** | [ok] | [ok] | W-F1 **0.8430** / κ **0.7061** |
+| **MA gated 10c P5** | [ok] | [ok] | W-F1 **0.8834** / κ **0.7895** — near paper |
+| **MA concat 10c P4** | [ok] | [ok]? | W-F1 **0.8547** / κ **0.7273** (plot if present) |
+| MA concat 10c P5 | [todo] | [todo] | check PARAM for `ma_c10_concat_full_v0` |
+| **S1-only 10c P4** | [ok] | [no plot] | W-F1 **0.7342** / κ **0.5396** (history plot missing on PARAM) |
+| **S2-only 10c P4** | [ok] | [ok] | W-F1 **0.8437** / κ **0.7152** |
+| S1-only 10c P5 | [todo] | [todo] | PARAM **104546** R on ragpu003 |
+| S2-only 10c P5 | [todo] | [todo] | PARAM **104658** PD (Priority); waits on 1-GPU QOS |
 | Task H | [todo] | [todo] | Not started |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
 
-### 6c closure (2026-09-16)
+### 10c progress (2026-09-22)
 
-**All scheduled 6c test JSONs on laptop.** S2 P5: train **102359** FAILED 0:9 (~10h); eval **102628** COMPLETED using Sep-15 `best.pt` → W-F1 **0.9199**, κ **0.4809** (slightly above S2 P4 0.9171 / 0.4658). Cancel accidental **102796/102797** if still queued.
-
-**W-F1 order:** concat U-TAE P5 (0.9387) > MA gated P5 (0.9353) > MA concat P4 (0.9218) > S2 P5 (0.9199) > … > S1 P5 (0.8970). **Next:** 10c MA / S1 / S2.
+**MA gated P5 test done on PARAM:** W-F1 **0.8834** / κ **0.7895** → beats A4 (0.8711/0.7588) and concat U-TAE P5 (0.8811/0.7795); **near paper** (0.8851/0.7945).  
+**PARAM now:** S1 P5 **104546** running; S2 P5 **104658** pending (Priority / 1-GPU QOS).  
+**Still open:** MA concat P5 test + S1/S2 P5 finish→test; then `sync_10c_from_param.ps1` + fill per-class tables.
 
 ---
-
 ## 1. Headline comparison (paper-facing)
 
 ### 1.1 Six-class test (31UEQ)
@@ -64,12 +70,17 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | Rank | Model | Phase | W-P | W-R | **W-F1** | **Kappa** | Acc | Mean F1 | vs paper W-F1 |
 |-----:|-------|-------|----:|----:|---------:|----------:|----:|--------:|--------------:|
 | 1 | **Paper** ConvLSTM+Inception | - | - | 0.8831 | **0.8851** | **0.7945** | - | - | - |
-| 2 | Concat U-TAE | P5 | 0.8997 | 0.8740 | **0.8811** | **0.7795** | 0.8740 | 0.6043 | -0.0040 |
-| 3 | A4 ConvLSTM | - | 0.8947 | 0.8604 | **0.8711** | **0.7588** | 0.8604 | 0.5853 | -0.0140 |
-| 4 | Concat U-TAE | P4 | 0.8549 | 0.8262 | **0.8322** | **0.6971** | 0.8262 | 0.4591 |  |
-| - | MA gated / concat / S1 / S2 | - | - | - | [todo] | [todo] | - | - | [todo] |
+| 2 | **MA gated** | **P5** | 0.8994 | 0.8789 | **0.8834** | **0.7895** | 0.8789 | - | **-0.0017** |
+| 3 | Concat U-TAE | P5 | 0.8997 | 0.8740 | **0.8811** | **0.7795** | 0.8740 | 0.6043 | -0.0040 |
+| 4 | A4 ConvLSTM | - | 0.8947 | 0.8604 | **0.8711** | **0.7588** | 0.8604 | 0.5853 | -0.0140 |
+| 5 | MA concat fuse | P4 | 0.8790 | 0.8425 | **0.8547** | **0.7273** | 0.8425 | - | -0.0304 |
+| 6 | S2-only U-TAE | P4 | 0.8643 | 0.8365 | **0.8437** | **0.7152** | 0.8365 | 0.5150 | -0.0414 |
+| 7 | MA gated | P4 | 0.8735 | 0.8272 | **0.8430** | **0.7061** | 0.8272 | 0.5111 | -0.0421 |
+| 8 | Concat U-TAE | P4 | 0.8549 | 0.8262 | **0.8322** | **0.6971** | 0.8262 | 0.4591 | -0.0529 |
+| 9 | S1-only U-TAE | P4 | 0.7792 | 0.7146 | **0.7342** | **0.5396** | 0.7146 | 0.3418 | -0.1509 |
+| - | MA concat / S1 / S2 | P5 | - | - | [todo] | [todo] | - | - | S1 **104546** R; S2 **104658** PD |
 
-_Paper 10c per-class P/R/F1 not transcribed in-repo yet (only headlines). If you paste Table 7 from the PDF, they go here._
+_MA gated P5 headlines from PARAM eval **104381**; full per-class JSON → sync to laptop (section 7)._
 
 ---
 
@@ -334,10 +345,15 @@ Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 | Model | Acc | W-P | W-R | W-Sens | W-Spec | **W-F1** | Mean F1 | Mean Sens | Mean Spec | **Kappa** |
 |-------|----:|----:|----:|-------:|-------:|---------:|--------:|----------:|----------:|----------:|
 | **Paper** ConvLSTM+Inception (headlines) | - | - | 0.8831 | 0.8831 | - | **0.8851** | - | - | - | **0.7945** |
-| A4 ConvLSTM | 0.8604 | 0.8947 | 0.8604 | 0.8604 | - | **0.8711** | 0.5853 | - | - | **0.7588** |
-| Concat U-TAE P4 head | 0.8262 | 0.8549 | 0.8262 | 0.8262 | 0.9512 | **0.8322** | 0.4591 | 0.5400 | 0.9777 | **0.6971** |
+| **MA gated P5 full** (PARAM 104381) | 0.8789 | 0.8994 | 0.8789 | 0.8789 | 0.9728 | **0.8834** | - | - | - | **0.7895** |
 | Concat U-TAE P5 full | 0.8740 | 0.8997 | 0.8740 | 0.8740 | 0.9659 | **0.8811** | 0.6043 | 0.6909 | 0.9840 | **0.7795** |
-| MA gated / concat / S1 / S2 | - | - | - | - | - | [todo] | - | - | - | [todo] |
+| A4 ConvLSTM | 0.8604 | 0.8947 | 0.8604 | 0.8604 | - | **0.8711** | 0.5853 | - | - | **0.7588** |
+| MA concat P4 head | 0.8425 | 0.8790 | 0.8425 | 0.8425 | 0.9618 | **0.8547** | - | - | - | **0.7273** |
+| S2-only P4 head | 0.8365 | 0.8643 | 0.8365 | 0.8365 | 0.9531 | **0.8437** | 0.5150 | 0.5972 | 0.9790 | **0.7152** |
+| MA gated P4 head | 0.8272 | 0.8735 | 0.8272 | 0.8272 | 0.9707 | **0.8430** | 0.5111 | - | - | **0.7061** |
+| Concat U-TAE P4 head | 0.8262 | 0.8549 | 0.8262 | 0.8262 | 0.9512 | **0.8322** | 0.4591 | 0.5400 | 0.9777 | **0.6971** |
+| S1-only P4 head | 0.7146 | 0.7792 | 0.7146 | 0.7146 | 0.9316 | **0.7342** | 0.3418 | 0.4168 | 0.9646 | **0.5396** |
+| MA concat / S1 / S2 P5 | - | - | - | - | - | [todo] | - | - | - | [todo] |
 
 ### 3.2 Per-class Precision / Recall / Sens / Spec / F1
 
@@ -461,7 +477,7 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - **S1 vs paper ConvLSTM-S1 (Table 6 kappa=0.3929, neutral):** P4 = +0.011 W-F1 / +0.0045 kappa; P5 = -0.003 W-F1 / -0.039 kappa. Report both; do not soft-word one delta and hype the other.
 - **S2 P4 vs paper ConvLSTM-S2 (Table 6 kappa=0.4223):** +0.021 W-F1 / +0.0435 kappa.
 - **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower — full FT did not help that branch.
-- **10c:** Concat P5 beats **our** A4 but not the **paper**. Stronger motivation for Task M / Task H.
+- **10c Task M:** MA gated **P5** W-F1 **0.8834** / κ **0.7895** beats A4 + concat U-TAE P5 and is within ~0.002 W-F1 / ~0.005 κ of the **paper**. Headline claim is now viable pending concat/S1/S2 P5 ablations + per-class tables on laptop.
 - Always quote **per-class F1 (esp. 1, 2, 4)** beside W-F1; W-F1 is majority-dominated (class 6 / arable).
 - A4 6c **report** = `last.pt` ep25 (W-F1 0.9037), not `best.pt` (0.9098) - see `TABLE5_TEST_FOR_SIR.md`.
 - S1/S2 **paper-facing schedule** = **P5 test**; still show P4 when P5 regresses (S1).
@@ -473,70 +489,58 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - [x] S1 P5 re-test metrics confirmed (102355; ignore exit 9 if JSON written)
 - [x] MA concat 6c **P4+P5 test** on laptop (P4 0.9218 / P5 0.9143)
 - [x] S2-only 6c **P5 test** on laptop (102628; W-F1 0.9199 / κ 0.4809)
-- [ ] **10c** MA gated / concat / S1 / S2 (not started)
+- [x] MA gated **10c** P4 + P5 **test** (PARAM; sync JSON to laptop)
+- [x] MA concat / S1 / S2 **10c P4 test** (PARAM headlines logged)
+- [ ] Sync 10c JSONs + `history_plot.png` to laptop (`sync_10c_from_param.ps1`)
+- [ ] MA concat **10c P5** train+test
+- [ ] S1 / S2 **10c P5** train+test (**104546** R / **104658** PD)
 - [ ] Paste **paper Table 7** per-class into section 3
-- [ ] MA gated **10c** P4 -> P5 -> test
-- [ ] Task H on best 6c backbone
-- [ ] Re-run this board generator / update ranks when new JSONs land
+- [ ] Task H on best backbone
+- [ ] Re-run board fill from JSONs after sync
 
 ---
 
 ## 7. Download from PARAM (metrics + training graphs)
 
-On **Windows laptop** (PowerShell), from `E:\MTP\earth2` (or your clone):
+### Fast path (laptop PowerShell)
 
 ```powershell
-# 1) S1/S2 P4 results (full per-class JSON + plots) - HIGHEST PRIORITY for this board
-scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/concat_utae/run_c6_s2_head_v0 ./multisenge_utae/results/concat_utae/
-scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/concat_utae/run_c6_s1_head_v0 ./multisenge_utae/results/concat_utae/
-
-# 2) S1/S2 training graphs + best_metrics (from checkpoints)
-scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/run_c6_s2_head_v0/history_plot.png ./multisenge_utae/results/concat_utae/run_c6_s2_head_v0/
-scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/run_c6_s1_head_v0/history_plot.png ./multisenge_utae/results/concat_utae/run_c6_s1_head_v0/
-scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/run_c6_s1_full_v0/history_plot.png ./multisenge_utae/results/concat_utae/run_c6_s1_full_v0/
-scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/run_c6_s1_full_v0/best_metrics.json ./multisenge_utae/results/concat_utae/run_c6_s1_full_v0/
-scp rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/run_c6_s1_full_v0/history.json ./multisenge_utae/results/concat_utae/run_c6_s1_full_v0/
-# if S2 full exists:
-scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/run_c6_s2_full_v0/{history_plot.png,best_metrics.json,history.json} ./multisenge_utae/results/concat_utae/run_c6_s2_full_v0/
-
-# 3) MA concat (when ready)
-scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/ma_c6_concat_head_v0/{history_plot.png,best_metrics.json,history.json} ./multisenge_utae/results/ma_utae/ma_c6_concat_head_v0/
-scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/checkpoints/ma_c6_concat_full_v0/{history_plot.png,best_metrics.json,history.json} ./multisenge_utae/results/ma_utae/ma_c6_concat_full_v0/
-# after P5 test eval:
-scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_*_v0 ./multisenge_utae/results/ma_utae/
-
-# 4) Optional: pack everything light (no .pt) on PARAM first
-# On PARAM:
-#   cd ~/MTP/earth2
-#   tar czf /tmp/msge_results_light.tgz \
-#     multisenge_utae/results \
-#     multisenge_utae/checkpoints/*/history_plot.png \
-#     multisenge_utae/checkpoints/*/history.json \
-#     multisenge_utae/checkpoints/*/best_metrics.json \
-#     multisenge_utae/checkpoints/*/norm_stats.json
-# Then on laptop:
-scp rihak_iitp@paramrudra.iitp.ac.in:/tmp/msge_results_light.tgz .
-tar xzf msge_results_light.tgz
+cd E:\MTP\earth2
+powershell -ExecutionPolicy Bypass -File .\multisenge_utae\sync_10c_from_param.ps1
 ```
 
-### Still missing on **this laptop** (already on laptop = skip)
+Or one-shot pack on **PARAM** then pull:
 
-| Path | Why |
-|------|-----|
-| `results/ma_utae/ma_c6_concat_head_v0/test_metrics.json` (+ plot) | P4 test on PARAM only |
-| `results/ma_utae/ma_c6_concat_full_v0/test_metrics.json` (+ plot) | after P5 eval job |
-| `results/concat_utae/run_c6_s2_full_v0/test_metrics.json` (+ plot) | after S2 P5 train+eval |
-| `results/concat_utae/run_c6_s1_full_v0/test_metrics.json` (with CM) | after job **102355** |
-| `results/ma_utae/ma_c6_concat_*` training artifacts | optional: `history.json`, `best_metrics.json` from checkpoints |
+```bash
+# on PARAM
+cd ~/MTP/earth2
+tar czf /tmp/msge_10c_light.tgz \
+  multisenge_utae/results/ma_utae/ma_c10_* \
+  multisenge_utae/results/concat_utae/run_c10_s1_head_v0 \
+  multisenge_utae/results/concat_utae/run_c10_s2_head_v0 \
+  multisenge_utae/checkpoints/ma_c10_gated_head_v0/history_plot.png \
+  multisenge_utae/checkpoints/ma_c10_gated_full_v0/history_plot.png \
+  multisenge_utae/checkpoints/ma_c10_gated_*/history.json \
+  multisenge_utae/checkpoints/ma_c10_concat_head_v0/history_plot.png \
+  multisenge_utae/checkpoints/ma_c10_concat_head_v0/history.json \
+  multisenge_utae/checkpoints/run_c10_s1_head_v0/history_plot.png \
+  multisenge_utae/checkpoints/run_c10_s1_head_v0/history.json \
+  multisenge_utae/checkpoints/run_c10_s2_head_v0/history_plot.png \
+  multisenge_utae/checkpoints/run_c10_s2_head_v0/history.json
+```
 
-**Optional:** paper **Table 7** per-class for 10c paper column
+```powershell
+# on laptop
+cd E:\MTP\earth2
+scp rihak_iitp@paramrudra.iitp.ac.in:/tmp/msge_10c_light.tgz .
+tar xzf msge_10c_light.tgz
+```
 
 ### PARAM check before download
 
 ```bash
 cd ~/MTP/earth2
-ls -la multisenge_utae/results/concat_utae/run_c6_s{1,2}_head_v0/
-ls -la multisenge_utae/checkpoints/run_c6_s{1,2}_{head,full}_v0/{history_plot.png,best_metrics.json,best.pt} 2>/dev/null
-ls -la multisenge_utae/checkpoints/ma_c6_concat_{head,full}_v0/{history_plot.png,best.pt} 2>/dev/null
+ls -la multisenge_utae/results/ma_utae/ma_c10_*/
+ls -la multisenge_utae/results/concat_utae/run_c10_s{1,2}_head_v0/
 squeue -u $USER
 ```
