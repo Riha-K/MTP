@@ -1,11 +1,16 @@
-# Paper modality ablations (RS 2023) — 6-class test 31UEQ
+# Paper modality ablations (RS 2023) — 6-class + 10-class test 31UEQ
 
-Transcribed from Wenger et al. *Remote Sensing* 2023 (ConvLSTM-S1 / S2 / S1S2 / +Inception).
+Transcribed from Wenger et al. *Remote Sensing* 2023 (`BenchmarkGuide/3_ConvLSTM_Inception_MultiSenGE_RemoteSensing.pdf`).
+
 Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not** S1-only vs paper Inception-S1S2.
 
-**Last updated:** 2026-09-14
+**Last updated:** 2026-09-23
 
-## Kappa (paper Table 6)
+---
+
+## Six-class
+
+### Kappa (paper Table 6)
 
 | Model | Kappa |
 |-------|------:|
@@ -14,9 +19,9 @@ Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not**
 | ConvLSTM-S1S2 | 0.3852 |
 | ConvLSTM+Inception-S1S2 | 0.4186 |
 
-## Per-class + W-Avg (paper)
+### Per-class + W-Avg (paper Table 5 family)
 
-### ConvLSTM-S1
+#### ConvLSTM-S1
 
 | Class | P | R | F1 |
 |------:|--:|--:|---:|
@@ -28,7 +33,7 @@ Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not**
 | 6 | 0.9937 | 0.8937 | 0.9410 |
 | **W-Avg** | 0.9469 | 0.8661 | **0.9001** |
 
-### ConvLSTM-S2
+#### ConvLSTM-S2
 
 | Class | P | R | F1 |
 |------:|--:|--:|---:|
@@ -40,7 +45,7 @@ Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not**
 | 6 | 0.9979 | 0.8663 | 0.9274 |
 | **W-Avg** | 0.9544 | 0.8574 | **0.8958** |
 
-### ConvLSTM-S1S2
+#### ConvLSTM-S1S2
 
 | Class | P | R | F1 |
 |------:|--:|--:|---:|
@@ -52,7 +57,7 @@ Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not**
 | 6 | 0.9971 | 0.8446 | 0.9145 |
 | **W-Avg** | 0.9578 | 0.8369 | **0.8875** |
 
-### ConvLSTM+Inception-S1S2 (main paper row)
+#### ConvLSTM+Inception-S1S2 (main paper row)
 
 | Class | P | R | F1 |
 |------:|--:|--:|---:|
@@ -64,28 +69,117 @@ Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not**
 | 6 | 0.9965 | 0.8719 | 0.9301 |
 | **W-Avg** | 0.9591 | 0.8596 | **0.9018** |
 
-## Ours vs paper (fair modality match)
-
-Report deltas **plainly** (same wording for wins and losses). Small W-F1 gaps (~0.01) are small either way; **kappa** can tell a different story.
+### Ours vs paper — 6c fair modality match
 
 | Setting | Paper model | Paper W-F1 | Paper κ | Ours | Ours W-F1 | Ours κ | Δ W-F1 | Δ κ |
 |---------|-------------|------------|---------|------|-----------|--------|--------|-----|
 | S1-only | ConvLSTM-S1 | 0.9001 | **0.3929** | U-TAE P4 | 0.9111 | 0.3974 | **+0.0110** | **+0.0045** |
 | S1-only | ConvLSTM-S1 | 0.9001 | **0.3929** | U-TAE **P5** (schedule) | 0.8970 | 0.3537 | **−0.0031** | **−0.0392** |
 | S2-only | ConvLSTM-S2 | 0.8958 | **0.4223** | U-TAE P4 | 0.9171 | 0.4658 | **+0.0213** | **+0.0435** |
-| S2-only | ConvLSTM-S2 | 0.8958 | **0.4223** | U-TAE P5 | — | — | TBD | TBD |
+| S2-only | ConvLSTM-S2 | 0.8958 | **0.4223** | U-TAE **P5** (schedule) | 0.9199 | 0.4809 | **+0.0241** | **+0.0586** |
 | Both | ConvLSTM+Inc | 0.9018 | 0.4186 | Concat U-TAE P5 | 0.9387 | 0.5757 | **+0.0369** | **+0.1571** |
+| Both | ConvLSTM+Inc | 0.9018 | 0.4186 | MA gated P5 | 0.9353 | 0.5520 | **+0.0335** | **+0.1334** |
+| Both | ConvLSTM+Inc | 0.9018 | 0.4186 | MA concat P4 | 0.9218 | 0.4961 | **+0.0200** | **+0.0775** |
+| Both | ConvLSTM+Inc | 0.9018 | 0.4186 | MA concat P5 | 0.9143 | 0.4672 | **+0.0125** | **+0.0486** |
 | Both | ConvLSTM+Inc | 0.9018 | 0.4186 | A4 (our Inc) | 0.9037 | 0.4424 | **+0.0019** | **+0.0238** |
-
-### S1-only — neutral reading (no soft language)
-
-Paper **Table 6** kappa for ConvLSTM-S1 = **0.3929** (use this, not any other figure).
-
-| Ours | vs paper W-F1 | vs paper κ (0.3929) | One-line |
-|------|---------------|---------------------|----------|
-| P4 | +0.011 | **+0.0045** | Slightly higher W-F1 and slightly higher kappa |
-| P5 | −0.003 | **−0.0392** | Slightly lower W-F1; clearly lower kappa |
 
 Prefer: “P4 +0.011 W-F1 / +0.0045 κ; P5 −0.003 W-F1 / −0.039 κ.” Do not call small W-F1 gaps “win” vs “tie.”
 
-**Do not** compare S1-only U-TAE to ConvLSTM+Inception-S1S2 (different inputs).
+---
+
+## Ten-class
+
+Source: paper **Table 7** (P / R / F1) and **Table 8** (kappa). Same test zone protocol as our 10c runs.
+
+### Kappa (paper Table 8)
+
+| Model | Kappa |
+|-------|------:|
+| ConvLSTM-S1 | **0.6422** |
+| ConvLSTM-S2 | 0.7445 |
+| ConvLSTM-S1S2 | 0.7482 |
+| ConvLSTM+Inception-S1S2 | **0.7945** (paper best) |
+
+### Per-class + W-Avg (paper Table 7)
+
+#### ConvLSTM-S1
+
+| Class | P | R | F1 |
+|------:|--:|--:|---:|
+| 1 | 0.1872 | 0.9247 | 0.3114 |
+| 2 | 0.5718 | 0.5224 | 0.5460 |
+| 3 | 0.4208 | 0.6480 | 0.5103 |
+| 4 | 0.0892 | 0.4973 | 0.1512 |
+| 5 | 0.2142 | 0.6183 | 0.3182 |
+| 6 | 0.9649 | 0.8540 | 0.9060 |
+| 7 | 0.8361 | 0.5625 | 0.6726 |
+| 8 | 0.3890 | 0.4111 | 0.3997 |
+| 9 | 0.7515 | 0.8280 | 0.7879 |
+| 10 | 0.3143 | 0.4748 | 0.3782 |
+| **W-Avg** | 0.8422 | 0.7836 | **0.8055** |
+
+#### ConvLSTM-S2
+
+| Class | P | R | F1 |
+|------:|--:|--:|---:|
+| 1 | 0.5629 | 0.4968 | 0.5278 |
+| 2 | 0.6814 | 0.7625 | 0.7197 |
+| 3 | 0.4909 | 0.7329 | 0.5880 |
+| 4 | 0.1597 | 0.3499 | 0.2193 |
+| 5 | 0.2914 | 0.8076 | 0.4283 |
+| 6 | 0.9838 | 0.9263 | 0.9542 |
+| 7 | 0.9003 | 0.8737 | 0.8868 |
+| 8 | 0.5720 | 0.4336 | 0.4933 |
+| 9 | 0.9002 | 0.7697 | 0.8299 |
+| 10 | 0.1611 | 0.9106 | 0.2737 |
+| **W-Avg** | 0.9000 | 0.8517 | **0.8696** |
+
+#### ConvLSTM-S1S2
+
+| Class | P | R | F1 |
+|------:|--:|--:|---:|
+| 1 | 0.2736 | 0.8199 | 0.4103 |
+| 2 | 0.6498 | 0.7287 | 0.6870 |
+| 3 | 0.5840 | 0.3955 | 0.4716 |
+| 4 | 0.1885 | 0.2692 | 0.2217 |
+| 5 | 0.2739 | 0.8666 | 0.4163 |
+| 6 | 0.9862 | 0.9033 | 0.9430 |
+| 7 | 0.7822 | 0.9203 | 0.8457 |
+| 8 | 0.4914 | 0.4555 | 0.4728 |
+| 9 | 0.8516 | 0.8533 | 0.8524 |
+| 10 | 0.2759 | 0.8660 | 0.4185 |
+| **W-Avg** | 0.8825 | 0.8482 | **0.8600** |
+
+#### ConvLSTM+Inception-S1S2 (main paper row)
+
+| Class | P | R | F1 |
+|------:|--:|--:|---:|
+| 1 | 0.3870 | 0.7190 | 0.5031 |
+| 2 | 0.6672 | 0.8066 | 0.7303 |
+| 3 | 0.4612 | 0.7632 | 0.5749 |
+| 4 | 0.1863 | 0.3643 | 0.2465 |
+| 5 | 0.4290 | 0.7560 | 0.5474 |
+| 6 | 0.9718 | 0.9558 | 0.9637 |
+| 7 | 0.8869 | 0.8512 | 0.8687 |
+| 8 | 0.7422 | 0.3949 | 0.5155 |
+| 9 | 0.8585 | 0.8643 | 0.8614 |
+| 10 | 0.4654 | 0.7074 | 0.5614 |
+| **W-Avg** | 0.8977 | 0.8831 | **0.8851** |
+
+### Ours vs paper — 10c fair modality match
+
+| Setting | Paper model | Paper W-F1 | Paper κ | Ours | Ours W-F1 | Ours κ | Δ W-F1 | Δ κ |
+|---------|-------------|------------|---------|------|-----------|--------|--------|-----|
+| S1-only | ConvLSTM-S1 | **0.8055** | **0.6422** | U-TAE P4 **test** | 0.7342 | 0.5396 | **−0.0713** | **−0.1026** |
+| S1-only | ConvLSTM-S1 | **0.8055** | **0.6422** | U-TAE P5 **test** (**104835**) | **0.8365** | **0.6939** | **+0.0310** | **+0.0517** |
+| S2-only | ConvLSTM-S2 | **0.8696** | **0.7445** | U-TAE P4 **test** | 0.8437 | 0.7152 | **−0.0259** | **−0.0293** |
+| S2-only | ConvLSTM-S2 | **0.8696** | **0.7445** | U-TAE P5 **test** (**104890**) | **0.8865** | **0.7945** | **+0.0169** | **+0.0500** |
+| Both | ConvLSTM+Inc | **0.8851** | **0.7945** | Concat U-TAE P5 | 0.8811 | 0.7795 | −0.0040 | −0.0150 |
+| Both | ConvLSTM+Inc | **0.8851** | **0.7945** | MA gated P5 | 0.8834 | 0.7895 | −0.0017 | −0.0050 |
+| Both | ConvLSTM+Inc | **0.8851** | **0.7945** | A4 (our Inc) | 0.8711 | 0.7588 | −0.0140 | −0.0357 |
+
+**S1 10c reading (neutral):** P4 **test** is **below** paper ConvLSTM-S1 (−0.071 W-F1 / −0.103 κ). **P5 test** is **above** (+0.031 W-F1 / +0.052 κ). Prefer P5 for paper-facing S1 schedule on 10c.
+
+**S2 10c reading (neutral):** P4 **test** is **below** paper ConvLSTM-S2 (−0.026 / −0.029). **P5 test** is **above** (+0.017 / +0.050). Prefer P5.
+
+**Do not** compare S1-only / S2-only U-TAE to ConvLSTM+Inception-S1S2 (different inputs).

@@ -318,8 +318,8 @@ def main():
     headline_6 = [
         (1, "Concat U-TAE", "P5", c6_full, "-"),
         (2, "MA gated", "P5", ma_full, vs_c5(ma_full)),
-        (3, "S2-only U-TAE", "P5", s2_full, vs_c5(s2_full)),
-        (4, "MA concat fuse", "P4", ma_concat_head, vs_c5(ma_concat_head)),
+        (3, "MA concat fuse", "P4", ma_concat_head, vs_c5(ma_concat_head)),
+        (4, "S2-only U-TAE", "P5", s2_full, vs_c5(s2_full)),
         (5, "S2-only U-TAE", "P4", s2_head, vs_c5(s2_head) + " (head)"),
         (6, "MA gated", "P4", ma_head, vs_c5(ma_head)),
         (7, "MA concat fuse", "P5", ma_concat_full, vs_c5(ma_concat_full)),

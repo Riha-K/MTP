@@ -10,6 +10,38 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-23 — MA concat 10c P5 beats paper Inc; S1/S2 P5 also closed
+
+**MA concat fuse 10c P5** (train **104173**, eval **104545**): W-F1 **0.8885**, κ **0.7950**, Acc 0.8817  
+→ vs paper Inc **0.8851 / 0.7945** = **+0.0034 / +0.0005**  
+→ vs MA gated P5 **0.8834 / 0.7895** = **+0.0051 / +0.0055**  
+→ vs stock concat U-TAE P5 **0.8811 / 0.7795** = **+0.0074 / +0.0155**
+
+**Pattern:** 6c favored **gated**; 10c favors **concat** fuse. Prefer MA concat backbone for 10c Task H.
+
+**Laptop sync done** via `msge_ma_c10_concat_p5.tgz` → `results/ma_utae/ma_c10_concat_full_v0/` (test JSON+md + history). Board `[ok]`.
+
+**Next:** Task H on MA concat 10c backbone (optional).
+
+---
+
+### 2026-09-23 — 10c S1/S2 P5 test beat paper modality baselines
+
+PARAM evals **COMPLETED**: S1 **104835**, S2 **104890** (after trains **104546** / **104658**).
+
+| Ours (10c test 31UEQ) | W-F1 | κ | Paper fair row | Paper W-F1 / κ | Δ |
+|-----------------------|-----:|--:|----------------|---------------:|---|
+| U-TAE **S1-only P5** | **0.8365** | **0.6939** | ConvLSTM-S1 | 0.8055 / 0.6422 | **+0.031 / +0.052** |
+| U-TAE **S2-only P5** | **0.8865** | **0.7945** | ConvLSTM-S2 | 0.8696 / 0.7445 | **+0.017 / +0.050** |
+
+Also beat our P4 (S1 0.7342/0.5396; S2 0.8437/0.7152). Do **not** claim S2 beats paper Inc-S1S2 (κ 0.7945 match is coincidence).
+
+**Laptop sync done** via `msge_10c_p5.tgz` → `results/concat_utae/run_c10_s{1,2}_full_v0/` (test JSON+md + history plots). Board inventory `[ok]`.
+
+Updated `RESULTS_BOARD.md` + `PAPER_MODALITY_6CLASS.md`. **Still open:** MA concat 10c P5; Task H.
+
+---
+
 ### 2026-09-16 — 6c closed: S2 P5 test on laptop; board + git
 
 **S2-only U-TAE P5** (job **102628**, checkpoint from failed train **102359** exit 9): test 31UEQ W-F1 **0.9199**, κ **0.4809** (vs S2 P4 0.9171 / 0.4658; vs paper ConvLSTM-S2 W-F1 0.8958 / κ 0.4223 → +0.024 W-F1 / +0.059 κ).
