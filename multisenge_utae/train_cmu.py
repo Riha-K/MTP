@@ -125,11 +125,11 @@ def main() -> int:
       type=Path,
       default=Path("multisenge_utae/checkpoints/run_c10_s2_full_v0/best.pt"),
   )
-  p.add_argument("--epochs", type=int, default=40)
+  p.add_argument("--epochs", type=int, default=80)
   p.add_argument("--batch-size", type=int, default=2, help="patch batch; effective InfoNCE N = batch*T")
   p.add_argument("--lr", type=float, default=3e-4)
   p.add_argument("--workers", type=int, default=2)
-  p.add_argument("--patience", type=int, default=12)
+  p.add_argument("--patience", type=int, default=20)
   p.add_argument("--temperature", type=float, default=0.07)
   p.add_argument("--proj-dim", type=int, default=256)
   p.add_argument("--image-size", type=int, default=256)

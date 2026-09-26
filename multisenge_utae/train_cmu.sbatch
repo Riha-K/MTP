@@ -30,13 +30,13 @@ python -m multisenge_utae.train_cmu \
   --index multisenge_seg/artifacts/patch_index.json \
   --data-root LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge \
   --teacher-ckpt "$TEACHER" \
-  --epochs 40 \
+  --epochs 80 \
   --batch-size 2 \
   --lr 3e-4 \
   --temperature 0.07 \
   --proj-dim 256 \
   --workers 2 \
-  --patience 12 \
+  --patience 20 \
   --seed 42 \
   --out-dir "$OUT"
 

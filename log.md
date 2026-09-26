@@ -10,6 +10,18 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-26 — CMU schedule = paper 80/20; Stage2 order 6c then 10c
+
+- CMU train defaults aligned with MultiSenGE RS 2023 / A4 / U-TAE: **max 80 epochs**, EarlyStopping **patience 20** (was 40/12).
+- Progress order locked (local plan only): teacher = **10c S2-only U-TAE P5**; Stage1 CMU → **6c P4→P5** → **10c P4→P5**.
+- Plan file stays gitignored: `BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md`.
+
+**Files:** `train_cmu.py`, `train_cmu.sbatch`, `log.md`.
+
+**Next on PARAM:** `git pull` → CMU smoke → CMU full.
+
+---
+
 ### 2026-09-26 — Stage 1 CMU code (S1 ViT ↔ frozen S2 U-TAE)
 
 Added Stage 1 CMU training path:
