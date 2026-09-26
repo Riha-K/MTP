@@ -10,6 +10,64 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-26 — CMU+ViT decisions locked; arch figure; plan stays local
+
+Locked §8 pack (all **A**) for next model after Task M:
+
+- **Teacher:** MultiSenGE **S2-only U-TAE P5** `run_c10_s2_full_v0` encoder (not public PASTIS U-TAE). Same CMU student for 6c+10c Stage 2; optional 6c teacher later if time.
+- **CMU:** same patch / same date `t`; last-block ↔ bottleneck pooled InfoNCE; proj 256; τ≈0.07; **no L-TAE in Stage 1**.
+- **Stage 2:** per-date ViT → L-TAE; bottleneck adapter (S2 skips, no S1 skips v0); CONCAT default; **full 6c P4→P5 and 10c P4→P5** (same pattern as Task M); P4 freezes encoders+L-TAEs.
+- Cleaned `cvpr2026/` extract junk; source-of-truth figure: [`_arch_ours_cmu_vit.png`](BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png).
+
+**Local only (gitignored):** `BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md` — keep offline; do not push.
+
+**Next:** implement Stage 1 CMU train (ViT-B/16 `in_chans=2` + frozen c10 S2 encoder) on PARAM; then 6c/10c P4→P5.
+
+---
+
+### 2026-09-23 — Lock CMU+ViT S1 plan; refresh arch figure
+
+Early lock note (superseded by 2026-09-26 entry for §8 choices). Figure: [`BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png`](BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png). Plan markdown is **local-only**.
+
+**Next (then):** implement CMU train + plug ViT into MA path (Task H still deferred).
+
+---
+
+### 2026-09-23 — Phase 3 progress report written; Task H deferred
+
+Wrote [`writeup/PHASE3_PROGRESS_REPORT.docx`](writeup/PHASE3_PROGRESS_REPORT.docx) (same style as Phase 1/2).
+
+**Scope:** Task M closed — MA-UTAE gated/concat P4+P5 on 6c+10c; S1/S2 modality ablations; full Part A tables then Part B one-winner lanes; Task H marked future work.
+
+**Report winners (test 31UEQ):**
+- 6c fusion → stock Concat U-TAE **P5** (0.9387 / 0.5757)
+- 6c best MA → gated **P5** (0.9353 / 0.5520)
+- 6c S1 → **P4**; 6c S2 → **P5**
+- 10c fusion → MA concat **P5** (0.8885 / 0.7950, beats paper Inc)
+- 10c S1/S2 → **P5** (both beat paper S1/S2)
+
+Also mirrored winners + Task H deferral in `RESULTS_BOARD.md` §0 and living canvas summary.
+
+---
+
+### 2026-09-23 — Task H deferred; paper-facing one-winner lanes locked
+
+**Task H (A1+A2 hierarchy):** skip for now — **future work**. Write-up focuses on **Task M** (MA-UTAE fusion + S1/S2 ablations). Hierarchy only if later we want extra UF / Dense↔Sparse gains on MA concat 10c.
+
+**Report these winners only** (see `RESULTS_BOARD.md` §0 + canvas):
+
+| Lane | Winner | vs paper |
+|------|--------|----------|
+| 6c fusion | Stock Concat U-TAE **P5** 0.9387/0.5757 | Inc +0.037/+0.157 |
+| 6c best MA | MA **gated P5** 0.9353/0.5520 | under stock concat |
+| 6c S1 | S1 **P4** 0.9111/0.3974 | S1 +0.011/+0.005 |
+| 6c S2 | S2 **P5** 0.9199/0.4809 | S2 +0.024/+0.059 |
+| 10c fusion | MA **concat P5** 0.8885/0.7950 | Inc +0.003/+0.001 |
+| 10c S1 | S1 **P5** 0.8365/0.6939 | S1 +0.031/+0.052 |
+| 10c S2 | S2 **P5** 0.8865/0.7945 | S2 +0.017/+0.050 |
+
+---
+
 ### 2026-09-23 — MA concat 10c P5 beats paper Inc; S1/S2 P5 also closed
 
 **MA concat fuse 10c P5** (train **104173**, eval **104545**): W-F1 **0.8885**, κ **0.7950**, Acc 0.8817  

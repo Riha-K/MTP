@@ -37,18 +37,25 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | **S2-only 10c P4** | [ok] | [ok] | W-F1 **0.8437** / κ **0.7152** |
 | **S1-only 10c P5** | [ok] | [ok] | W-F1 **0.8365** / κ **0.6939** — beats paper S1 (+0.031 / +0.052) |
 | **S2-only 10c P5** | [ok] | [ok] | W-F1 **0.8865** / κ **0.7945** — beats paper S2 (+0.017 / +0.050) |
-| Task H | [todo] | [todo] | Not started |
+| Task H | [deferred] | — | **Future work** — not needed for Task M write-up |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
 
-### 10c progress (2026-09-23)
+### Status (2026-09-23)
 
-**S1/S2 10c P5 test on laptop** (`run_c10_s{1,2}_full_v0/`):
-- **S1** (**104835**): W-F1 **0.8365** / κ **0.6939** vs paper ConvLSTM-S1 **0.8055 / 0.6422** → **+0.031 / +0.052**
-- **S2** (**104890**): W-F1 **0.8865** / κ **0.7945** vs paper ConvLSTM-S2 **0.8696 / 0.7445** → **+0.017 / +0.050**
-- Both beat our P4. Synced via `msge_10c_p5.tgz`.
+**Task M closed** on 6c + 10c (fusion + S1/S2 ablations).  
+**Task H (hierarchy A1+A2):** **skip / defer** — optional future work on MA concat 10c if we want extra UF / Dense↔Sparse gains. Not required to claim Task M.
 
-**MA concat 10c P5 on laptop** (train **104173**, eval **104545**): W-F1 **0.8885** / κ **0.7950** → **beats paper Inc** (0.8851 / 0.7945) and MA gated P5 (0.8834 / 0.7895). Synced via `msge_ma_c10_concat_p5.tgz`.  
-**Still open:** Task H on MA concat 10c backbone.
+**Paper-facing one-winner lanes** (full tables → §1.3):
+
+| Lane | Report this one | W-F1 / κ | vs fair paper |
+|------|-----------------|----------|---------------|
+| **6c fusion** | Stock **Concat U-TAE P5** | **0.9387 / 0.5757** | Inc **+0.037 / +0.157** |
+| **6c best MA** | **MA gated P5** | **0.9353 / 0.5520** | Inc +0.034 / +0.133 (still under stock concat) |
+| **6c S1** | U-TAE **S1 P4** | **0.9111 / 0.3974** | ConvLSTM-S1 **+0.011 / +0.005** |
+| **6c S2** | U-TAE **S2 P5** | **0.9199 / 0.4809** | ConvLSTM-S2 **+0.024 / +0.059** |
+| **10c fusion** | **MA concat P5** | **0.8885 / 0.7950** | Inc **+0.003 / +0.001** |
+| **10c S1** | U-TAE **S1 P5** | **0.8365 / 0.6939** | ConvLSTM-S1 **+0.031 / +0.052** |
+| **10c S2** | U-TAE **S2 P5** | **0.8865 / 0.7945** | ConvLSTM-S2 **+0.017 / +0.050** |
 
 ---
 ## 1. Headline comparison (paper-facing)
@@ -90,6 +97,36 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | 14 | S1-only U-TAE | P4 | 0.7792 | 0.7146 | **0.7342** | **0.5396** | 0.7146 | 0.3418 | |
 
 _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/ma_c10_concat_full_v0/`. S1/S2 P5 on laptop. Fair S2 claim is vs ConvLSTM-S2 only; do not sell S2 as beating paper Inc._
+
+### 1.3 Deltas vs fair paper row (6c alone / 10c alone)
+
+#### 6c — MA gated / concat vs paper Inc (0.9018 / 0.4186)
+
+| Model | Phase | W-F1 | κ | Δ W-F1 | Δ κ |
+|-------|-------|-----:|--:|-------:|----:|
+| Paper Inc | — | 0.9018 | 0.4186 | — | — |
+| Stock Concat U-TAE | **P5** | **0.9387** | **0.5757** | **+0.0369** | **+0.1571** |
+| MA gated | P5 | 0.9353 | 0.5520 | +0.0335 | +0.1334 |
+| MA gated | P4 | 0.9169 | 0.4705 | +0.0151 | +0.0519 |
+| MA concat | P4 | 0.9218 | 0.4961 | +0.0200 | +0.0775 |
+| MA concat | P5 | 0.9143 | 0.4672 | +0.0125 | +0.0486 |
+
+**6c S1** vs paper S1 (0.9001 / 0.3929): P4 **+0.011 / +0.005** · P5 **−0.003 / −0.039**  
+**6c S2** vs paper S2 (0.8958 / 0.4223): P4 **+0.021 / +0.044** · P5 **+0.024 / +0.059**
+
+#### 10c — MA gated / concat vs paper Inc (0.8851 / 0.7945)
+
+| Model | Phase | W-F1 | κ | Δ W-F1 | Δ κ |
+|-------|-------|-----:|--:|-------:|----:|
+| Paper Inc | — | 0.8851 | 0.7945 | — | — |
+| **MA concat** | **P5** | **0.8885** | **0.7950** | **+0.0034** | **+0.0005** |
+| MA gated | P5 | 0.8834 | 0.7895 | −0.0017 | −0.0050 |
+| Stock Concat U-TAE | P5 | 0.8811 | 0.7795 | −0.0040 | −0.0150 |
+| MA concat | P4 | 0.8547 | 0.7273 | −0.0304 | −0.0672 |
+| MA gated | P4 | 0.8430 | 0.7061 | −0.0421 | −0.0884 |
+
+**10c S1** vs paper S1 (0.8055 / 0.6422): P4 **−0.071 / −0.103** · P5 **+0.031 / +0.052**  
+**10c S2** vs paper S2 (0.8696 / 0.7445): P4 **−0.026 / −0.029** · P5 **+0.017 / +0.050**
 
 ---
 
@@ -566,7 +603,8 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - **10c S1 vs paper ConvLSTM-S1 (0.8055 / 0.6422):** P4 test **below** (−0.071 / −0.103). **P5 test** (**104835**) **above** — W-F1 **0.8365** / κ **0.6939** → **+0.031 / +0.052**.
 - **10c S2 vs paper ConvLSTM-S2 (0.8696 / 0.7445):** P4 test below (−0.026 / −0.029). **P5 test** (**104890**) **above** — W-F1 **0.8865** / κ **0.7945** → **+0.017 / +0.050**. (κ matches paper Inc by coincidence — do not claim S2 beats fusion.)
 - **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower.
-- **10c Task M:** **MA concat P5** W-F1 **0.8885** / κ **0.7950** **beats paper Inc** (0.8851 / 0.7945) and gated P5 (0.8834 / 0.7895). On 10c, concat fuse > gated (opposite of 6c, where gated led).
+- **10c Task M:** **MA concat P5** W-F1 **0.8885** / κ **0.7950** **beats paper Inc** (0.8851 / 0.7945) and gated P5 (0.8834 / 0.7895). On 10c, concat fuse > gated (opposite of 6c, where gated led among MA).
+- **Task H:** **deferred** (future work). Not required for Task M write-up.
 - Always quote **per-class F1 (esp. 1, 2, 4)** beside W-F1; W-F1 is majority-dominated (class 6 / arable).
 - A4 6c **report** = `last.pt` ep25 (W-F1 0.9037), not `best.pt` (0.9098) - see `TABLE5_TEST_FOR_SIR.md`.
 - S1/S2 **paper-facing schedule** = **P5 test**; still show P4 when P5 regresses (S1).
@@ -585,7 +623,7 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - [x] MA concat **10c P5** train+test (**104173** / **104545**; W-F1 **0.8885** / κ **0.7950**)
 - [x] S1 / S2 **10c P5** train+test (**104546**/**104658** train; **104835**/**104890** test)
 - [x] Paste **paper Table 7/8** into section 3 + [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md)
-- [ ] Task H on best backbone
+- [ ] Task H on best backbone → **deferred / future work** (not needed for Task M write-up)
 - [ ] Re-run board fill from JSONs after sync
 
 ---

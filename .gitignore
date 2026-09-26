@@ -44,3 +44,6 @@ Thumbs.db
 
 # --- Temp clone / scratch ---
 _mtp_remote_check/
+
+# --- Local-only planning (do not push) ---
+BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md
