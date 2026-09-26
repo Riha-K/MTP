@@ -84,6 +84,17 @@ class UTAE(nn.Module):
   def _pad_mask(self, input: torch.Tensor) -> torch.Tensor:
     return (input == self.pad_value).all(dim=-1).all(dim=-1).all(dim=-1)
 
+  def encode_spatial_bottleneck(self, input: torch.Tensor) -> torch.Tensor:
+    """Spatial CNN only (no L-TAE / decoder). For CMU teacher.
+
+    input: B,T,C,H,W or B,C,H,W → bottleneck map B,T,C_b,h,w or B,C_b,h,w
+    (encoder_widths[-1] channels, typically 128).
+    """
+    out = self.in_conv.smart_forward(input)
+    for i in range(self.n_stages - 1):
+      out = self.down_blocks[i].smart_forward(out)
+    return out
+
   def encode_levels(self, input: torch.Tensor, batch_positions=None):
     """Return encoder maps L0-L2 (B,T,C,H,W) and L3 after temporal attention (B,C,H,W)."""
     pad_mask = self._pad_mask(input)

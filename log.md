@@ -10,6 +10,20 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-26 — Stage 1 CMU code (S1 ViT ↔ frozen S2 U-TAE)
+
+Added Stage 1 CMU training path:
+
+- `models/s1_vit.py` — ViT-B/16 `in_chans=2`
+- `models/cmu.py` — ProjHead + InfoNCE (τ=0.07, proj=256)
+- `UTAE.encode_spatial_bottleneck` — teacher features **without** L-TAE
+- `train_cmu.py` + `train_cmu.sbatch` / `train_cmu_smoke.sbatch`
+- Teacher default: `run_c10_s2_full_v0/best.pt`; saves `student_best.pt` for Stage 2
+
+**PARAM:** `sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu_smoke.sbatch` then `train_cmu.sbatch`.
+
+---
+
 ### 2026-09-26 — CMU+ViT decisions locked; arch figure; plan stays local
 
 Locked §8 pack (all **A**) for next model after Task M:

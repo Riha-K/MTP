@@ -42,6 +42,18 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 
 **Results folders:** stock concat U-TAE → `results/concat_utae/`; MA-UTAE → `results/ma_utae/` (see `results/README.md`).
 
+### Stage 1 CMU (S1 ViT ↔ frozen S2 U-TAE) — next model
+
+Teacher = MultiSenGE **S2-only U-TAE P5** (`run_c10_s2_full_v0/best.pt`), spatial encoder only. Student = **ViT-B/16 `in_chans=2`**. InfoNCE same patch / same date; no L-TAE in Stage 1.
+
+```bash
+# smoke
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu_smoke.sbatch
+# full CMU
+sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu.sbatch
+# outputs: checkpoints/cmu_s1_vit_v0/{best.pt,student_best.pt,history.json}
+```
+
 ### Modality ablations (paper-style S1-only / S2-only)
 
 Like MultiSenGE ConvLSTM-S1 / ConvLSTM-S2: stock U-TAE with `--modality s2` (10ch) or `s1` (2ch).
