@@ -1,4 +1,4 @@
-# PARAM transfer — MultiSenGE CNN validation
+# PARAM transfer - MultiSenGE CNN validation
 
 **Goal:** Get **code + MultiSenGE rasters** onto PARAM so you can `sbatch` train.  
 **Do not** put `s1/` / `s2/` / `ground_reference/` in git.
@@ -18,16 +18,16 @@ Laptop data (source):
 | Folder | Size | Notes |
 |--------|------|--------|
 | code (`git pull`) | small | Already on GitHub `main` |
-| `labels/` | ~few MB | 8157 JSON — transfer first |
-| `ground_reference/` | ~small–few GB | 8157 TIFFs — transfer second |
+| `labels/` | ~few MB | 8157 JSON - transfer first |
+| `ground_reference/` | ~small–few GB | 8157 TIFFs - transfer second |
 | `s1/` | **~110 GB** | May already exist on PARAM from LULCDial |
-| `s2/` | **~88 GB** | Likely **new** — longest copy |
+| `s2/` | **~88 GB** | Likely **new** - longest copy |
 
 Overnight / background transfer is normal for S1+S2.
 
 ---
 
-## Step 0 — On PARAM: disk + what already exists
+## Step 0 - On PARAM: disk + what already exists
 
 ```bash
 ssh rihak_iitp@paramrudra.iitp.ac.in
@@ -64,13 +64,13 @@ If **`s1` already full** from LULCDial, **do not re-copy** it.
 
 ---
 
-## Step 1 — Laptop: pull is enough for code
+## Step 1 - Laptop: pull is enough for code
 
 Code is already pushed. On PARAM only `git pull` (Step 0). No need to `scp` the repo if clone exists.
 
 ---
 
-## Step 2 — Laptop → PARAM: small folders first
+## Step 2 - Laptop → PARAM: small folders first
 
 Open **PowerShell** on the laptop (new window; leave it open while copying).
 
@@ -99,11 +99,11 @@ find "$MS/ground_reference" -type f | wc -l  # 8157
 
 ---
 
-## Step 3 — Large rasters (`s2`, and `s1` if missing)
+## Step 3 - Large rasters (`s2`, and `s1` if missing)
 
-**Prefer `rsync` if available** (resumable). On Windows, OpenSSH `scp` works; interrupt and re-run may duplicate — prefer one long overnight copy.
+**Prefer `rsync` if available** (resumable). On Windows, OpenSSH `scp` works; interrupt and re-run may duplicate - prefer one long overnight copy.
 
-### Option A — `scp` (simple)
+### Option A - `scp` (simple)
 
 ```powershell
 $PARAM = "rihak_iitp@paramrudra.iitp.ac.in"
@@ -113,11 +113,11 @@ $REMOTE = "/home/rihak_iitp/MTP/earth2/LULCDial-s1/data/lulcdial_s1/ai4lcc/multi
 # Only if PARAM s1 count is far below laptop:
 # scp -r "$LOCAL\s1" "${PARAM}:${REMOTE}/"
 
-# S2 (required for CNN) — overnight
+# S2 (required for CNN) - overnight
 scp -r "$LOCAL\s2" "${PARAM}:${REMOTE}/"
 ```
 
-### Option B — WSL / Git Bash `rsync` (better resume)
+### Option B - WSL / Git Bash `rsync` (better resume)
 
 ```bash
 PARAM=rihak_iitp@paramrudra.iitp.ac.in
@@ -131,7 +131,7 @@ rsync -avh --progress --partial "$LOCAL/s2/" "$PARAM:$REMOTE/s2/"
 
 ---
 
-## Step 4 — PARAM env deps (once)
+## Step 4 - PARAM env deps (once)
 
 CNN train needs **torch** (module) + **rasterio** / **numpy**.
 
@@ -146,7 +146,7 @@ python -c "import rasterio; print(rasterio.__version__)"
 
 ---
 
-## Step 5 — Smoke (after data lands)
+## Step 5 - Smoke (after data lands)
 
 ```bash
 cd ~/MTP/earth2

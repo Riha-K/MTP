@@ -1,4 +1,4 @@
-# LULCDial-S1 — VLM roadmap (ARCHIVE)
+# LULCDial-S1 - VLM roadmap (ARCHIVE)
 
 > **Archived 2026-08-10.** Active whole-project plan: [`../ROADMAP.md`](../ROADMAP.md).  
 > **Commands:** [`RUNBOOK.md`](RUNBOOK.md) · **History:** [`../log.md`](../log.md)
@@ -9,7 +9,7 @@
 
 **One project, one story:**
 
-Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-language benchmark on **official 14-class OCSGE** (AI4LCC MultiSenGE), with **multi-label classification + 2-turn dialogue**, and show that **EarthDial must be fine-tuned** (zero-shot fails; fine-tune succeeds).
+Build and publish **SAR-LC-Bench + LULCDial-S1** - Sentinel-1 VH vision-language benchmark on **official 14-class OCSGE** (AI4LCC MultiSenGE), with **multi-label classification + 2-turn dialogue**, and show that **EarthDial must be fine-tuned** (zero-shot fails; fine-tune succeeds).
 
 **Publishable claim (not weak if you finish the package):**
 
@@ -98,7 +98,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 
 ---
 
-## 6. Phase 1 — Write-up
+## 6. Phase 1 - Write-up
 
 
 | Step    | Action                                                | Status |
@@ -110,7 +110,7 @@ Build and publish **SAR-LC-Bench + LULCDial-S1** — Sentinel-1 VH vision-langua
 | **1.5** | Draft Intro + Method + Results                        | ✅ local `writeup/` (+ radiometry caveat) |
 | **1.6** | **MultiSenNA** predict + eval with `LULCDial_S1_v0.1` | ✅ F1 **0.679** transfer (11939 patches, post-fix) |
 
-`writeup/` is **local only** (gitignored) — paper drafts, figures, Table 1 template.
+`writeup/` is **local only** (gitignored) - paper drafts, figures, Table 1 template.
 
 
 ---
@@ -126,18 +126,18 @@ Public folder [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) drafted in this researc
 | `leaderboard.csv` (post-fix numbers) | ✅ |
 | `data/ge/ai4lcc_test.jsonl` (2497 rows) | ✅ |
 | `PUBLISH.md` (separate public GitHub repo steps) | ✅ |
-| Compact `s1_test_bench/` TIFF pack + Zenodo | ⏸ **deferred** — publish after Phase 3 (more data in one release) |
-| Standalone public GitHub repo `SAR-LC-Bench` | ⏸ **deferred** — same |
+| Compact `s1_test_bench/` TIFF pack + Zenodo | ⏸ **deferred** - publish after Phase 3 (more data in one release) |
+| Standalone public GitHub repo `SAR-LC-Bench` | ⏸ **deferred** - same |
 
 **Decision (2026-08-03):** keep protocol draft here; go public (GitHub + free Zenodo TIFF pack) **at the end**, after bi-temporal Phase 3, so one release can include single-date + 2-date materials.
 
-**Do not** open the whole MTP repo as the public bench — it has personal notes. See `sar_lc_bench_v0.1/PUBLISH.md`.
+**Do not** open the whole MTP repo as the public bench - it has personal notes. See `sar_lc_bench_v0.1/PUBLISH.md`.
 
 ---
 
-## 8. Phase 3 — Bi-temporal change QA (lite) — **NEXT**
+## 8. Phase 3 - Bi-temporal change QA (lite) - **NEXT**
 
-**Goal:** small extension subsection — **2 Sentinel-1 dates**, ~**100** patches, classify/change dialogue, one small results table. Optional for core thesis; strengthens the temporal story.
+**Goal:** small extension subsection - **2 Sentinel-1 dates**, ~**100** patches, classify/change dialogue, one small results table. Optional for core thesis; strengthens the temporal story.
 
 ### Scope (keep lite)
 
@@ -146,14 +146,14 @@ Public folder [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) drafted in this researc
 | Dates per patch | **Exactly 2** VH acquisitions (not full-year stack) |
 | Patch count | ~**100** from MultiSenGE test (or train∩multi-date) |
 | Labels | Same OCSGE multi-label presence; plus simple **change** QA (what appeared / disappeared / unchanged) |
-| Model | Start with **ZS + existing LULCDial_S1_v0.1** (single-image FT may transfer poorly to 2-image input — report honestly); optional small FT later |
+| Model | Start with **ZS + existing LULCDial_S1_v0.1** (single-image FT may transfer poorly to 2-image input - report honestly); optional small FT later |
 | Publish | Bundle 2-date pack with Phase 2 Zenodo **at end** |
 
 ### Machine
 
 | Step | Where |
 |------|--------|
-| Discover patches with ≥2 S1 dates; write 2-date JSONL | **Sir PC** (full `multisenge/s1` needed) — laptop usually lacks full archive |
+| Discover patches with ≥2 S1 dates; write 2-date JSONL | **Sir PC** (full `multisenge/s1` needed) - laptop usually lacks full archive |
 | Template + eval scripts | **Laptop** |
 | GPU predict / optional FT | **PARAM** |
 
@@ -164,20 +164,20 @@ Public folder [`sar_lc_bench_v0.1/`](sar_lc_bench_v0.1/) drafted in this researc
 3. Build `bench/v0.1/ai4lcc_bitemp_100.jsonl`.
 4. Smoke predict 20 → full 100 → small table in writeup.
 
-Papers (when writing): ChangeChat, DeltaVLM (templates only — RGB bi-temp; we adapt to S1).
+Papers (when writing): ChangeChat, DeltaVLM (templates only - RGB bi-temp; we adapt to S1).
 
 ---
 
-## 9. After multitemporal — what next (if you want more)
+## 9. After multitemporal - what next (if you want more)
 
 
 | Add-on                                            | Required?               | Effort       | Publication value           |
 | ------------------------------------------------- | ----------------------- | ------------ | --------------------------- |
-| **MultiSenNA transfer** (v0.1 model)              | ✅ done                   | —            | Regional generalization row |
-| **Bench package draft**                           | ✅ drafted                | —            | Protocol ready              |
+| **MultiSenNA transfer** (v0.1 model)              | ✅ done                   | -            | Regional generalization row |
+| **Bench package draft**                           | ✅ drafted                | -            | Protocol ready              |
 | **Dialogue metric / format-aligned FT**       | **IN PROGRESS** (soft F1 ✅) | Soft = laptop; FT = sir+PARAM | Fixes weak set-match story |
 | **Bi-temporal change QA** (2-date lite)       | After dialogue track        | ~1 week                      | Small extension subsection  |
-| **Public GitHub + Zenodo TIFF packs**         | **Yes — at end**            | 1–2 days                     | Makes project publishable   |
+| **Public GitHub + Zenodo TIFF packs**         | **Yes - at end**            | 1–2 days                     | Makes project publishable   |
 
 
 **Order now:** **Dialogue soft metrics ✅ → optional dialogue FT → Phase 3 bi-temporal (optional) → public release**.
@@ -207,4 +207,4 @@ Dialogue set-match is strict; dialogue example F1 is soft (same as classify F1 o
 
 ---
 
-*Updated 2026-07-27 — v0.1 only (70/30).*
+*Updated 2026-07-27 - v0.1 only (70/30).*

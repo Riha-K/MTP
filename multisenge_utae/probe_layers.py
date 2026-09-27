@@ -78,7 +78,7 @@ def _sample_pixel_features(
     fx = np.clip((xx.astype(np.int64) * fw) // mw, 0, fw - 1)
     if fy.shape != (n,) or fx.shape != (n,):
         raise RuntimeError(f"fy/fx length mismatch: {fy.shape}, {fx.shape}, n={n}")
-    # Pairwise indices (C, N) — avoid broadcast when fy/fx lengths differ.
+    # Pairwise indices (C, N) - avoid broadcast when fy/fx lengths differ.
     sampled = plane[:, fy, fx]
     if sampled.shape != (c, n):
         raise RuntimeError(

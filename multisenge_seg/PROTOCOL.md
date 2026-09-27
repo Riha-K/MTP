@@ -1,4 +1,4 @@
-# CNN validation protocol — ConvLSTM+Inception-S1S2 replication
+# CNN validation protocol - ConvLSTM+Inception-S1S2 replication
 
 > **Paper:** Wenger et al., Remote Sensing 2023 (`BenchmarkGuide/Wenger_etal_2023_ConvLSTM_Inception_MultiSenGE_RemoteSensing.pdf`)  
 > **Goal:** Match their setting as closely as possible; then swap in an advanced model.  
@@ -87,7 +87,7 @@ Paper notes: ConvLSTM kernel **3×3**, **32** filters; naive Inception **1×1 / 
 U-Net with **VGG-16** encoder; weighted categorical CE; Adam LR **1e−3**; ReduceLROnPlateau (×0.1, patience 5);
 EarlyStopping patience **20**; geometric aug (~75%); multitemporal channel mean/std norm.
 
-Weights were **not** released publicly — reimplement or obtain on demand.
+Weights were **not** released publicly - reimplement or obtain on demand.
 
 ---
 
@@ -101,7 +101,7 @@ Full formulas + why (wCE, Softmax, U-TAE, P3 multinomial LR): [`FORMULAS.md`](FO
 - **Cohen’s Kappa** (paper Table 6)
 - **Accuracy**, mean F1 / mean sensitivity / mean specificity (logged)
 
-`multisenge_utae/` uses the same `multisenge_seg/metrics.py` — one metric definition for A4 and A5.
+`multisenge_utae/` uses the same `multisenge_seg/metrics.py` - one metric definition for A4 and A5.
 
 Frozen replicate vs paper: [`RESULTS_RS2023_6CLASS.md`](RESULTS_RS2023_6CLASS.md).
 

@@ -35,7 +35,7 @@ def read_s1_vh_db(tif_path: str | Path) -> np.ndarray:
 
 
 def vh_db_to_pil(vh_db: np.ndarray) -> Image.Image:
-    """Float32 PIL image with dB values — matches EarthDial S1 shard convention."""
+    """Float32 PIL image with dB values - matches EarthDial S1 shard convention."""
     arr = np.asarray(vh_db, dtype=np.float32)
     if arr.shape != (256, 256):
         raise ValueError(f"Expected 256×256 patch, got {arr.shape}")

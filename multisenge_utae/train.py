@@ -210,7 +210,7 @@ def main() -> int:
         type=str,
         default="both",
         choices=["both", "s2", "s1"],
-        help="both=S2+S1 (12ch); s2=optical-only (10ch); s1=SAR-only (2ch) — paper-style ablation",
+        help="both=S2+S1 (12ch); s2=optical-only (10ch); s1=SAR-only (2ch) - paper-style ablation",
     )
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/checkpoints/run_c6_head_v0"))
     p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")

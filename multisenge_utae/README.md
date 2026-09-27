@@ -32,7 +32,7 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 
 **Transfer learning:** We use the breast **schedule** only, not breast-style **pretrained weights**. U-TAE is trained **from scratch on MultiSenGE** (no PASTIS/ImageNet init) so comparisons stay fair vs A4 and the RS 2023 paper. P4→P5 `--init-ckpt` is same-dataset continuation, not cross-dataset TL. Full rationale: [`TRAINING_AND_TRANSFER.md`](TRAINING_AND_TRANSFER.md).
 
-## Novelty tracks (not P1/P2 — those clash with U-TAE phases)
+## Novelty tracks (not P1/P2 - those clash with U-TAE phases)
 
 | Name | Meaning | Files |
 |------|---------|--------|
@@ -42,7 +42,7 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 
 **Results folders:** stock concat U-TAE → `results/concat_utae/`; MA-UTAE → `results/ma_utae/` (see `results/README.md`).
 
-### Stage 1 CMU (S1 ViT ↔ frozen S2 U-TAE) — next model
+### Stage 1 CMU (S1 ViT ↔ frozen S2 U-TAE) - next model
 
 Teacher = MultiSenGE **S2-only U-TAE P5** (`run_c10_s2_full_v0/best.pt`), spatial encoder only. Student = **ViT-B/16 `in_chans=2`**. InfoNCE same patch / same date; no L-TAE in Stage 1.
 
@@ -71,7 +71,7 @@ sbatch multisenge_utae/train_cmu_vit_c6_full.sbatch
 Like MultiSenGE ConvLSTM-S1 / ConvLSTM-S2: stock U-TAE with `--modality s2` (10ch) or `s1` (2ch).
 
 ```bash
-# 6c — both heads can queue in parallel
+# 6c - both heads can queue in parallel
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_head.sbatch
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s1_head.sbatch
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_full.sbatch
@@ -94,7 +94,7 @@ python -m multisenge_utae.train_ma --index multisenge_seg/artifacts/patch_index.
   --max-train 4 --max-val 2 --out-dir multisenge_utae/checkpoints/ma_c6_smoke
 
 # PARAM 6c gated (done): train_ma.sbatch → train_ma_full.sbatch
-# PARAM 10c Task M — gated main (P4 → P5 → test)
+# PARAM 10c Task M - gated main (P4 → P5 → test)
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_gated_head.sbatch
 # after best.pt:
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_gated_full.sbatch
@@ -151,7 +151,7 @@ OUT=multisenge_utae/results/concat_utae/run_c10_full_v0 \
 
 Monitor: `squeue -u rihak_iitp` · log: `tail -f multisenge_utae/artifacts/slurm-<JOBID>.out`
 
-If job fails in ~1 min with `.err`: `CONDA_BACKUP_QT_XCB_GL_INTEGRATION: unbound variable` — fixed in sbatch (`set -eo pipefail`, not `-u` with `module purge`). Run `git pull`.
+If job fails in ~1 min with `.err`: `CONDA_BACKUP_QT_XCB_GL_INTEGRATION: unbound variable` - fixed in sbatch (`set -eo pipefail`, not `-u` with `module purge`). Run `git pull`.
 
 **GPU node status (PARAM):**
 
@@ -161,7 +161,7 @@ sinfo -N -p gpu -o "%N %T %C %G"
 
 `STATE`: `idle` / `mixed` / `down` / `drained` · `GRES`: `gpu:2` per node · `CPUS(A/I/O/T)`: allocated / idle / other / total.
 
-**Jobs per node (find a free GPU slot — need fewer than 2 running on `gpu:2`):**
+**Jobs per node (find a free GPU slot - need fewer than 2 running on `gpu:2`):**
 
 ```bash
 for n in ragpu003 ragpu004 ragpu006 ragpu008; do
@@ -170,7 +170,7 @@ for n in ragpu003 ragpu004 ragpu006 ragpu008; do
 done
 ```
 
-## P3 — layer probes (L0–L3)
+## P3 - layer probes (L0–L3)
 
 Frozen U-TAE encoder; fit a **linear** pixel classifier on train tiles, score on **val** (31UFP+31UGP). Uses P4 `best.pt` for weights + `norm_stats` (encoder was not updated in P4).
 
@@ -249,4 +249,4 @@ python -m multisenge_utae.export_notes \
 
 Or use `sbatch multisenge_utae/eval.sbatch` (test eval + auto `.md`).
 
-**Results:** P4 head — [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/concat_utae/run_c6_head_v0/best_metrics.json`](results/concat_utae/run_c6_head_v0/best_metrics.json) · test [`results/concat_utae/run_c6_head_v0/test_metrics.json`](results/concat_utae/run_c6_head_v0/test_metrics.json) · P3 [`results/concat_utae/probe_c6_v0/probe_summary_linear.md`](results/concat_utae/probe_c6_v0/probe_summary_linear.md).
+**Results:** P4 head - [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/concat_utae/run_c6_head_v0/best_metrics.json`](results/concat_utae/run_c6_head_v0/best_metrics.json) · test [`results/concat_utae/run_c6_head_v0/test_metrics.json`](results/concat_utae/run_c6_head_v0/test_metrics.json) · P3 [`results/concat_utae/probe_c6_v0/probe_summary_linear.md`](results/concat_utae/probe_c6_v0/probe_summary_linear.md).

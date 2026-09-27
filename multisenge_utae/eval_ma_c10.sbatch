@@ -1,5 +1,5 @@
 #!/bin/bash
-# PARAM: MA-UTAE 10-class test eval (gated or concat — fusion read from ckpt meta).
+# PARAM: MA-UTAE 10-class test eval (gated or concat - fusion read from ckpt meta).
 #   CKPT=multisenge_utae/checkpoints/ma_c10_gated_full_v0/best.pt \
 #   OUT=multisenge_utae/results/ma_utae/ma_c10_gated_full_v0 \
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval_ma_c10.sbatch

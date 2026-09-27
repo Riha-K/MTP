@@ -575,7 +575,7 @@ def main():
     )
     parts.append(
         "- **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. "
-        "MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower — full FT did not help that branch."
+        "MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower - full FT did not help that branch."
     )
     parts.append(
         "- **10c:** Concat P5 beats **our** A4 but not the **paper**. Stronger motivation for Task M / Task H."

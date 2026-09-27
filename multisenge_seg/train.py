@@ -103,7 +103,7 @@ def estimate_class_counts_from_gr(
 ) -> np.ndarray:
     """Inverse-frequency weights from all train GR masks (paper: full train set).
 
-    Reads ground_reference only — not S1/S2 — so a full train scan is cheap.
+    Reads ground_reference only - not S1/S2 - so a full train scan is cheap.
     """
     import rasterio
 
@@ -134,7 +134,7 @@ def estimate_channel_stats(
         raise RuntimeError("no train patches for stats")
     s1_sum = s1_sq = s2_sum = s2_sq = None
     pixels = 0
-    # Read raw by temporarily bypassing normalize: use per-sample identity via fake mean0 std1 then undo — easier: load via dataset internals
+    # Read raw by temporarily bypassing normalize: use per-sample identity via fake mean0 std1 then undo - easier: load via dataset internals
     import rasterio
 
     for i in range(n):

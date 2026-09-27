@@ -12,8 +12,8 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 
 | Run | test_metrics.json | history_plot.png | Notes |
 |-----|:-----------------:|:----------------:|-------|
-| Paper 6c (Table 5/6) | - | - | Transcribed — [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md) |
-| Paper 10c (Table 7/8) | - | - | Transcribed — S1 W-F1 **0.8055** / κ **0.6422**; S2 **0.8696** / **0.7445**; Inc **0.8851** / **0.7945** |
+| Paper 6c (Table 5/6) | - | - | Transcribed - [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md) |
+| Paper 10c (Table 7/8) | - | - | Transcribed - S1 W-F1 **0.8055** / κ **0.6422**; S2 **0.8696** / **0.7445**; Inc **0.8851** / **0.7945** |
 | A4 6c last.pt (report) | [ok] `multisenge_seg/results/run_c6_v0/last_test_metrics.json` | - | Report row |
 | A4 6c best.pt | [ok] `.../test_metrics.json` | - | Not the report row |
 | A4 10c best.pt | [ok] `multisenge_seg/results/run_c10_v0/test_metrics.json` | - |  |
@@ -30,20 +30,20 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | MA concat 6c P4 | [ok] | [todo] | W-F1 **0.9218** / κ **0.4961** |
 | MA concat 6c P5 | [ok] | [todo] | W-F1 **0.9143** / κ **0.4672** |
 | **MA gated 10c P4** | [ok] | [ok] | W-F1 **0.8430** / κ **0.7061** |
-| **MA gated 10c P5** | [ok] | [ok] | W-F1 **0.8834** / κ **0.7895** — near paper |
+| **MA gated 10c P5** | [ok] | [ok] | W-F1 **0.8834** / κ **0.7895** - near paper |
 | **MA concat 10c P4** | [ok] | [ok]? | W-F1 **0.8547** / κ **0.7273** (plot if present) |
-| **MA concat 10c P5** | [ok] | [ok] | W-F1 **0.8885** / κ **0.7950** — **beats paper Inc** (+0.0034 / +0.0005) |
+| **MA concat 10c P5** | [ok] | [ok] | W-F1 **0.8885** / κ **0.7950** - **beats paper Inc** (+0.0034 / +0.0005) |
 | **S1-only 10c P4** | [ok] | [no plot] | W-F1 **0.7342** / κ **0.5396** (history plot missing on PARAM) |
 | **S2-only 10c P4** | [ok] | [ok] | W-F1 **0.8437** / κ **0.7152** |
-| **S1-only 10c P5** | [ok] | [ok] | W-F1 **0.8365** / κ **0.6939** — beats paper S1 (+0.031 / +0.052) |
-| **S2-only 10c P5** | [ok] | [ok] | W-F1 **0.8865** / κ **0.7945** — beats paper S2 (+0.017 / +0.050) |
-| Task H | [deferred] | — | **Future work** — not needed for Task M write-up |
+| **S1-only 10c P5** | [ok] | [ok] | W-F1 **0.8365** / κ **0.6939** - beats paper S1 (+0.031 / +0.052) |
+| **S2-only 10c P5** | [ok] | [ok] | W-F1 **0.8865** / κ **0.7945** - beats paper S2 (+0.017 / +0.050) |
+| Task H | [deferred] | - | **Future work** - not needed for Task M write-up |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
 
 ### Status (2026-09-23)
 
 **Task M closed** on 6c + 10c (fusion + S1/S2 ablations).  
-**Task H (hierarchy A1+A2):** **skip / defer** — optional future work on MA concat 10c if we want extra UF / Dense↔Sparse gains. Not required to claim Task M.
+**Task H (hierarchy A1+A2):** **skip / defer** - optional future work on MA concat 10c if we want extra UF / Dense↔Sparse gains. Not required to claim Task M.
 
 **Paper-facing one-winner lanes** (full tables → §1.3):
 
@@ -100,11 +100,11 @@ _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/m
 
 ### 1.3 Deltas vs fair paper row (6c alone / 10c alone)
 
-#### 6c — MA gated / concat vs paper Inc (0.9018 / 0.4186)
+#### 6c - MA gated / concat vs paper Inc (0.9018 / 0.4186)
 
 | Model | Phase | W-F1 | κ | Δ W-F1 | Δ κ |
 |-------|-------|-----:|--:|-------:|----:|
-| Paper Inc | — | 0.9018 | 0.4186 | — | — |
+| Paper Inc | - | 0.9018 | 0.4186 | - | - |
 | Stock Concat U-TAE | **P5** | **0.9387** | **0.5757** | **+0.0369** | **+0.1571** |
 | MA gated | P5 | 0.9353 | 0.5520 | +0.0335 | +0.1334 |
 | MA gated | P4 | 0.9169 | 0.4705 | +0.0151 | +0.0519 |
@@ -114,11 +114,11 @@ _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/m
 **6c S1** vs paper S1 (0.9001 / 0.3929): P4 **+0.011 / +0.005** · P5 **−0.003 / −0.039**  
 **6c S2** vs paper S2 (0.8958 / 0.4223): P4 **+0.021 / +0.044** · P5 **+0.024 / +0.059**
 
-#### 10c — MA gated / concat vs paper Inc (0.8851 / 0.7945)
+#### 10c - MA gated / concat vs paper Inc (0.8851 / 0.7945)
 
 | Model | Phase | W-F1 | κ | Δ W-F1 | Δ κ |
 |-------|-------|-----:|--:|-------:|----:|
-| Paper Inc | — | 0.8851 | 0.7945 | — | — |
+| Paper Inc | - | 0.8851 | 0.7945 | - | - |
 | **MA concat** | **P5** | **0.8885** | **0.7950** | **+0.0034** | **+0.0005** |
 | MA gated | P5 | 0.8834 | 0.7895 | −0.0017 | −0.0050 |
 | Stock Concat U-TAE | P5 | 0.8811 | 0.7795 | −0.0040 | −0.0150 |
@@ -408,7 +408,7 @@ Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 
 ### 3.2 Per-class Precision / Recall / Sens / Spec / F1
 
-#### Paper Table 7 / 8 (RS 2023) — full transcription in [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md)
+#### Paper Table 7 / 8 (RS 2023) - full transcription in [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md)
 
 | Model | W-P | W-R | **W-F1** | **Kappa** |
 |-------|----:|----:|---------:|----------:|
@@ -449,7 +449,7 @@ Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 | 10 | 0.4654 | 0.7074 | 0.5614 |
 | **W-Avg** | 0.8977 | 0.8831 | **0.8851** |
 
-#### S2-only P5 test (PARAM **104890**) — on laptop
+#### S2-only P5 test (PARAM **104890**) - on laptop
 
 | Class | Precision | Recall | Sens | Spec | F1 |
 |------:|----------:|-------:|-----:|-----:|---:|
@@ -467,7 +467,7 @@ Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 
 Acc 0.8819 | Kappa **0.7945** | Mean F1 0.6230 · `results/concat_utae/run_c10_s2_full_v0/`
 
-#### S1-only P5 test (PARAM **104835**) — on laptop
+#### S1-only P5 test (PARAM **104835**) - on laptop
 
 | Class | Precision | Recall | Sens | Spec | F1 |
 |------:|----------:|-------:|-----:|-----:|---:|
@@ -600,8 +600,8 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - **Fair modality match:** S1-only vs paper **ConvLSTM-S1**, S2-only vs **ConvLSTM-S2** (not vs Inception-S1S2). Full 6c+10c tables: [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md).
 - **6c S1 vs paper ConvLSTM-S1 (Table 6 κ=0.3929):** P4 = +0.011 W-F1 / +0.0045 κ; P5 = −0.003 W-F1 / −0.039 κ.
 - **6c S2 vs paper ConvLSTM-S2 (Table 6 κ=0.4223):** P4 +0.021 / +0.0435; P5 +0.024 / +0.059.
-- **10c S1 vs paper ConvLSTM-S1 (0.8055 / 0.6422):** P4 test **below** (−0.071 / −0.103). **P5 test** (**104835**) **above** — W-F1 **0.8365** / κ **0.6939** → **+0.031 / +0.052**.
-- **10c S2 vs paper ConvLSTM-S2 (0.8696 / 0.7445):** P4 test below (−0.026 / −0.029). **P5 test** (**104890**) **above** — W-F1 **0.8865** / κ **0.7945** → **+0.017 / +0.050**. (κ matches paper Inc by coincidence — do not claim S2 beats fusion.)
+- **10c S1 vs paper ConvLSTM-S1 (0.8055 / 0.6422):** P4 test **below** (−0.071 / −0.103). **P5 test** (**104835**) **above** - W-F1 **0.8365** / κ **0.6939** → **+0.031 / +0.052**.
+- **10c S2 vs paper ConvLSTM-S2 (0.8696 / 0.7445):** P4 test below (−0.026 / −0.029). **P5 test** (**104890**) **above** - W-F1 **0.8865** / κ **0.7945** → **+0.017 / +0.050**. (κ matches paper Inc by coincidence - do not claim S2 beats fusion.)
 - **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower.
 - **10c Task M:** **MA concat P5** W-F1 **0.8885** / κ **0.7950** **beats paper Inc** (0.8851 / 0.7945) and gated P5 (0.8834 / 0.7895). On 10c, concat fuse > gated (opposite of 6c, where gated led among MA).
 - **Task H:** **deferred** (future work). Not required for Task M write-up.

@@ -5,7 +5,7 @@
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
 #SBATCH -t 24:00:00
-# IMPORTANT: absolute paths — Slurm does NOT expand ~
+# IMPORTANT: absolute paths - Slurm does NOT expand ~
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_seg/artifacts/slurm-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_seg/artifacts/slurm-%j.err
 

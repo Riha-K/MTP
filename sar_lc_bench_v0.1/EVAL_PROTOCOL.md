@@ -1,21 +1,21 @@
-# Evaluation protocol — SAR-LC-Bench v0.1
+# Evaluation protocol - SAR-LC-Bench v0.1
 
 ## 1. Tasks
 
 Each MultiSenGE test patch defines **three** prompts:
 
-### A — Multi-label classification
+### A - Multi-label classification
 
 - **Input:** Sentinel-1 VH GeoTIFF (256×256, 10 m) + classify instruction with the full class option list.
 - **Output:** comma-separated OCSGE class names (all that apply).
-- **Metric:** **example F1** — for each patch, F1 between predicted and GT class-name sets; mean over patches.
+- **Metric:** **example F1** - for each patch, F1 between predicted and GT class-name sets; mean over patches.
 
-### B — Dialogue turn 1
+### B - Dialogue turn 1
 
 - **Question:** list all land-cover classes present.
 - **Metric:** **set-match accuracy** (exact set equality after normalization).
 
-### C — Dialogue turn 2
+### C - Dialogue turn 2
 
 - **Question:** which of these are natural or agricultural (class IDs 6–15).
 - **Metric:** **set-match accuracy**.
@@ -43,7 +43,7 @@ Primary leaderboard column: **example F1**.
 | 13 | Wetlands | Wetlands |
 | 14 | Water Surfaces | Water |
 
-**MultiSenNA transfer** adds class **15 — Beaches, Sand** in the option list (not present in GE train labels).
+**MultiSenNA transfer** adds class **15 - Beaches, Sand** in the option list (not present in GE train labels).
 
 ---
 
@@ -92,7 +92,7 @@ Do **not** gate conversion on per-patch max/min. Reference: `lulcdial/s1_vh_io.p
 | `turn*_set_match_accuracy` | Exact set equality (strict; primary for dialogue “accuracy”) |
 | `turn*_example_f1` | Soft: same example F1 as classify on that turn (secondary) |
 
-On post-fix LULCDial GE preds, turn-1 **set-match ≈ 0.13** but turn-1 **example F1 ≈ 0.81** (≈ classify) — the model names the right classes conversationally but often fails exact-set equality.
+On post-fix LULCDial GE preds, turn-1 **set-match ≈ 0.13** but turn-1 **example F1 ≈ 0.81** (≈ classify) - the model names the right classes conversationally but often fails exact-set equality.
 
 Reference scorer:
 
@@ -126,6 +126,6 @@ Dialogue **improvement track:** [`LULCDial-s1/docs/DIALOGUE_IMPROVE.md`](../LULC
 | Claim | Yes / No |
 |-------|----------|
 | SAR-VLM bench on official **14-class OCSGE** with classify + dialogue | Yes |
-| New raster dataset release | No — protocol on AI4LCC patches |
+| New raster dataset release | No - protocol on AI4LCC patches |
 | Multitemporal S1 stack | No (v0.1 = single date) |
 | Pixel segmentation | No (patch multi-label) |

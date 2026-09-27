@@ -78,7 +78,7 @@ class VGG16UNet(nn.Module):
     """U-Net with VGG-16-style encoder (paper backbone), arbitrary in_ch.
 
     Encoder depths match VGG-16: 2 / 2 / 3 / 3 / 3 convs at 64 / 128 / 256 / 512 / 512.
-    Trained from scratch — ImageNet RGB weights do not apply to fused feature maps.
+    Trained from scratch - ImageNet RGB weights do not apply to fused feature maps.
     """
 
     def __init__(self, in_ch: int, num_classes: int) -> None:
@@ -161,7 +161,7 @@ class ConvLSTMInceptionS1S2(nn.Module):
 
 
 def smoke_forward(device: str = "cpu") -> tuple[torch.Tensor, tuple[int, ...]]:
-    """Random tensors forward — verifies shapes without rasters."""
+    """Random tensors forward - verifies shapes without rasters."""
     model = ConvLSTMInceptionS1S2(s1_ch=2, s2_ch=10, num_classes=6).to(device)
     s1 = torch.randn(1, 4, 2, 64, 64, device=device)
     s2 = torch.randn(1, 4, 10, 64, 64, device=device)

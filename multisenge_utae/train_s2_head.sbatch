@@ -1,5 +1,5 @@
 #!/bin/bash
-# Task M ablation: U-TAE S2-only (10ch) 6c P4 head — like paper ConvLSTM-S2.
+# Task M ablation: U-TAE S2-only (10ch) 6c P4 head - like paper ConvLSTM-S2.
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_s2_head.sbatch
 #SBATCH -J utae_s2_head
 #SBATCH -N 1

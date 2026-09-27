@@ -1,4 +1,4 @@
-# RS 2023 replicate — 10-class test results vs paper
+# RS 2023 replicate - 10-class test results vs paper
 
 Independent reimplementation of **ConvLSTM+Inception-S1S2** (Wenger et al., *Remote Sensing* 2023, §4.2, Table 7 & 8).
 
@@ -27,4 +27,4 @@ Gap: grassland (low recall) and water (low precision); rare urban class 4 still 
 
 ## Status
 
-10-class **frozen** on v0. Extra reweight/seed runs did not beat this test table — discarded from repo. Next optional: **A5**.
+10-class **frozen** on v0. Extra reweight/seed runs did not beat this test table - discarded from repo. Next optional: **A5**.

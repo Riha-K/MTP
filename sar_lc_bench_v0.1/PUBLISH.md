@@ -16,7 +16,7 @@ Until then, keep drafting in this research tree under `sar_lc_bench_v0.1/`.
 |------|------------|----------|
 | **This research repo** (`MTP`) | Private or as-is | Training code, PARAM notes, writeup, experiments |
 | **New public repo** e.g. `SAR-LC-Bench` | **Public** | Only `sar_lc_bench_v0.1/` contents (+ optional slim eval copy) |
-| **Zenodo** (free) | Public | Compact TIFF zips (~2497 GE test + bi-temporal pack) — **not** full 110 GB AI4LCC |
+| **Zenodo** (free) | Public | Compact TIFF zips (~2497 GE test + bi-temporal pack) - **not** full 110 GB AI4LCC |
 
 ## Steps when you are ready to go public
 
@@ -37,7 +37,7 @@ git remote add origin https://github.com/<you>/SAR-LC-Bench.git
 git push -u origin main
 ```
 
-3. Upload **large** TIFF packs via **Zenodo** (preferred DOI) or GitHub Release — not via `git add` of tens of GB.
+3. Upload **large** TIFF packs via **Zenodo** (preferred DOI) or GitHub Release - not via `git add` of tens of GB.
 4. Optionally mirror JSONL + leaderboard on **Hugging Face Datasets**.
 5. In the paper: link the public GitHub URL + Zenodo DOI.
 

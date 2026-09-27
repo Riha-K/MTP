@@ -244,7 +244,7 @@ class MultiSenGETemporalDataset:
     def _normalize(self, x, mean, std):
         import numpy as np
 
-        # x: T,C,H,W — paper: multitemporal channel mean/std
+        # x: T,C,H,W - paper: multitemporal channel mean/std
         if mean is not None and std is not None:
             m = mean.reshape(1, -1, 1, 1)
             s = std.reshape(1, -1, 1, 1)
@@ -293,7 +293,7 @@ class MultiSenGETemporalDataset:
                 s1 = src.read().astype(np.float32)
             s1_stack.append(s1)
 
-        s2 = np.stack(s2_stack, axis=0)  # T,C,H,W — paper: 10 S2 bands
+        s2 = np.stack(s2_stack, axis=0)  # T,C,H,W - paper: 10 S2 bands
         s1 = np.stack(s1_stack, axis=0)
         if self.s2_bands is None and s2.shape[1] > 10:
             s2 = s2[:, :10]

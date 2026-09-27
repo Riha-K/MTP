@@ -26,15 +26,15 @@ S2 → optical-specific encoder → S2 L-TAE  ─┘
 | `Wu_SkySense-VITA_…`             | In-context multimodal **seg**             | **Yes (broad RS classes)**               | Sky-VT-300k (176 cats, optical+SAR)                                | Align then fuse; not MultiSenGE-specific.                                                                         |
 | `Shu_TerraScope_…`               | VQA / pixel reasoning                     | **Partial** (land questions)             | Terra-CoT, TerraScope-Bench                                        | Adaptive optical vs SAR selection ≈ gating idea.                                                                  |
 | `Herzog_OlmoEarth_…`             | Multimodal EO FM                          | **Related** (WorldCover etc. in mix)     | S1, S2, Landsat + maps                                             | Foundation, not MultiSenGE LULC.                                                                                  |
-| `Chen_SpectralMoE_…`             | Domain-gen **seg** (spectral shift)       | **Partial**                              | Hyperspectral / multispectral / FLAIR-related                      | Dual-gated MoE — fusion idea, not S1/S2 LULC.                                                                     |
+| `Chen_SpectralMoE_…`             | Domain-gen **seg** (spectral shift)       | **Partial**                              | Hyperspectral / multispectral / FLAIR-related                      | Dual-gated MoE - fusion idea, not S1/S2 LULC.                                                                     |
 | `Zhang_FUSAR-GPT_…`              | SAR VLM                                   | **No** (caption / VQA on SAR)            | FUSAR-GEOVL                                                        | Supports “SAR needs own stack.”                                                                                   |
 | `Liu_CRFT_…`                     | Optical–SAR **registration**              | **No**                                   | Registration pairs                                                 | Alignment only.                                                                                                   |
 | `Zhao_MOS_…`                     | Ship **ReID** optical↔SAR                 | **No**                                   | Ship ReID                                                          | Modality gap, wrong task.                                                                                         |
-| `Weitzel_50Cities_…` (**CVPRW**) | Multimodal **urban land-cover seg**       | **Yes — LULC**                           | 50 Cities S1+S2                                                    | **Explicit S1-only vs S2-only vs both** (U-Net / SegFormer). Best “same model family, modality matters” citation. |
+| `Weitzel_50Cities_…` (**CVPRW**) | Multimodal **urban land-cover seg**       | **Yes - LULC**                           | 50 Cities S1+S2                                                    | **Explicit S1-only vs S2-only vs both** (U-Net / SegFormer). Best “same model family, modality matters” citation. |
 | `Forgaard_THOR_…` (**CVPRW**)    | EO foundation                             | **Yes (PASTIS etc.)**                    | PASTIS, CropMap, PANGAEA                                           | Land / crop segmentation benchmarks.                                                                              |
 
 
-**Summary:** First batch was mostly **architecture / FM / fusion**, not MultiSenGE-style urban LULC. Added **50 Cities** + **THOR** for LULC-facing evidence. Still **no CVPR 2026 MultiSenGE clone** — your RS 2023 MultiSenGE paper remains the fair LULC baseline.
+**Summary:** First batch was mostly **architecture / FM / fusion**, not MultiSenGE-style urban LULC. Added **50 Cities** + **THOR** for LULC-facing evidence. Still **no CVPR 2026 MultiSenGE clone** - your RS 2023 MultiSenGE paper remains the fair LULC baseline.
 
 ---
 
@@ -79,7 +79,7 @@ There are few CVPR 2026 papers that are **pure S1-only LULC** or **pure S2-only 
 
 ## 4. Practical recommendation
 
-1. Keep reporting **S1-only / S2-only / both** (you already have) — that *is* the modality-specific empirical story.
+1. Keep reporting **S1-only / S2-only / both** (you already have) - that *is* the modality-specific empirical story.
 2. For novelty: change MA-UTAE so **S1 encoder ≠ S2 encoder** (widths / SAR init / separate DINO-style stem), keep **separate L-TAEs** + gate.
 3. Cite **MM-OVSeg + TESSERA** for architecture; **50 Cities + RAMEN + your MultiSenGE numbers** for LULC / modality gap.
 

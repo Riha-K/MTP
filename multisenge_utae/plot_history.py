@@ -21,7 +21,7 @@ def plot_history(history: list[dict], out: Path, title: str) -> None:
         import matplotlib.pyplot as plt
     except ImportError as exc:
         raise SystemExit(
-            "matplotlib not installed — on PARAM try: pip install --user matplotlib"
+            "matplotlib not installed - on PARAM try: pip install --user matplotlib"
         ) from exc
 
     epochs = [int(r["epoch"]) for r in history]

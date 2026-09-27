@@ -8,7 +8,7 @@
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_seg/artifacts/slurm-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_seg/artifacts/slurm-%j.err
 
-# Test-eval last.pt (epoch 25) vs best.pt (epoch 5). GPU node — not login.
+# Test-eval last.pt (epoch 25) vs best.pt (epoch 5). GPU node - not login.
 set -eo pipefail
 cd /home/rihak_iitp/MTP/earth2
 echo "eval last.pt start $(date) host=$(hostname)"

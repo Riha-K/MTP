@@ -21,7 +21,7 @@ Sir PC + PARAM are only needed when you decide to retrain with the new dialogue 
 
 ---
 
-## Step A — Soft dialogue metrics (laptop, now)
+## Step A - Soft dialogue metrics (laptop, now)
 
 Exact set-match understates dialogue quality (classify F1≈0.81 but T1 set-match≈0.13). The scorer now also reports:
 
@@ -51,7 +51,7 @@ If MultiSenNA bench is missing locally, run only the GE command (or copy the JSO
 
 ---
 
-## Step B — Format-aligned dialogue prompts (code done)
+## Step B - Format-aligned dialogue prompts (code done)
 
 `build_dialogue_turns` now:
 
@@ -63,7 +63,7 @@ This is already in `lulcdial/instruct_templates.py`. **Old shards/bench still us
 
 ---
 
-## Step C — Rebuild shards + bench (sir PC)
+## Step C - Rebuild shards + bench (sir PC)
 
 Only when ready to retrain:
 
@@ -81,7 +81,7 @@ Optional dialogue-heavy continue-train later: duplicate dialogue samples in a sm
 
 ---
 
-## Step D — PARAM retrain + predict
+## Step D - PARAM retrain + predict
 
 1. Upload new shards (and new `ai4lcc_test.jsonl` if questions changed).  
 2. `sbatch` train → new or continued checkpoint (name e.g. `LULCDial_S1_v0.1_dlg`).  
@@ -91,7 +91,7 @@ Optional dialogue-heavy continue-train later: duplicate dialogue samples in a sm
 
 ---
 
-## Step E — Paper / package
+## Step E - Paper / package
 
 Update Table 1 footnote + `sar_lc_bench_v0.1/EVAL_PROTOCOL.md` with dual dialogue metrics after Step A numbers exist; update again after Step D.
 
@@ -102,7 +102,7 @@ Update Table 1 footnote + `sar_lc_bench_v0.1/EVAL_PROTOCOL.md` with dual dialogu
 | Step | Status |
 |------|--------|
 | A scorer + dialogue F1 | ✅ done on laptop for GE FT + ZS |
-| B templates | ✅ code ready — needs C+D to affect model |
+| B templates | ✅ code ready - needs C+D to affect model |
 | C rebuild | ⬜ sir PC |
 | D FT + predict | ⬜ PARAM |
 | E docs with new numbers | ✅ soft metrics in tables; model FT pending |

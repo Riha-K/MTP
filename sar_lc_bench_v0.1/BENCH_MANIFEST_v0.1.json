@@ -37,7 +37,7 @@
     "s1_ge_test_pack": {
       "logical_path": "data/ge/s1_test_bench/",
       "expected_tif_count": 2497,
-      "notes": "Pack of VH GeoTIFFs referenced by ge_test_jsonl; do not store in Git — use GitHub Release / Zenodo / HF."
+      "notes": "Pack of VH GeoTIFFs referenced by ge_test_jsonl; do not store in Git - use GitHub Release / Zenodo / HF."
     }
   },
   "taxonomy": {

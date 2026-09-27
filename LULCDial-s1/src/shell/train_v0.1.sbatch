@@ -10,7 +10,7 @@
 #SBATCH -e /home/rihak_iitp/ft_v01_%j.err
 #
 # Fine-tune MultiSenGE 70/30 → LULCDial_S1_v0.1
-# Do NOT force CUDA_VISIBLE_DEVICES=0 — let Slurm assign the free GPU.
+# Do NOT force CUDA_VISIBLE_DEVICES=0 - let Slurm assign the free GPU.
 # sbatch ~/MTP/earth2/LULCDial-s1/src/shell/train_v0.1.sbatch
 
 module purge

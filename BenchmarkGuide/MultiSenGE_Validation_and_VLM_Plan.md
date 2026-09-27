@@ -1,10 +1,10 @@
 # MultiSenGE Validation + VLM Extension Plan
 
-**(A) Validation** — improve MultiSenGE **pixel segmentation** results with a modern model under a fair protocol.  
-**(B) Extension** — show MultiSenGE (and MultiSenNA) are useful for **VLM** LULC classify + dialogue + regional transfer.  
+**(A) Validation** - improve MultiSenGE **pixel segmentation** results with a modern model under a fair protocol.  
+**(B) Extension** - show MultiSenGE (and MultiSenNA) are useful for **VLM** LULC classify + dialogue + regional transfer.  
 EarthDial / LULCDial-S1 = **tool for (B)**, not the claimed base contribution.
 
-> **Active CNN path (locked):** Remote Sensing 2023 ConvLSTM+Inception-S1S2 (geographic tile split, 4-date S1+S2). Metz-only / single-date IRRG ideas below are **historical survey notes — not the active plan**.
+> **Active CNN path (locked):** Remote Sensing 2023 ConvLSTM+Inception-S1S2 (geographic tile split, 4-date S1+S2). Metz-only / single-date IRRG ideas below are **historical survey notes - not the active plan**.
 
 ---
 
@@ -38,7 +38,7 @@ Data download (not a paper): [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4
 | Task    | Pixel semantic segmentation                                               |
 | Place   | **Metz / tile T31UGQ** (not all 8,157 patches)                            |
 | Classes | Urban **1–5** + aggregated **other** → **6 classes**                      |
-| Input   | **Single-date Sentinel-2 IRRG** (3 bands) — **no S1**, **no time series** |
+| Input   | **Single-date Sentinel-2 IRRG** (3 bands) - **no S1**, **no time series** |
 | Model   | U-Net + VGG-16                                                            |
 | Metric  | **Weighted F1**                                                           |
 | Numbers | U-Net-IRRG **0.7364**; U-Net-Index **0.7214**                             |
@@ -94,7 +94,7 @@ Data download (not a paper): [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4
 | Best quoted | MultiSenNA wF1 **83.17%** (FT from GE); MultiSenGE wF1 **86.47%** (FT from NA) in their Table 2 |
 
 
-**Takeaway:** Their “transfer” is **CNN weight fine-tuning** and sustainability. Your LULCDial **zero-shot / no-NA-train** VLM MultiSenNA F1 **0.679** is another transfer story — report side-by-side as different modalities/tasks.
+**Takeaway:** Their “transfer” is **CNN weight fine-tuning** and sustainability. Your LULCDial **zero-shot / no-NA-train** VLM MultiSenNA F1 **0.679** is another transfer story - report side-by-side as different modalities/tasks.
 
 ---
 
@@ -147,14 +147,14 @@ Data download (not a paper): [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4
                               |
           +-------------------+-------------------+
           |                                       |
-   PILLAR A — VALIDATION                    PILLAR B — EXTENSION
+   PILLAR A - VALIDATION                    PILLAR B - EXTENSION
    Pixel LULC segmentation                  VLM usability of same taxonomy
           |                                       |
    Multitemp S1+S2 (RS 2023)                SAR-LC-Bench (classify + 2-turn)
    replicate ConvLSTM+Inception             LULCDial-S1 (EarthDial FT)
           |                                       |
    Advanced model same protocol             MultiSenNA regional transfer
-                                            (no NA training — already F1 0.679)
+                                            (no NA training - already F1 0.679)
 ```
 
 Live phase checklist: root [`ROADMAP.md`](../ROADMAP.md). VLM work is **B** (done). Missing for professor is **CNN replicate + advanced model**.
@@ -164,10 +164,10 @@ Live phase checklist: root [`ROADMAP.md`](../ROADMAP.md). VLM work is **B** (don
 ## 8. What to do **next** (locked with professor)
 
 1. RS-2023 ConvLSTM+Inception-S1S2 only (Metz IRRG path dropped).  
-2. S2 + ground_reference already on disk — next is protocol fidelity + PARAM train.  
+2. S2 + ground_reference already on disk - next is protocol fidelity + PARAM train.  
 3. Email authors for model code; reimplement continues in `multisenge_seg/`.  
 4. Train replicate on PARAM → advanced model under same protocol.  
-5. Keep LULCDial numbers frozen for Extension § — separate tables from CNN.
+5. Keep LULCDial numbers frozen for Extension § - separate tables from CNN.
 
 ---
 
@@ -198,7 +198,7 @@ Live phase checklist: root [`ROADMAP.md`](../ROADMAP.md). VLM work is **B** (don
 
 - **Published MultiSenGE DL work (2022–2025)** mostly upgrades **data usage** (time + S1) and **transfer/carbon**, still on a **ConvLSTM+U-Net** backbone family.  
 - Professor wants **validation**: modern CNN/transformer on a **locked MultiSenGE protocol** with clear metric gains.  
-- Your VLM + MultiSenNA work is the **extension** that makes the thesis broader — keep it, but **add Pillar A next**.  
+- Your VLM + MultiSenNA work is the **extension** that makes the thesis broader - keep it, but **add Pillar A next**.  
 - **Next build step:** Metz IRRG 6-class reproduce + SegFormer/DeepLab beat **0.7364**.
 
 ---

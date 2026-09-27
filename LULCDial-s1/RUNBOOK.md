@@ -1,4 +1,4 @@
-# LULCDial-S1 — Runbook (copy-paste commands)
+# LULCDial-S1 - Runbook (copy-paste commands)
 
 > **Pillar B (VLM) only:** data → bench → zero-shot → fine-tune → eval → MultiSenNA  
 > **Workspace:** `e:\MTP\earth2\` · **This file lives in:** `LULCDial-s1/`  
@@ -14,7 +14,7 @@
 
 | File | What it is |
 |------|------------|
-| **`../ROADMAP.md`** | Whole project — CNN validation next |
+| **`../ROADMAP.md`** | Whole project - CNN validation next |
 | **`RUNBOOK.md`** (this file) | LULCDial/VLM commands + PARAM env pins |
 | **`ROADMAP_VLM.md`** | Older VLM-only roadmap (archive) |
 | **`../log.md`** | What changed / when / results |
@@ -36,7 +36,7 @@
 | **Laptop**          | Code, docs, smoke tests (`--max-patches`), git, monitoring    |
 
 
-**Rule:** After shards + bench are built, copy only prepared artifacts to GPU server — not full 110 GB raw S1 unless needed.
+**Rule:** After shards + bench are built, copy only prepared artifacts to GPU server - not full 110 GB raw S1 unless needed.
 
 ---
 
@@ -49,12 +49,12 @@
 | **1A** MultiSenNA bench | **DONE** | `bench/v0.1/multisenna_bench.jsonl` (~12k) on PARAM |
 | **1B** EarthDial ZS | **DONE** | `metrics/v0.1/earthdial_zs_baseline.json` (F1 ≈ 0.0194) |
 | **1C-a** 25% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p25/`; train metrics in `metrics/v0.1/train_p25/` |
-| **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` — F1 **0.782** vs ZS **0.019** |
+| **1D** p25 vs ZS | **DONE** | `metrics/v0.1/lulcdial_p25.json` - F1 **0.782** vs ZS **0.019** |
 | **1C-b** 50% fine-tune | **DONE** | `checkpoints/LULCDial_S1_p50/`; train `metrics/v0.1/train_p50/` |
-| **1D** p50 vs ZS/p25 | **DONE** | `metrics/v0.1/lulcdial_p50.json` — F1 **0.783** (≈ p25 **0.782**) |
+| **1D** p50 vs ZS/p25 | **DONE** | `metrics/v0.1/lulcdial_p50.json` - F1 **0.783** (≈ p25 **0.782**) |
 | **1C-c** 100% | **DONE** | `checkpoints/LULCDial_S1_v0.1/`; train `metrics/v0.1/train_v0.1/` |
-| **1D** 100% vs curve | **DONE** | `metrics/v0.1/lulcdial_v0.1.json` — F1 **0.799** |
-| **MultiSenNA** transfer | **NEXT** | Stage 2 — eval GE model on NA bench |
+| **1D** 100% vs curve | **DONE** | `metrics/v0.1/lulcdial_v0.1.json` - F1 **0.799** |
+| **MultiSenNA** transfer | **NEXT** | Stage 2 - eval GE model on NA bench |
 
 ---
 
@@ -91,7 +91,7 @@ e:\MTP\earth2\
 
 ---
 
-## PARAM GPU env (locked 2026-07-10 — reuse for 1C)
+## PARAM GPU env (locked 2026-07-10 - reuse for 1C)
 
 **Login:** `ssh rihak_iitp@paramrudra.iitp.ac.in` (CAPTCHA + password)  
 **Code:** `~/MTP/earth2/LULCDial-s1`  
@@ -103,7 +103,7 @@ e:\MTP\earth2\
 Interactive `salloc` + `tmux` **failed repeatedly**: SSH reset or exiting the outer `srun` shell kills the allocation (and tmux with it). Use **`sbatch`** for 1C fine-tunes.
 
 ```bash
-# on login01 — create once, then sbatch
+# on login01 - create once, then sbatch
 cat > ~/train_p25.sh << 'EOF'
 #!/bin/bash
 #SBATCH -N 1
@@ -112,7 +112,7 @@ cat > ~/train_p25.sh << 'EOF'
 #SBATCH --gres=gpu:1
 #SBATCH -t 04:00:00
 #SBATCH -J ft25
-# IMPORTANT: use absolute paths — Slurm does NOT expand ~
+# IMPORTANT: use absolute paths - Slurm does NOT expand ~
 #SBATCH -o /home/rihak_iitp/ft25_%j.out
 #SBATCH -e /home/rihak_iitp/ft25_%j.err
 
@@ -161,15 +161,15 @@ Done when `squeue` empty **and** checkpoint has model files (not only `runs/`).
 ```bash
 # on login01
 salloc -N 1 -n 4 -p gpu --gres=gpu:1 -t 04:00:00
-srun --pty bash          # MUST — else you stay on login01
+srun --pty bash          # MUST - else you stay on login01
 hostname                 # expect racn1XX / ragpu0XX
 
 module purge
-module load MLDL/Pytorch-gpu   # capital MLDL — not mldl/
-# prompt must show (Pytorch-gpu) — do NOT run conda deactivate (undoes the module)
+module load MLDL/Pytorch-gpu   # capital MLDL - not mldl/
+# prompt must show (Pytorch-gpu) - do NOT run conda deactivate (undoes the module)
 ```
 
-### Python pins (install on **login01** with `MLDL/Pytorch-gpu` loaded — Python **3.10**)
+### Python pins (install on **login01** with `MLDL/Pytorch-gpu` loaded - Python **3.10**)
 
 ```bash
 # MUST see Pytorch-gpu + 3.10 before any pip --user
@@ -186,8 +186,8 @@ pip install --user datasets imageio orjson shortuuid termcolor yacs tensorboardX
 pip install --user opencv-python-headless decord
 pip install --user "numpy==1.26.4"   # re-pin after opencv (it wants numpy 2.x)
 
-# NEVER: pip install in plain (base) / Python 3.13 — those packages are invisible to Pytorch-gpu
-# FlashAttention missing — OK; code falls back to eager attention
+# NEVER: pip install in plain (base) / Python 3.13 - those packages are invisible to Pytorch-gpu
+# FlashAttention missing - OK; code falls back to eager attention
 ```
 
 **Sanity (on GPU node after module load):**
@@ -208,21 +208,21 @@ huggingface-cli download akshaydudhane/EarthDial_4B_MS \
 
 ### Ops notes (hard-won)
 
-- Prefer **`sbatch`** for fine-tune — closing CMD / SSH drop does not kill the job.
-- Interactive `salloc`+`srun`+`tmux`: detach (`Ctrl+B` then `D`) is **not enough** if you then `exit` the outer `srun` shell or that SSH session dies — Slurm cancels the whole allocation.
+- Prefer **`sbatch`** for fine-tune - closing CMD / SSH drop does not kill the job.
+- Interactive `salloc`+`srun`+`tmux`: detach (`Ctrl+B` then `D`) is **not enough** if you then `exit` the outer `srun` shell or that SSH session dies - Slurm cancels the whole allocation.
 - `#SBATCH -o ~/…` does **not** expand `~` → logs go to literal `~/~/ft25_JOBID.out`. Use `/home/rihak_iitp/…`.
-- `git` missing on **compute** nodes — `git pull` only on **login01** (home is shared).
-- Prompt must say `(Pytorch-gpu)` before any `python` train command — not `(base)` / py3.13.
-- **Never** `conda deactivate` after `module load MLDL/Pytorch-gpu` — it drops you back to base without torch.
+- `git` missing on **compute** nodes - `git pull` only on **login01** (home is shared).
+- Prompt must say `(Pytorch-gpu)` before any `python` train command - not `(base)` / py3.13.
+- **Never** `conda deactivate` after `module load MLDL/Pytorch-gpu` - it drops you back to base without torch.
 - Do **not** nest `salloc` inside an existing job; cancel extras with `scancel`.
-- Compute nodes often have **no internet** — `pip` only on login01.
+- Compute nodes often have **no internet** - `pip` only on login01.
 - Fine-tune needs distributed launcher: use `python -m torch.distributed.run` (plain `python finetune.py` → `KeyError: RANK`).
-- DeepSpeed may JIT-compile ops and fail with `which c++` missing — on **1× A100 80GB**, omit `--deepspeed` (bf16 is enough for 4B).
+- DeepSpeed may JIT-compile ops and fail with `which c++` missing - on **1× A100 80GB**, omit `--deepspeed` (bf16 is enough for 4B).
 - Predict supports `--resume` (skips rows already in the pred JSONL).
-- Aborted mid-epoch runs leave only `runs/` (TensorBoard) — `save_strategy epoch` means **no weights** until epoch ends. Restart is a clean load of `EarthDial_4B_MS`.
+- Aborted mid-epoch runs leave only `runs/` (TensorBoard) - `save_strategy epoch` means **no weights** until epoch ends. Restart is a clean load of `EarthDial_4B_MS`.
 - **Never run two of your own jobs on the same node.** GPU nodes are `gpu:2`, so Slurm packs a second `--gres=gpu:1` job onto a partially-used node even when other nodes are idle. When the first job ends, node cleanup SIGKILLs your remaining processes (`ExitCode 0:9`, batch step `CANCELLED`). Killed `ft_v01` 92602 at step 82/127 seven seconds after `zs_v01` 92607 completed on `racn115`.
 - Run fine-tune **alone** (`squeue -u $USER` empty first). To parallelise a predict job, pin it away: `sbatch --exclude=<train_node> …` or `--nodelist=ragpu003`. Idle nodes in `sinfo` are **not** a guarantee of placement.
-- Memory flags are useless here — `SelectTypeParameters = CR_CORE`, `RealMemory=1`, `CfgTRES=mem=1M`. `--mem` is not enforced; diagnose kills via `sacct -j <id> --format=JobID,State,ExitCode,Start,End,NodeList,MaxRSS -P`.
+- Memory flags are useless here - `SelectTypeParameters = CR_CORE`, `RealMemory=1`, `CfgTRES=mem=1M`. `--mem` is not enforced; diagnose kills via `sacct -j <id> --format=JobID,State,ExitCode,Start,End,NodeList,MaxRSS -P`.
 
 ### 1C-a flags (must-haves)
 
@@ -238,7 +238,7 @@ Full launch command: see **Prefer `sbatch`** block above (same flags as the inte
 
 
 
-## Step 0 — Setup (any machine)
+## Step 0 - Setup (any machine)
 
 ```powershell
 cd e:\MTP\earth2
@@ -261,7 +261,7 @@ Expected: `8157` patches.
 
 
 
-## Step 1A — Build training data (MultiSenGE)
+## Step 1A - Build training data (MultiSenGE)
 
 
 
@@ -340,11 +340,11 @@ python -m lulcdial.build_bench ^
 
 
 
-## Step 1B — Zero-shot baseline (before fine-tune)
+## Step 1B - Zero-shot baseline (before fine-tune)
 
 **Model:** `EarthDial_4B_MS` (no AI4LCC fine-tune yet)  
 **Eval data:** `bench/v0.1/ai4lcc_val.jsonl` (801 rows)  
-**Need on GPU server:** model weights + **val S1 TIFFs** (not full 110 GB — only files listed in the bench)
+**Need on GPU server:** model weights + **val S1 TIFFs** (not full 110 GB - only files listed in the bench)
 
 ### 1B.0 Pack + upload val S1 only (~801 files)
 
@@ -383,7 +383,7 @@ python -m lulcdial.predict_zero_shot \
   --out-pred-jsonl data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl \
   --max-samples 20
 
-# full (resume-safe) — ~47 min for 801 on A100
+# full (resume-safe) - ~47 min for 801 on A100
 python -m lulcdial.predict_zero_shot \
   --bench-jsonl data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl \
   --s1-root data/lulcdial_s1/ai4lcc/multisenge/s1_val_bench \
@@ -412,17 +412,17 @@ python -m lulcdial.eval_zero_shot \
 
 
 
-## Step 1C — Data-scaling fine-tune (25% → 50% → 100%)
+## Step 1C - Data-scaling fine-tune (25% → 50% → 100%)
 
 **Goal:** Prove the model **gains knowledge with more AI4LCC data** (not that a tiny subset already saturates).
 
 **Important:** The train folder’s 8 `.arrow` files are **one** dataset (~14710 samples), not 8 separate corpora. Scaling = **% of train patches / samples**, not “use 2 arrow files only.”
 
 **Rules:**
-- Same base every time: `EarthDial_4B_MS` (separate short runs — **not** one long continued train)
+- Same base every time: `EarthDial_4B_MS` (separate short runs - **not** one long continued train)
 - Same hyperparams across 25 / 50 / 100%
 - Same bench: `ai4lcc_val.jsonl` (801) + same `eval_zero_shot` scorer
-- **Do not** use “2 of 8 `.arrow` files” as 25% — subsample **rows** from the uploaded full train shard
+- **Do not** use “2 of 8 `.arrow` files” as 25% - subsample **rows** from the uploaded full train shard
 
 | Run | Train size (approx) | Checkpoint out | Metrics out |
 |-----|---------------------|----------------|-------------|
@@ -450,7 +450,7 @@ PY
 
 Then point `Stage4_LULCDial_S1.json` train `annotation` → `.../ai4lcc_ge_train_p25` (PARAM Linux path). Val stays `ai4lcc_ge_train_val`.
 
-### 1C-b setup (50%) — do tonight; train tomorrow
+### 1C-b setup (50%) - do tonight; train tomorrow
 
 **Same rules as p25:** fresh start from `EarthDial_4B_MS` (do **not** continue from p25), same hyperparams (`448`, batch 1, accum 128, `freeze_backbone`, no deepspeed).
 
@@ -459,7 +459,7 @@ Then point `Stage4_LULCDial_S1.json` train `annotation` → `.../ai4lcc_ge_train
 - Train: `src/shell/train_p50.sbatch` → out `checkpoints/LULCDial_S1_p50/`
 - Predict: `src/shell/pred_p50.sbatch` → `preds/lulcdial_p50/`
 
-#### Tonight on login01 — build p50 shard (CPU; needs `datasets`)
+#### Tonight on login01 - build p50 shard (CPU; needs `datasets`)
 
 ```bash
 cd ~/MTP/earth2/LULCDial-s1
@@ -486,7 +486,7 @@ python -c "from datasets import load_from_disk; print(len(load_from_disk('data/l
 
 Expect ~**7355** rows. Do **not** start `sbatch` tonight unless you want training overnight.
 
-#### Tomorrow — launch train
+#### Tomorrow - launch train
 
 ```bash
 # on login01 after git pull (if laptop pushed more)
@@ -497,7 +497,7 @@ tail -f ~/ft50_<JOBID>.out
 
 **ETA (p50):** ~**1.5–2.5 h** (~70 optimizer steps; ~2× p25 wall). Healthy first loss ≈ 2.4.
 
-#### After train — predict + score
+#### After train - predict + score
 
 ```bash
 sbatch ~/MTP/earth2/LULCDial-s1/src/shell/pred_p50.sbatch
@@ -517,15 +517,15 @@ Compare to `lulcdial_p25.json` (F1 ≈ 0.782) and ZS (F1 ≈ 0.019).
 - If **ZS ≪ 25% ≪ 100%** → genuine learning (good thesis plot)
 - If **25% ≈ 100%** → scaling weak; debug LR / epochs / templates before claiming full-data win
 
-**Optional later (after scaling — pick once):**
+**Optional later (after scaling - pick once):**
 - Light sentence wrappers around the **same** class names + scorer tweak
-- Relaxed F1 with aliases — report **beside** strict F1, never instead
+- Relaxed F1 with aliases - report **beside** strict F1, never instead
 
 ---
 
 
 
-## Step 1C (legacy block) — Fine-tune LULCDial-S1 v0.1 (GPU server)
+## Step 1C (legacy block) - Fine-tune LULCDial-S1 v0.1 (GPU server)
 
 > Prefer the **25 → 50 → 100%** plan above. Full 100% run is **1C-c**.
 
@@ -541,7 +541,7 @@ e:/MTP/earth2/LULCDial-s1/data/lulcdial_s1/shards/ai4lcc_ge_train_train
 e:/MTP/earth2/LULCDial-s1/data/lulcdial_s1/shards/ai4lcc_ge_train_val
 ```
 
-**Template command (PARAM — 1 GPU; do NOT use plain `python finetune.py`):**
+**Template command (PARAM - 1 GPU; do NOT use plain `python finetune.py`):**
 
 ```bash
 cd ~/MTP/earth2/LULCDial-s1/src
@@ -575,7 +575,7 @@ See also: `LULCDial-s1/src/EarthDial.sh` (example shell wrapper).
 
 
 
-## Step 1D — Eval fine-tuned model (same bench as 1B)
+## Step 1D - Eval fine-tuned model (same bench as 1B)
 
 1. Run inference with **LULCDial-S1 v0.1** checkpoint on same `ai4lcc_val.jsonl`.
 2. Save as e.g. `ai4lcc_val_predictions_lulcdial.jsonl`.
@@ -603,11 +603,11 @@ python -m lulcdial.eval_zero_shot ^
 
 
 
-## Step 2 — MultiSenNA transfer eval (NEXT)
+## Step 2 - MultiSenNA transfer eval (NEXT)
 
-**Never train on MultiSenNA.** Use GE checkpoint `LULCDial_S1_v0.1`. Full NA ~12k ≈ **8–12 h** GPU — **smoke 100 first**.
+**Never train on MultiSenNA.** Use GE checkpoint `LULCDial_S1_v0.1`. Full NA ~12k ≈ **8–12 h** GPU - **smoke 100 first**.
 
-### 2.0 On PARAM — verify bench + S1 images
+### 2.0 On PARAM - verify bench + S1 images
 
 ```bash
 cd ~/MTP/earth2/LULCDial-s1
@@ -708,9 +708,9 @@ Use same `eval_zero_shot.py` flow for scoring (never train on MultiSenNA).
 
 | Stage  | Command module                            | Exit artifact                   |
 | ------ | ----------------------------------------- | ------------------------------- |
-| **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl` — **DONE** |
-| **1B** | `predict_zero_shot` + `eval_zero_shot`    | `metrics/v0.1/earthdial_zs_baseline.json` — **DONE** |
-| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | p25 **0.782** · p50 **0.783** · 100% **0.799** — **DONE** |
+| **1A** | `build_instruct_s1`, `build_bench`        | shards + `ai4lcc_val.jsonl` - **DONE** |
+| **1B** | `predict_zero_shot` + `eval_zero_shot`    | `metrics/v0.1/earthdial_zs_baseline.json` - **DONE** |
+| **1C** | fine-tune 25% → 50% → 100% (separate runs from `EarthDial_4B_MS`) | p25 **0.782** · p50 **0.783** · 100% **0.799** - **DONE** |
 | **1D** | `eval_zero_shot` after each 1C run        | all GE metrics **DONE** · next MultiSenNA |
 | **2**  | `build_bench_multisenna`                  | `multisenna_bench.jsonl`        |
 

@@ -1,8 +1,8 @@
-# LULCDial-S1 — AI4LCC data prep
+# LULCDial-S1 - AI4LCC data prep
 
 > **Status:** v0.1 bench (70/30, 2497 test) + ZS + FT + MultiSenNA **done**. Commands: [`../RUNBOOK.md`](../RUNBOOK.md) · project plan: [`../../ROADMAP.md`](../../ROADMAP.md).
 
-## What you download (official AI4LCC — **not** the HF tile clips)
+## What you download (official AI4LCC - **not** the HF tile clips)
 
 | File | URL | Size | Required |
 |------|-----|------|----------|
@@ -10,7 +10,7 @@
 | S1 patches | https://s3.unistra.fr/a2s_datasets/MultiSenGE/s1.tgz | ~110 GB | ✅ **You download** |
 | Ground reference | https://s3.unistra.fr/a2s_datasets/MultiSenGE/ground_reference.tgz | ~25 MB | Optional |
 
-**Do not use** `wtr001/S1_AI4LCC` huge tile `.tif` files for training — those are reprocessed mosaics, not 256×256 patches.
+**Do not use** `wtr001/S1_AI4LCC` huge tile `.tif` files for training - those are reprocessed mosaics, not 256×256 patches.
 
 ## Folder layout (after extract)
 
@@ -71,7 +71,7 @@ python -m lulcdial.pack_bench_s1 ^
   --out-dir data/lulcdial_s1/ai4lcc/multisenge/s1_test_bench_v0.1
 ```
 
-2) On PARAM GPU — run EarthDial_4B_MS inference (full env pins in root `RUNBOOK.md`):
+2) On PARAM GPU - run EarthDial_4B_MS inference (full env pins in root `RUNBOOK.md`):
 ```bash
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
 python -m lulcdial.predict_zero_shot \
@@ -93,7 +93,7 @@ python -m lulcdial.eval_zero_shot ^
 Metrics: `data/lulcdial_s1/metrics/v0.1/`.  
 **Next:** MultiSenNA transfer with `LULCDial_S1_v0.1` (70/30 checkpoint; never train on NA).
 
-## MultiSenNA prep (Stage 2 transfer eval) — NEXT
+## MultiSenNA prep (Stage 2 transfer eval) - NEXT
 
 Bench JSONL (~12k) is already on PARAM (`bench/v0.1/multisenna_bench.jsonl` or under `bench/multisenna/`). **Do not train on NA.**
 

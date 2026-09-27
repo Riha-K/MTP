@@ -119,7 +119,7 @@ def evaluate(
 
         turn1_acc_sum += 1.0 if pd_turn1 == gt_turn1_set else 0.0
         turn2_acc_sum += 1.0 if pd_turn2 == gt_turn2_set else 0.0
-        # Soft dialogue metrics (same F1 as classify) — set-match alone understates content quality.
+        # Soft dialogue metrics (same F1 as classify) - set-match alone understates content quality.
         turn1_f1_sum += _f1_score(pd_turn1, gt_turn1_set)
         turn2_f1_sum += _f1_score(pd_turn2, gt_turn2_set)
 

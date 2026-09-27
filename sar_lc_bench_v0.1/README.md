@@ -28,7 +28,7 @@ Companion model (reported baseline): **LULCDial-S1** (EarthDial_4B_MS fine-tuned
 | [`PUBLISH.md`](PUBLISH.md) | How to release this as a **separate public GitHub repo** |
 
 Machine-readable bench rows live in the research tree as  
-`ai4lcc_test.jsonl` (and MultiSenNA `multisenna_bench.jsonl`) — see manifest.  
+`ai4lcc_test.jsonl` (and MultiSenNA `multisenna_bench.jsonl`) - see manifest.  
 **Do not** commit full MultiSenGE/MultiSenNA TIFF archives into Git.
 
 ---

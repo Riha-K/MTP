@@ -75,7 +75,7 @@ On 6c, P4 ≈ A4; on 10c, P4 collapses (−0.04 W-F1 vs A4). Encoder features al
 
 ## 2. Publishable directions (U-TAE only) - ranked
 
-> **Naming (2026-09-09):** Do **not** call novelty items P1/P2/P3 — those are reserved for breast-style **phases** (P3 probes / P4 head / P5 full).  
+> **Naming (2026-09-09):** Do **not** call novelty items P1/P2/P3 - those are reserved for breast-style **phases** (P3 probes / P4 head / P5 full).  
 > Use instead: **Task M** = MA-UTAE modality fusion · **Task H** = hierarchical agents · **Task C** = probe-guided curriculum (optional).  
 > Below, older “Priority 1/2/3” text means Task M / H / C.
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# PARAM / IITP demo launcher — override paths via env vars before running.
+# PARAM / IITP demo launcher - override paths via env vars before running.
 #
 # Example:
 #   export EARTHDIAL_GPU=1

@@ -2,7 +2,7 @@
 # PARAM P3 10-class linear probes L0-L3 (val 31UFP+31UGP).
 # Preferred (same as 6-class): after head best.pt exists
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe_c10.sbatch
-# Start now before head (random encoder — less sir-comparable):
+# Start now before head (random encoder - less sir-comparable):
 #   ALLOW_RANDOM=1 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/probe_c10.sbatch
 #SBATCH -J utae_c10_probe
 #SBATCH -N 1
@@ -29,7 +29,7 @@ if [[ -f "${CKPT}" ]]; then
   echo "using ckpt ${CKPT}"
   EXTRA+=(--ckpt "${CKPT}")
 elif [[ "${ALLOW_RANDOM:-0}" == "1" ]]; then
-  echo "WARNING: no head ckpt — random-init encoder + estimated norm_stats"
+  echo "WARNING: no head ckpt - random-init encoder + estimated norm_stats"
 else
   echo "ERROR: checkpoint not found: ${CKPT}"
   echo "Wait for train_c10_head.sbatch (job 100067), or set ALLOW_RANDOM=1"

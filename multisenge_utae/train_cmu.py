@@ -94,13 +94,12 @@ def run_epoch(
 
     with torch.set_grad_enabled(train):
       with torch.no_grad():
-        # teacher encoder always frozen; projector may train
+        # S2 encoder stays frozen. Projector is outside no_grad so it can train.
         feat_t = teacher.encode_spatial_bottleneck(s2_f.unsqueeze(1))
         pooled_t = global_pool(feat_t)
       z_t = proj_t(pooled_t)
       z_s = proj_s(student(s1_f))
-      # stopgrad on teacher side of contrastive (encoder already frozen)
-      loss = info_nce(z_s, z_t.detach(), temperature=temperature)
+      loss = info_nce(z_s, z_t, temperature=temperature)
 
       if train:
         assert opt is not None
@@ -217,7 +216,7 @@ def main() -> int:
       "image_size": args.image_size,
       "teacher_ckpt": str(args.teacher_ckpt),
       "pairing": "same_patch_same_t",
-      "student": "ViT-B/16 in_chans=2",
+      "student": "ViT-B/16 in_chans=2 ImageNet stem=mean RGB",
   }
   (args.out_dir / "cmu_hparams.json").write_text(json.dumps(hparams, indent=2), encoding="utf-8")
 

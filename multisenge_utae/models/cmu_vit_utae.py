@@ -84,7 +84,8 @@ class CMUViTUTAE(nn.Module):
         encoder_norm=encoder_norm,
         padding_mode=padding_mode,
     )
-    self.s1_vit = S1ViTB16(in_chans=s1_dim, image_size=vit_image_size)
+    # Stage 2 loads the CMU student checkpoint; skip the ImageNet download here.
+    self.s1_vit = S1ViTB16(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
     self.s1_adapter = BottleneckAdapter(self.s1_vit.embed_dim, encoder_widths[-1])
 
     self.temporal_s2 = LTAE2d(

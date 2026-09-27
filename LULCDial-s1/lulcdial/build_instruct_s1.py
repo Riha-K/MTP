@@ -45,7 +45,7 @@ _SHARD_FEATURES = Features(
 
 
 class _ShardExampleGen:
-    """Stream examples to disk — avoids MemoryError on full MultiSenGE train."""
+    """Stream examples to disk - avoids MemoryError on full MultiSenGE train."""
 
     def __init__(
         self,
@@ -127,7 +127,7 @@ def build_shard(
         skip_missing_s1=skip_missing_s1,
     )
 
-    # Stream to Arrow cache then save — do not hold all PIL images in RAM
+    # Stream to Arrow cache then save - do not hold all PIL images in RAM
     out_dir.mkdir(parents=True, exist_ok=True)
     ds = Dataset.from_generator(gen, features=_SHARD_FEATURES)
     ds.save_to_disk(str(out_dir))

@@ -1,4 +1,4 @@
-# LULCDial-S1 / LULCDial — Change Log
+# MultiSenGE - Change Log
 
 Running record of code, data-pipeline, and config changes for this thesis workspace.
 
@@ -10,22 +10,36 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
-### 2026-09-27 — Access log for datasets and papers
+### 2026-09-27 - CMU rerun: train teacher projector, ImageNet ViT
+
+Cancelled **105732** after 6 epochs. Loss stayed at **2.0794** (`ln 8`) and val retrieval acc at **0.125** (chance).
+
+- `train_cmu.py` - S2 encoder stays in `no_grad`; removed `z_t.detach()` so the teacher projector receives gradients.
+- `s1_vit.py` - ViT-B/16 starts from ImageNet; 2-channel stem is the mean of the RGB filters. Position embeddings are stretched from 224 to 256.
+- Stage 2 `CMUViTUTAE` still builds the ViT with `pretrained=False` and loads `student_ckpt`.
+
+**Next on PARAM:** `git pull`, then smoke. Pass if epoch loss drops below 2.079. Do not resubmit the 80-epoch job on the cancelled checkpoint.
+
+---
+
+### 2026-09-27 - Access log for datasets and papers
 
 Local record of when datasets and official papers were first opened. Notes, plans, and duplicate PDF copies are not listed.
 
-- `access_log.md` — **DATASET** (MultiSenGE 02-07-2026, MultiSenNA 08-07-2026, plus the benches and shards we built) and **PAPER** (23 PDFs, chronological).
-- MultiSenNA raw tree was removed from the laptop. `labels.tgz`, `ground_reference.tgz`, `s1.tgz`, and `s2.tgz` stay on https://s3.unistra.fr/a2s_datasets/MultiSenNA/
+- `access_log.md` - **DATASET** (MultiSenGE 02-07-2026, MultiSenNA 08-07-2026, plus the benches and shards we built) and **PAPER** (23 PDFs, chronological).
+- MultiSenNA raw tree was removed from the laptop. `labels.tgz`, `ground_reference.tgz`, `s1.tgz`, and `s2.tgz` stay on [https://s3.unistra.fr/a2s_datasets/MultiSenNA/](https://s3.unistra.fr/a2s_datasets/MultiSenNA/)
 - `shards` and `s1_val_bench` can be rebuilt from MultiSenGE `s1` + `labels` with `lulcdial.build_instruct_s1` and `lulcdial.pack_bench_s1` (~1–2 h on the professor PC).
 
 ---
 
-### 2026-09-26 — Stage 2 CMU-ViT U-TAE code (6c P4/P5 ready)
+
+
+### 2026-09-26 - Stage 2 CMU-ViT U-TAE code (6c P4/P5 ready)
 
 Scaffold Stage 2 while CMU smoke waits on PARAM:
 
-- `models/cmu_vit_utae.py` — S2 CNN + S1 CMU-ViT → both L-TAE → **CONCAT** bottleneck; **S2 skips only** (§8.4)
-- `S1ViTB16.forward_tokens` — spatial patch map for adapter
+- `models/cmu_vit_utae.py` - S2 CNN + S1 CMU-ViT → both L-TAE → **CONCAT** bottleneck; **S2 skips only** (§8.4)
+- `S1ViTB16.forward_tokens` - spatial patch map for adapter
 - `train_cmu_vit.py` + `train_cmu_vit_c6_head.sbatch` / `_full.sbatch`
 - P4 trains **adapter + fusion + decoder** (ViT/L-TAEs frozen); needs `--student-ckpt`
 
@@ -33,7 +47,9 @@ Scaffold Stage 2 while CMU smoke waits on PARAM:
 
 ---
 
-### 2026-09-26 — CMU schedule = paper 80/20; Stage2 order 6c then 10c
+
+
+### 2026-09-26 - CMU schedule = paper 80/20; Stage2 order 6c then 10c
 
 - CMU train defaults aligned with MultiSenGE RS 2023 / A4 / U-TAE: **max 80 epochs**, EarlyStopping **patience 20** (was 40/12).
 - Progress order locked (local plan only): teacher = **10c S2-only U-TAE P5**; Stage1 CMU → **6c P4→P5** → **10c P4→P5**.
@@ -45,13 +61,15 @@ Scaffold Stage 2 while CMU smoke waits on PARAM:
 
 ---
 
-### 2026-09-26 — Stage 1 CMU code (S1 ViT ↔ frozen S2 U-TAE)
+
+
+### 2026-09-26 - Stage 1 CMU code (S1 ViT ↔ frozen S2 U-TAE)
 
 Added Stage 1 CMU training path:
 
-- `models/s1_vit.py` — ViT-B/16 `in_chans=2`
-- `models/cmu.py` — ProjHead + InfoNCE (τ=0.07, proj=256)
-- `UTAE.encode_spatial_bottleneck` — teacher features **without** L-TAE
+- `models/s1_vit.py` - ViT-B/16 `in_chans=2`
+- `models/cmu.py` - ProjHead + InfoNCE (τ=0.07, proj=256)
+- `UTAE.encode_spatial_bottleneck` - teacher features **without** L-TAE
 - `train_cmu.py` + `train_cmu.sbatch` / `train_cmu_smoke.sbatch`
 - Teacher default: `run_c10_s2_full_v0/best.pt`; saves `student_best.pt` for Stage 2
 
@@ -59,36 +77,43 @@ Added Stage 1 CMU training path:
 
 ---
 
-### 2026-09-26 — CMU+ViT decisions locked; arch figure; plan stays local
+
+
+### 2026-09-26 - CMU+ViT decisions locked; arch figure; plan stays local
 
 Locked §8 pack (all **A**) for next model after Task M:
 
 - **Teacher:** MultiSenGE **S2-only U-TAE P5** `run_c10_s2_full_v0` encoder (not public PASTIS U-TAE). Same CMU student for 6c+10c Stage 2; optional 6c teacher later if time.
 - **CMU:** same patch / same date `t`; last-block ↔ bottleneck pooled InfoNCE; proj 256; τ≈0.07; **no L-TAE in Stage 1**.
 - **Stage 2:** per-date ViT → L-TAE; bottleneck adapter (S2 skips, no S1 skips v0); CONCAT default; **full 6c P4→P5 and 10c P4→P5** (same pattern as Task M); P4 freezes encoders+L-TAEs.
-- Cleaned `cvpr2026/` extract junk; source-of-truth figure: [`_arch_ours_cmu_vit.png`](BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png).
+- Cleaned `cvpr2026/` extract junk; source-of-truth figure: `[_arch_ours_cmu_vit.png](BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png)`.
 
-**Local only (gitignored):** `BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md` — keep offline; do not push.
+**Local only (gitignored):** `BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md` - keep offline; do not push.
 
 **Next:** implement Stage 1 CMU train (ViT-B/16 `in_chans=2` + frozen c10 S2 encoder) on PARAM; then 6c/10c P4→P5.
 
 ---
 
-### 2026-09-23 — Lock CMU+ViT S1 plan; refresh arch figure
 
-Early lock note (superseded by 2026-09-26 entry for §8 choices). Figure: [`BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png`](BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png). Plan markdown is **local-only**.
+
+### 2026-09-23 - Lock CMU+ViT S1 plan; refresh arch figure
+
+Early lock note (superseded by 2026-09-26 entry for §8 choices). Figure: `[BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png](BenchmarkGuide/cvpr2026/_arch_ours_cmu_vit.png)`. Plan markdown is **local-only**.
 
 **Next (then):** implement CMU train + plug ViT into MA path (Task H still deferred).
 
 ---
 
-### 2026-09-23 — Phase 3 progress report written; Task H deferred
 
-Wrote [`writeup/PHASE3_PROGRESS_REPORT.docx`](writeup/PHASE3_PROGRESS_REPORT.docx) (same style as Phase 1/2).
 
-**Scope:** Task M closed — MA-UTAE gated/concat P4+P5 on 6c+10c; S1/S2 modality ablations; full Part A tables then Part B one-winner lanes; Task H marked future work.
+### 2026-09-23 - Phase 3 progress report written; Task H deferred
+
+Wrote `[writeup/PHASE3_PROGRESS_REPORT.docx](writeup/PHASE3_PROGRESS_REPORT.docx)` (same style as Phase 1/2).
+
+**Scope:** Task M closed - MA-UTAE gated/concat P4+P5 on 6c+10c; S1/S2 modality ablations; full Part A tables then Part B one-winner lanes; Task H marked future work.
 
 **Report winners (test 31UEQ):**
+
 - 6c fusion → stock Concat U-TAE **P5** (0.9387 / 0.5757)
 - 6c best MA → gated **P5** (0.9353 / 0.5520)
 - 6c S1 → **P4**; 6c S2 → **P5**
@@ -99,25 +124,31 @@ Also mirrored winners + Task H deferral in `RESULTS_BOARD.md` §0 and living can
 
 ---
 
-### 2026-09-23 — Task H deferred; paper-facing one-winner lanes locked
 
-**Task H (A1+A2 hierarchy):** skip for now — **future work**. Write-up focuses on **Task M** (MA-UTAE fusion + S1/S2 ablations). Hierarchy only if later we want extra UF / Dense↔Sparse gains on MA concat 10c.
+
+### 2026-09-23 - Task H deferred; paper-facing one-winner lanes locked
+
+**Task H (A1+A2 hierarchy):** skip for now - **future work**. Write-up focuses on **Task M** (MA-UTAE fusion + S1/S2 ablations). Hierarchy only if later we want extra UF / Dense↔Sparse gains on MA concat 10c.
 
 **Report these winners only** (see `RESULTS_BOARD.md` §0 + canvas):
 
-| Lane | Winner | vs paper |
-|------|--------|----------|
-| 6c fusion | Stock Concat U-TAE **P5** 0.9387/0.5757 | Inc +0.037/+0.157 |
-| 6c best MA | MA **gated P5** 0.9353/0.5520 | under stock concat |
-| 6c S1 | S1 **P4** 0.9111/0.3974 | S1 +0.011/+0.005 |
-| 6c S2 | S2 **P5** 0.9199/0.4809 | S2 +0.024/+0.059 |
-| 10c fusion | MA **concat P5** 0.8885/0.7950 | Inc +0.003/+0.001 |
-| 10c S1 | S1 **P5** 0.8365/0.6939 | S1 +0.031/+0.052 |
-| 10c S2 | S2 **P5** 0.8865/0.7945 | S2 +0.017/+0.050 |
+
+| Lane       | Winner                                  | vs paper           |
+| ---------- | --------------------------------------- | ------------------ |
+| 6c fusion  | Stock Concat U-TAE **P5** 0.9387/0.5757 | Inc +0.037/+0.157  |
+| 6c best MA | MA **gated P5** 0.9353/0.5520           | under stock concat |
+| 6c S1      | S1 **P4** 0.9111/0.3974                 | S1 +0.011/+0.005   |
+| 6c S2      | S2 **P5** 0.9199/0.4809                 | S2 +0.024/+0.059   |
+| 10c fusion | MA **concat P5** 0.8885/0.7950          | Inc +0.003/+0.001  |
+| 10c S1     | S1 **P5** 0.8365/0.6939                 | S1 +0.031/+0.052   |
+| 10c S2     | S2 **P5** 0.8865/0.7945                 | S2 +0.017/+0.050   |
+
 
 ---
 
-### 2026-09-23 — MA concat 10c P5 beats paper Inc; S1/S2 P5 also closed
+
+
+### 2026-09-23 - MA concat 10c P5 beats paper Inc; S1/S2 P5 also closed
 
 **MA concat fuse 10c P5** (train **104173**, eval **104545**): W-F1 **0.8885**, κ **0.7950**, Acc 0.8817  
 → vs paper Inc **0.8851 / 0.7945** = **+0.0034 / +0.0005**  
@@ -132,14 +163,18 @@ Also mirrored winners + Task H deferral in `RESULTS_BOARD.md` §0 and living can
 
 ---
 
-### 2026-09-23 — 10c S1/S2 P5 test beat paper modality baselines
+
+
+### 2026-09-23 - 10c S1/S2 P5 test beat paper modality baselines
 
 PARAM evals **COMPLETED**: S1 **104835**, S2 **104890** (after trains **104546** / **104658**).
 
-| Ours (10c test 31UEQ) | W-F1 | κ | Paper fair row | Paper W-F1 / κ | Δ |
-|-----------------------|-----:|--:|----------------|---------------:|---|
-| U-TAE **S1-only P5** | **0.8365** | **0.6939** | ConvLSTM-S1 | 0.8055 / 0.6422 | **+0.031 / +0.052** |
-| U-TAE **S2-only P5** | **0.8865** | **0.7945** | ConvLSTM-S2 | 0.8696 / 0.7445 | **+0.017 / +0.050** |
+
+| Ours (10c test 31UEQ) | W-F1       | κ          | Paper fair row | Paper W-F1 / κ  | Δ                   |
+| --------------------- | ---------- | ---------- | -------------- | --------------- | ------------------- |
+| U-TAE **S1-only P5**  | **0.8365** | **0.6939** | ConvLSTM-S1    | 0.8055 / 0.6422 | **+0.031 / +0.052** |
+| U-TAE **S2-only P5**  | **0.8865** | **0.7945** | ConvLSTM-S2    | 0.8696 / 0.7445 | **+0.017 / +0.050** |
+
 
 Also beat our P4 (S1 0.7342/0.5396; S2 0.8437/0.7152). Do **not** claim S2 beats paper Inc-S1S2 (κ 0.7945 match is coincidence).
 
@@ -149,7 +184,9 @@ Updated `RESULTS_BOARD.md` + `PAPER_MODALITY_6CLASS.md`. **Still open:** MA conc
 
 ---
 
-### 2026-09-16 — 6c closed: S2 P5 test on laptop; board + git
+
+
+### 2026-09-16 - 6c closed: S2 P5 test on laptop; board + git
 
 **S2-only U-TAE P5** (job **102628**, checkpoint from failed train **102359** exit 9): test 31UEQ W-F1 **0.9199**, κ **0.4809** (vs S2 P4 0.9171 / 0.4658; vs paper ConvLSTM-S2 W-F1 0.8958 / κ 0.4223 → +0.024 W-F1 / +0.059 κ).
 
@@ -161,43 +198,53 @@ Regenerated `RESULTS_BOARD.md`; committed S2 `run_c6_s2_full_v0/test_metrics.jso
 
 ---
 
-### 2026-09-16 — Board regen: MA concat P4/P5 on laptop
+
+
+### 2026-09-16 - Board regen: MA concat P4/P5 on laptop
 
 scp landed `ma_c6_concat_{head,full}_v0/test_metrics.json` + S1 P5 JSON with confusion matrix. Regenerated `RESULTS_BOARD.md`.
 
-| Model | Phase | W-F1 | Kappa |
-|-------|-------|------|------:|
-| Concat U-TAE | P5 | **0.9387** | **0.5757** |
-| MA gated | P5 | 0.9353 | 0.5520 |
+
+| Model              | Phase  | W-F1       | Kappa      |
+| ------------------ | ------ | ---------- | ---------- |
+| Concat U-TAE       | P5     | **0.9387** | **0.5757** |
+| MA gated           | P5     | 0.9353     | 0.5520     |
 | **MA concat fuse** | **P4** | **0.9218** | **0.4961** |
-| S2-only | P4 | 0.9171 | 0.4658 |
+| S2-only            | P4     | 0.9171     | 0.4658     |
 | **MA concat fuse** | **P5** | **0.9143** | **0.4672** |
+
 
 MA concat: **P4 > P5**. Still below early-concat U-TAE and MA gated P5. Remaining 6c: S2 P5 (**102359** train / **102628** eval).
 
 ---
 
-### 2026-09-15 — MA concat P5 test done (below gated); S1 retest OK; S2 train pending
 
-| Job | State | Outcome |
-|-----|-------|---------|
-| **102358** | COMPLETED | MA concat fuse **P5 test** 31UEQ: W-F1 **0.9143**, κ **0.4672**, Acc 0.8910 |
-| **102355** | FAILED 0:9 | Metrics **wrote** before fail — S1 P5 same as before: W-F1 **0.8970**, κ **0.3537** |
-| **102267** | COMPLETED earlier | MA concat **P4** test JSON on PARAM (scp) |
-| **102359** | train | S2 P5 full — do **not** eval until `best.pt` |
+
+### 2026-09-15 - MA concat P5 test done (below gated); S1 retest OK; S2 train pending
+
+
+| Job        | State             | Outcome                                                                             |
+| ---------- | ----------------- | ----------------------------------------------------------------------------------- |
+| **102358** | COMPLETED         | MA concat fuse **P5 test** 31UEQ: W-F1 **0.9143**, κ **0.4672**, Acc 0.8910         |
+| **102355** | FAILED 0:9        | Metrics **wrote** before fail - S1 P5 same as before: W-F1 **0.8970**, κ **0.3537** |
+| **102267** | COMPLETED earlier | MA concat **P4** test JSON on PARAM (scp)                                           |
+| **102359** | train             | S2 P5 full - do **not** eval until `best.pt`                                        |
+
 
 **6c compare (both-modality):**
 
-| Model | Phase | W-F1 | Kappa |
-|-------|-------|------|------:|
-| Concat U-TAE | P5 | **0.9387** | **0.5757** |
-| MA gated | P5 | 0.9353 | 0.5520 |
-| MA concat fuse | P5 | **0.9143** | **0.4672** |
-| MA gated | P4 | 0.9169 | 0.4705 |
+
+| Model          | Phase | W-F1       | Kappa      |
+| -------------- | ----- | ---------- | ---------- |
+| Concat U-TAE   | P5    | **0.9387** | **0.5757** |
+| MA gated       | P5    | 0.9353     | 0.5520     |
+| MA concat fuse | P5    | **0.9143** | **0.4672** |
+| MA gated       | P4    | 0.9169     | 0.4705     |
+
 
 MA concat-fuse P5 does **not** beat gated or early-concat U-TAE on 6c. Keep as ablation; headline stays concat U-TAE P5.
 
-**Laptop scp (PowerShell from `E:\MTP\earth2`):**
+**Laptop scp (PowerShell from** `E:\MTP\earth2`**):**
 
 ```powershell
 scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_head_v0 ./multisenge_utae/results/ma_utae/
@@ -210,9 +257,11 @@ python multisenge_utae/_gen_results_board.py
 
 ---
 
-### 2026-09-15 — PARAM queue: S1 re-test running; queue MA concat P5 + S2 P5 eval
 
-**Now on GPU (user `squeue`):** job **102355** (`msge_uta`, node **racn115**) — S1-only 6c **P5 re-test** via `multisenge_utae/eval.sbatch` (refresh `run_c6_s1_full_v0/test_metrics.json`, incl. confusion matrix). Laptop copy still has W-F1 **0.8970** / κ **0.3537** but **no** `confusion_matrix` field.
+
+### 2026-09-15 - PARAM queue: S1 re-test running; queue MA concat P5 + S2 P5 eval
+
+**Now on GPU (user** `squeue`**):** job **102355** (`msge_uta`, node **racn115**) - S1-only 6c **P5 re-test** via `multisenge_utae/eval.sbatch` (refresh `run_c6_s1_full_v0/test_metrics.json`, incl. confusion matrix). Laptop copy still has W-F1 **0.8970** / κ **0.3537** but **no** `confusion_matrix` field.
 
 **Submit next on PARAM** (OK to `sbatch` while 102355 runs; jobs wait for GPU):
 
@@ -226,7 +275,7 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 --partition=gpu --gres=gpu:1 --time=
   --error=multisenge_utae/artifacts/slurm-ma-c-p5-eval-%j.err \
   --wrap='cd ~/MTP/earth2 && module purge && module load MLDL/Pytorch-gpu && export PYTHONPATH=$PWD && mkdir -p multisenge_utae/results/ma_utae/ma_c6_concat_full_v0 && python -m multisenge_utae.train_ma --index multisenge_seg/artifacts/patch_index.json --eval-ckpt multisenge_utae/checkpoints/ma_c6_concat_full_v0/best.pt --eval-split test --fusion concat --batch-size 2 --out-dir multisenge_utae/results/ma_utae/ma_c6_concat_full_v0'
 
-# S2 P5 test — only if checkpoint exists
+# S2 P5 test - only if checkpoint exists
 ls -la multisenge_utae/checkpoints/run_c6_s2_full_v0/best.pt && \
 CKPT=multisenge_utae/checkpoints/run_c6_s2_full_v0/best.pt \
 OUT=multisenge_utae/results/concat_utae/run_c6_s2_full_v0 \
@@ -235,7 +284,7 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/eval.sbatch
 
 **Also verify:** `sacct -j 102150,102260,102267 --format=JobID,State,ExitCode,Elapsed` (MA concat P5 train, S2 P5 train, MA concat P4 test).
 
-**Laptop download (PowerShell, `E:\MTP\earth2`)** — see `multisenge_utae/results/RESULTS_BOARD.md` §7. Priority after jobs finish:
+**Laptop download (PowerShell,** `E:\MTP\earth2`**)** - see `multisenge_utae/results/RESULTS_BOARD.md` §7. Priority after jobs finish:
 
 ```powershell
 scp -r rihak_iitp@paramrudra.iitp.ac.in:~/MTP/earth2/multisenge_utae/results/ma_utae/ma_c6_concat_head_v0 ./multisenge_utae/results/ma_utae/
@@ -249,32 +298,42 @@ python multisenge_utae/_gen_results_board.py
 
 ---
 
-### 2026-09-14 — Paper modality tables (S1/S2/S1S2) transcribed; fair S1 compare
 
-**Source:** RS 2023 — ConvLSTM-S1 / S2 / S1S2 / +Inception. Saved: `results/PAPER_MODALITY_6CLASS.md`.
+
+### 2026-09-14 - Paper modality tables (S1/S2/S1S2) transcribed; fair S1 compare
+
+**Source:** RS 2023 - ConvLSTM-S1 / S2 / S1S2 / +Inception. Saved: `results/PAPER_MODALITY_6CLASS.md`.
 
 **Neutral S1 vs ConvLSTM-S1 (paper Table 6 κ = 0.3929):**
 
-| Ours | Δ W-F1 | Δ κ |
-|------|--------|-----|
-| P4 | +0.0110 | **+0.0045** |
-| P5 | −0.0031 | **−0.0392** |
+
+| Ours | Δ W-F1  | Δ κ         |
+| ---- | ------- | ----------- |
+| P4   | +0.0110 | **+0.0045** |
+| P5   | −0.0031 | **−0.0392** |
+
 
 Earlier draft used wrong paper κ (0.4087 from another figure). Corrected to Table 6. S2 paper κ = **0.4223**; our S2 P4 = 0.4658 (Δ +0.0435).
 
 ---
 
-### 2026-09-14 — S1-only P5 test (worse than P4); MA concat full best.pt appears
+
+
+### 2026-09-14 - S1-only P5 test (worse than P4); MA concat full best.pt appears
 
 **S1-only U-TAE test 31UEQ**
-| Phase | W-F1 | Kappa | Notes |
-|-------|------|-------|-------|
-| P4 | **0.9111** | **0.3974** | stronger |
+
+
+| Phase  | W-F1       | Kappa      | Notes                                                      |
+| ------ | ---------- | ---------- | ---------------------------------------------------------- |
+| P4     | **0.9111** | **0.3974** | stronger                                                   |
 | **P5** | **0.8970** | **0.3537** | job 102263; full FT hurt test (val had looked good ~0.932) |
+
 
 Report **P5** as the paper-facing S1 row, but note P4 > P5 (possible overfit / SAR-only full FT instability).
 
 **PARAM status**
+
 - `ma_c6_concat_full_v0/best.pt` **exists** (102150 still training or finishing) → queue P5 test when `done.` in log
 - MA concat P4 eval **102267** pending
 - S2 full **102260** still no `best.pt`
@@ -283,85 +342,106 @@ Report **P5** as the paper-facing S1 row, but note P4 > P5 (possible overfit / S
 
 ---
 
-### 2026-09-14 — Doc: breast schedule vs PASTIS transfer (why scratch on MultiSenGE)
+
+
+### 2026-09-14 - Doc: breast schedule vs PASTIS transfer (why scratch on MultiSenGE)
 
 **Why:** Clarify for sir / thesis that following the breast paper means **P3→P4→P5 training recipe**, not loading PASTIS or ImageNet weights into U-TAE.
 
 **Decision (frozen for bake-off):**
+
 - **Yes:** layer probes, head-only, full FT from our P4 `best.pt`.
-- **No:** PASTIS / external pretrain — keeps parity with A4 and Wenger from-scratch protocol; PASTIS also mismatches 12ch S1+S2 urban LULC.
+- **No:** PASTIS / external pretrain - keeps parity with A4 and Wenger from-scratch protocol; PASTIS also mismatches 12ch S1+S2 urban LULC.
 
 **Files**
-- `multisenge_utae/TRAINING_AND_TRANSFER.md` — full reference + one-liner for report.
-- `multisenge_utae/README.md` — short pointer under Breast-paper phases.
+
+- `multisenge_utae/TRAINING_AND_TRANSFER.md` - full reference + one-liner for report.
+- `multisenge_utae/README.md` - short pointer under Breast-paper phases.
 
 **Optional later:** explicit ablation PASTIS-init vs scratch (extra row on results board, not baseline replacement).
 
 ---
 
-### 2026-09-14 — Task M 6c bake-off update (gated P5 test; S1/S2 heads; concat full queued)
 
-**Frozen baselines (test 31UEQ, 6-class)** — concat U-TAE P5 still strongest on headlines:
 
-| Model | Phase | Test W-F1 | Kappa | Notes |
-|-------|-------|-----------|-------|-------|
-| Concat U-TAE (12ch) | P5 | **0.9387** | **0.5757** | frozen baseline |
-| A4 ConvLSTM | full | 0.9037 | 0.4424 | frozen |
-| **MA gated** | P4 | 0.9169 | 0.4705 | beats concat P4 |
-| **MA gated** | **P5** | **0.9353** | **0.5520** | job 101547; **below** concat P5 (−0.003 W-F1 / −0.024 κ) |
-| U-TAE **S2-only** | P4 | 0.9171 | 0.4658 | jobs 101553 / eval **101721** |
-| U-TAE **S1-only** | P4 | 0.9111 | 0.3974 | jobs 101554 / eval **101722** |
-| U-TAE S1-only | P5 train | — | — | **101720** COMPLETED; `run_c6_s1_full_v0/best.pt`; P5 test TBD |
-| U-TAE S2-only | P5 | — | — | confirm `run_c6_s2_full_v0/best.pt` (was job 101719) |
-| **MA concat fuse** | P4 | — | — | `ma_c6_concat_head_v0/best.pt` exists (~ep 22 val W-F1 ~0.946); head job killed mid-run |
-| **MA concat fuse** | P5 | — | — | **102150** queued (`train_ma_concat_full.sbatch`) |
+### 2026-09-14 - Task M 6c bake-off update (gated P5 test; S1/S2 heads; concat full queued)
+
+**Frozen baselines (test 31UEQ, 6-class)** - concat U-TAE P5 still strongest on headlines:
+
+
+| Model               | Phase    | Test W-F1  | Kappa      | Notes                                                                                   |
+| ------------------- | -------- | ---------- | ---------- | --------------------------------------------------------------------------------------- |
+| Concat U-TAE (12ch) | P5       | **0.9387** | **0.5757** | frozen baseline                                                                         |
+| A4 ConvLSTM         | full     | 0.9037     | 0.4424     | frozen                                                                                  |
+| **MA gated**        | P4       | 0.9169     | 0.4705     | beats concat P4                                                                         |
+| **MA gated**        | **P5**   | **0.9353** | **0.5520** | job 101547; **below** concat P5 (−0.003 W-F1 / −0.024 κ)                                |
+| U-TAE **S2-only**   | P4       | 0.9171     | 0.4658     | jobs 101553 / eval **101721**                                                           |
+| U-TAE **S1-only**   | P4       | 0.9111     | 0.3974     | jobs 101554 / eval **101722**                                                           |
+| U-TAE S1-only       | P5 train | -          | -          | **101720** COMPLETED; `run_c6_s1_full_v0/best.pt`; P5 test TBD                          |
+| U-TAE S2-only       | P5       | -          | -          | confirm `run_c6_s2_full_v0/best.pt` (was job 101719)                                    |
+| **MA concat fuse**  | P4       | -          | -          | `ma_c6_concat_head_v0/best.pt` exists (~ep 22 val W-F1 ~0.946); head job killed mid-run |
+| **MA concat fuse**  | P5       | -          | -          | **102150** queued (`train_ma_concat_full.sbatch`)                                       |
+
 
 **Takeaway:** Gated dual-stream did **not** beat concat U-TAE on 6c W-F1/κ. Keep ablations (S1/S2 + MA concat-fuse) + later Task H / 10c. Do not claim “MA gated wins 6c” on headlines.
 
 **Artifacts**
+
 - MA gated: `results/ma_utae/ma_c6_gated_{head,full}_v0/` (test JSON + history plots on laptop)
 - S1/S2 head tests: `results/concat_utae/run_c6_s{1,2}_head_v0/test_metrics.json`
 - Ckpt pack pulled earlier: `ma_utae_ckpts.tgz` → local `checkpoints/ma_c6_gated_*` + concat U-TAE 6c best.pt
 
 **Next**
+
 1. Let **102150** MA concat P5 finish → test eval → compare gated vs concat-fuse vs concat U-TAE.
 2. S1 (and S2 if ckpt ready) **P5 test** on 31UEQ.
 3. Optional: Task H (A1+A2); 10-class Task M.
 
 ---
 
-### 2026-09-11 — S1/S2-only U-TAE ablation (--modality); MA P4 test + P5 train done
+
+
+### 2026-09-11 - S1/S2-only U-TAE ablation (--modality); MA P4 test + P5 train done
 
 **MA gated 6c (Task M)**
-| Stage | Result |
-|-------|--------|
-| P4 test 31UEQ | W-F1 **0.9169** / κ **0.4705** (beats concat P4 0.9012 / 0.4033) |
-| P5 train | done; best val W-F1 **0.9602** → `checkpoints/ma_c6_gated_full_v0/` |
-| P5 test | done later (see 2026-09-14): W-F1 **0.9353** / κ **0.5520** |
+
+
+| Stage         | Result                                                              |
+| ------------- | ------------------------------------------------------------------- |
+| P4 test 31UEQ | W-F1 **0.9169** / κ **0.4705** (beats concat P4 0.9012 / 0.4033)    |
+| P5 train      | done; best val W-F1 **0.9602** → `checkpoints/ma_c6_gated_full_v0/` |
+| P5 test       | done later (see 2026-09-14): W-F1 **0.9353** / κ **0.5520**         |
+
 
 **Ablation coding:** `--modality both|s2|s1` in `train.py` + `data.select_modality`. Sbatches: `train_s{1,2}_{head,full}.sbatch`. Queue S2+S1 **heads** in parallel after `git pull`; full after each `best.pt`.
 
 ---
 
-### 2026-09-09 — Task M (MA-UTAE) + Task H scaffold; naming fix
+
+
+### 2026-09-09 - Task M (MA-UTAE) + Task H scaffold; naming fix
 
 **Naming:** Novelty is **Task M** (modality MA-UTAE) / **Task H** (hierarchical A1+A2). Keep **P3/P4/P5** only for breast-style phases. Do not say Priority P1/P2.
 
 **Results layout:** frozen stock U-TAE metrics moved under `multisenge_utae/results/concat_utae/`; new MA runs go to `multisenge_utae/results/ma_utae/`.
 
 **Code (scaffold, not trained yet)**
-| Piece | Path |
-|-------|------|
-| Fusion concat / gated | `multisenge_utae/models/fusion.py` |
-| Dual-stream MA-UTAE | `multisenge_utae/models/ma_utae.py` |
-| A1+A2 heads + loss | `multisenge_utae/heads.py` (masks **0-indexed**; UF=0..4) |
-| Train P4/P5 | `train_ma.py`, `train_ma.sbatch`, `train_ma_full.sbatch` |
+
+
+| Piece                 | Path                                                      |
+| --------------------- | --------------------------------------------------------- |
+| Fusion concat / gated | `multisenge_utae/models/fusion.py`                        |
+| Dual-stream MA-UTAE   | `multisenge_utae/models/ma_utae.py`                       |
+| A1+A2 heads + loss    | `multisenge_utae/heads.py` (masks **0-indexed**; UF=0..4) |
+| Train P4/P5           | `train_ma.py`, `train_ma.sbatch`, `train_ma_full.sbatch`  |
+
 
 Water agent skipped. P3 probes still stock U-TAE only.
 
 **Docs:** `multisenge_utae/README.md`, novelty plan checklist → Task M/H.
 
 **Next on PARAM**
+
 1. Smoke: `python -m multisenge_utae.train_ma ... --max-train 8 --max-val 4 --epochs 1`
 2. Task M alone 6c: `sbatch … train_ma.sbatch` (gated P4) → `train_ma_full.sbatch` (P5)
 3. Ablation `--fusion concat`; then optional `--use-a1 --use-a2`
@@ -369,27 +449,33 @@ Water agent skipped. P3 probes still stock U-TAE only.
 
 ---
 
-### 2026-09-08 — Phase 2 formula notes (loss / metrics / U-TAE / P3 LR)
 
-Added [`multisenge_seg/FORMULAS.md`](multisenge_seg/FORMULAS.md): Softmax, wCE, U-TAE/L-TAE, multinomial logistic probes, CM → P/R/Sens/Spec/F1/W-F1/Kappa. Linked from `PROTOCOL.md` and `multisenge_utae/README.md`.
+
+### 2026-09-08 - Phase 2 formula notes (loss / metrics / U-TAE / P3 LR)
+
+Added `[multisenge_seg/FORMULAS.md](multisenge_seg/FORMULAS.md)`: Softmax, wCE, U-TAE/L-TAE, multinomial logistic probes, CM → P/R/Sens/Spec/F1/W-F1/Kappa. Linked from `PROTOCOL.md` and `multisenge_utae/README.md`.
 
 ---
 
-### 2026-09-07 — U-TAE 10-class P3/P4/P5 frozen; novelty plan detailed
+
+
+### 2026-09-07 - U-TAE 10-class P3/P4/P5 frozen; novelty plan detailed
 
 **10-class test tile 31UEQ (done)**
 
-| Stage | Job | Test W-F1 | Kappa | Notes |
-|-------|-----|-----------|-------|-------|
-| A4 ConvLSTM | — | 0.8711 | 0.7588 | frozen target |
-| Paper | — | 0.8851 | 0.7945 | RS 2023 |
-| P4 head | 100067 / eval **100433** | **0.8322** | **0.6971** | below A4/paper |
-| **P5 full** | 100432 / eval **100503** | **0.8811** | **0.7795** | **beats A4**; near paper (−0.004 W-F1) |
-| P3 probes (val) | **100505** | L1 best **0.8009** | 0.6885 | L3 weakest 0.5335 (unlike 6c where L2 best) |
+
+| Stage           | Job                      | Test W-F1          | Kappa      | Notes                                       |
+| --------------- | ------------------------ | ------------------ | ---------- | ------------------------------------------- |
+| A4 ConvLSTM     | -                        | 0.8711             | 0.7588     | frozen target                               |
+| Paper           | -                        | 0.8851             | 0.7945     | RS 2023                                     |
+| P4 head         | 100067 / eval **100433** | **0.8322**         | **0.6971** | below A4/paper                              |
+| **P5 full**     | 100432 / eval **100503** | **0.8811**         | **0.7795** | **beats A4**; near paper (−0.004 W-F1)      |
+| P3 probes (val) | **100505**               | L1 best **0.8009** | 0.6885     | L3 weakest 0.5335 (unlike 6c where L2 best) |
+
 
 Artifacts (local + PARAM): `multisenge_utae/results/concat_utae/run_c10_{head,full}_v0/` (test_metrics + history_plot), `probe_c10_v0/`, checkpoints history under `checkpoints/run_c10_*_v0/`.
 
-**Novelty plan** updated: [`BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md`](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md) — baselines frozen; detailed §3 for **P1 MA-UTAE**, **P2 hierarchical/confusion**, **P3 probe-guided FT**; recommend main **P1**, optional support P2/P3. Await sir decision before coding.
+**Novelty plan** updated: `[BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md)` - baselines frozen; detailed §3 for **P1 MA-UTAE**, **P2 hierarchical/confusion**, **P3 probe-guided FT**; recommend main **P1**, optional support P2/P3. Await sir decision before coding.
 
 **Phase 2 report** (local only; `writeup/` gitignored): `writeup/PHASE2_PROGRESS_REPORT.docx` filled with 10c P4/P5 numbers.
 
@@ -397,15 +483,20 @@ Artifacts (local + PARAM): `multisenge_utae/results/concat_utae/run_c10_{head,fu
 
 ---
 
-### 2026-09-06 — U-TAE 10-class P4 head done; P5 full running; P4 test queued
+
+
+### 2026-09-06 - U-TAE 10-class P4 head done; P5 full running; P4 test queued
 
 **P4 head (10-class)** job **100067** COMPLETED on `ragpu003` (~early stop ep **54**). Best val W-F1 **0.8272** (ep ~34) → `multisenge_utae/checkpoints/run_c10_head_v0/{best.pt,history.json,history_plot.png}`.
 
 **Submitted after head:**
-| Job | Role | Status (2026-09-06 evening) |
-|-----|------|------------------------------|
-| **100432** | P5 full `train_c10_full.sbatch` | **R** on `ragpu008` |
-| **100433** | P4 test eval → `results/concat_utae/run_c10_head_v0/` | **PD (Priority)** — waiting for free GPU |
+
+
+| Job        | Role                                                  | Status (2026-09-06 evening)              |
+| ---------- | ----------------------------------------------------- | ---------------------------------------- |
+| **100432** | P5 full `train_c10_full.sbatch`                       | **R** on `ragpu008`                      |
+| **100433** | P4 test eval → `results/concat_utae/run_c10_head_v0/` | **PD (Priority)** - waiting for free GPU |
+
 
 Duplicates 100442/100443 cancelled (kept earlier 100432/100433 with exclude). Cluster often full (003/004/006/008); eval may wait hours.
 
@@ -415,34 +506,43 @@ Duplicates 100442/100443 cancelled (kept earlier 100432/100433 with exclude). Cl
 
 ---
 
-### 2026-09-05 — Status: 6-class A5 frozen; 10-class P4 queued; plots + novelty plan
+
+
+### 2026-09-05 - Status: 6-class A5 frozen; 10-class P4 queued; plots + novelty plan
 
 **6-class U-TAE (done / frozen for sir)**
-| Stage | Test W-F1 | Kappa | Notes |
-|-------|-----------|-------|-------|
-| A4 ConvLSTM+Inception | 0.9037 | 0.4424 | replicate |
-| P4 head | 0.9012 | 0.4033 | ~tie A4 |
-| **P5 full** | **0.9387** | **0.5757** | **beats A4** |
+
+
+| Stage                 | Test W-F1  | Kappa      | Notes        |
+| --------------------- | ---------- | ---------- | ------------ |
+| A4 ConvLSTM+Inception | 0.9037     | 0.4424     | replicate    |
+| P4 head               | 0.9012     | 0.4033     | ~tie A4      |
+| **P5 full**           | **0.9387** | **0.5757** | **beats A4** |
+
 
 **Sir plots done**
+
 - A4 6c / 10c: `multisenge_seg/results/run_c{6,10}_v0/history_plot.png`
 - U-TAE P4 / P5: `multisenge_utae/results/concat_utae/run_c6_{head,full}_v0/history_plot.png`
 - P3 bar chart: `multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.png` (L2 best W-F1 0.7477)
 
 **10-class U-TAE**
+
 - Scripts: `train_c10_head.sbatch` → `train_c10_full.sbatch` → `eval_c10.sbatch` (+ `probe_c10.sbatch`)
 - **P4 head job 100067** still **PD (Priority)** on PARAM since ~Sep 4 evening (queue fairshare; do **not** submit P5 until `run_c10_head_v0/best.pt` exists)
 - A4 10c target: W-F1 **0.8711** / kappa **0.7588**
 - Why P4 before P5: full FT inits from head ckpt; 6c showed P4→P5 large gain (0.901 → 0.939 W-F1)
 
 **Publishable novelty (not breast TL / not “ran U-TAE” alone)**  
-Plan: [`BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md`](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md) — prefer **MA-UTAE dual-stream S1/S2** or **hierarchical UF head**; decide after 10c baseline.
+Plan: `[BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md](BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md)` - prefer **MA-UTAE dual-stream S1/S2** or **hierarchical UF head**; decide after 10c baseline.
 
 **Next when 100067 → R / done:** plot auto at job end → `train_c10_full.sbatch` → `eval_c10.sbatch`.
 
 ---
 
-### 2026-09-04 — U-TAE 10-class sbatch ready (P4 head → P5 full)
+
+
+### 2026-09-04 - U-TAE 10-class sbatch ready (P4 head → P5 full)
 
 Added `train_c10_head.sbatch`, `train_c10_full.sbatch`, `eval_c10.sbatch`. Auto `history_plot.png` after train. Must run **head first** (cannot init 10c from 6c ckpt). A4 10c target: test W-F1 **0.8711** / kappa **0.7588**.
 
@@ -453,52 +553,66 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_c10_head.sbatc
 
 ---
 
-### 2026-09-03 — U-TAE P5 full: test beats A4 (job 99416 / eval 99628)
+
+
+### 2026-09-03 - U-TAE P5 full: test beats A4 (job 99416 / eval 99628)
 
 **Train** **99416** COMPLETED · early stop ep 40 · best val W-F1 **0.9585**, kappa **0.560** → `checkpoints/run_c6_full_v0/best.pt`.
 
-**Test** **99628** (31UEQ): W-F1 **0.9387**, kappa **0.5757** → `results/concat_utae/run_c6_full_v0/test_metrics.json`. Report: [`RESULTS_UTAE_6CLASS_FULL.md`](multisenge_utae/RESULTS_UTAE_6CLASS_FULL.md).
+**Test** **99628** (31UEQ): W-F1 **0.9387**, kappa **0.5757** → `results/concat_utae/run_c6_full_v0/test_metrics.json`. Report: `[RESULTS_UTAE_6CLASS_FULL.md](multisenge_utae/RESULTS_UTAE_6CLASS_FULL.md)`.
 
-| Model | Test W-F1 | Test kappa |
-|-------|-----------|------------|
-| A4 ConvLSTM | 0.9037 | 0.4424 |
-| P4 U-TAE head | 0.9012 | 0.4033 |
+
+| Model             | Test W-F1  | Test kappa |
+| ----------------- | ---------- | ---------- |
+| A4 ConvLSTM       | 0.9037     | 0.4424     |
+| P4 U-TAE head     | 0.9012     | 0.4033     |
 | **P5 U-TAE full** | **0.9387** | **0.5757** |
+
 
 Urban F1 up vs P4; classes **2, 3, 5, 6** above A4. Class 1 still below A4 (0.408 vs 0.489).
 
 ---
 
-### 2026-09-02 — Sir-facing plots: TODO (generate next session)
 
-**Need graphs for thesis/sir** — code ready (`multisenge_utae/plot_history.py`, pushed `b382ae7`). **Not plotted yet** on PARAM.
 
-| Phase | Plot type | When | Command (on PARAM after `git pull`) |
-|-------|-----------|------|-------------------------------------|
-| **P4** head | Train loss + val wF1/mean F1/kappa vs epoch | **Done** 2026-09-02 on PARAM | `checkpoints/run_c6_head_v0/history_plot.png` |
-| **P5** full | Same learning curve | **After job 99416** completes | `python -m multisenge_utae.plot_history multisenge_utae/checkpoints/run_c6_full_v0/history.json ...` |
-| **P3** probes | Bar chart W-F1 per level (L0–L3) — *not* epoch curve | Optional later | Table already in `probe_summary_linear.md`; no `history.json` |
+### 2026-09-02 - Sir-facing plots: TODO (generate next session)
 
-**Do not stop P5 job 99416** for plotting — plot is post-train only. `pip install --user matplotlib` once if needed.
+**Need graphs for thesis/sir** - code ready (`multisenge_utae/plot_history.py`, pushed `b382ae7`). **Not plotted yet** on PARAM.
+
+
+| Phase         | Plot type                                            | When                          | Command (on PARAM after `git pull`)                                                                  |
+| ------------- | ---------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **P4** head   | Train loss + val wF1/mean F1/kappa vs epoch          | **Done** 2026-09-02 on PARAM  | `checkpoints/run_c6_head_v0/history_plot.png`                                                        |
+| **P5** full   | Same learning curve                                  | **After job 99416** completes | `python -m multisenge_utae.plot_history multisenge_utae/checkpoints/run_c6_full_v0/history.json ...` |
+| **P3** probes | Bar chart W-F1 per level (L0–L3) - *not* epoch curve | Optional later                | Table already in `probe_summary_linear.md`; no `history.json`                                        |
+
+
+**Do not stop P5 job 99416** for plotting - plot is post-train only. `pip install --user matplotlib` once if needed.
 
 ---
 
-### 2026-09-02 — U-TAE P3 layer probes done (job 99281)
 
-**P3** linear probes on val (31UFP+31UGP), ckpt `run_c6_head_v0/best.pt`. Summary: [`multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.md`](multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.md).
 
-| Level | W-F1 | Kappa |
-|-------|------|-------|
-| L0 | 0.7312 | 0.0809 |
-| L1 | 0.7333 | 0.0810 |
-| L2 | **0.7477** | 0.0772 |
-| L3 | 0.4325 | 0.0126 |
+### 2026-09-02 - U-TAE P3 layer probes done (job 99281)
+
+**P3** linear probes on val (31UFP+31UGP), ckpt `run_c6_head_v0/best.pt`. Summary: `[multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.md](multisenge_utae/results/concat_utae/probe_c6_v0/probe_summary_linear.md)`.
+
+
+| Level | W-F1       | Kappa  |
+| ----- | ---------- | ------ |
+| L0    | 0.7312     | 0.0809 |
+| L1    | 0.7333     | 0.0810 |
+| L2    | **0.7477** | 0.0772 |
+| L3    | 0.4325     | 0.0126 |
+
 
 Best linear probe **L2**. L3 low (coarse L-TAE map). Encoder still init (frozen in P4). **Next: P5** `train_full.sbatch`.
 
 ---
 
-### 2026-09-01 — P3 probe jobs ready (PARAM)
+
+
+### 2026-09-01 - P3 probe jobs ready (PARAM)
 
 **P3 setup:** `probe.sbatch` defaults to `run_c6_head_v0/best.pt`, 12h wall, val-only scoring. `probe_smoke.sbatch` for quick check (24 train / 12 val patches). `probe_layers.py` now loads `norm_stats` from ckpt (same as eval) and writes `probe_summary_linear.md`.
 
@@ -512,39 +626,47 @@ Outputs → `multisenge_utae/results/concat_utae/probe_c6_v0/`. **Note:** encode
 
 ---
 
-### 2026-09-01 — U-TAE P4 head: test 31UEQ recorded (vs A4)
+
+
+### 2026-09-01 - U-TAE P4 head: test 31UEQ recorded (vs A4)
 
 **Train:** PARAM **99003** COMPLETED (~5h 13m); early stop ep 30; best val **ep ~10** W-F1 **0.9494**, kappa **0.4904** → `multisenge_utae/checkpoints/run_c6_head_v0/best.pt`.
 
-**Val best** (tiles 31UFP+31UGP, ep ~10): W-F1 **0.9494**, kappa **0.4904** → [`multisenge_utae/results/concat_utae/run_c6_head_v0/best_metrics.json`](multisenge_utae/results/concat_utae/run_c6_head_v0/best_metrics.json). Early stop ep 30; slurm **99003** log on PARAM.
+**Val best** (tiles 31UFP+31UGP, ep ~10): W-F1 **0.9494**, kappa **0.4904** → `[multisenge_utae/results/concat_utae/run_c6_head_v0/best_metrics.json](multisenge_utae/results/concat_utae/run_c6_head_v0/best_metrics.json)`. Early stop ep 30; slurm **99003** log on PARAM.
 
-**Test eval** (head `best.pt`, tile **31UEQ**): [`multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json`](multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json). Report: [`multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md`](multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md).
+**Test eval** (head `best.pt`, tile **31UEQ**): `[multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json](multisenge_utae/results/concat_utae/run_c6_head_v0/test_metrics.json)`. Report: `[multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md](multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md)`.
 
-| Split | W-F1 | Kappa |
-|-------|------|-------|
-| Val | 0.9494 | 0.4904 |
-| Test | 0.9012 | 0.4033 |
+
+| Split      | W-F1       | Kappa      |
+| ---------- | ---------- | ---------- |
+| Val        | 0.9494     | 0.4904     |
+| Test       | 0.9012     | 0.4033     |
 | Test vs A4 | 0.9037 ref | 0.4424 ref |
+
 
 Urban classes 1–3, 5 below A4; class 6 F1 **0.945** vs **0.934**. **P3 probes not run yet.** **P5 full fine-tune** next.
 
 ---
 
-### 2026-08-31 — A5 `multisenge_utae` coded; PARAM head train job 99003 running
 
-**Scope:** Pillar A phase **A5** — U-TAE on MultiSenGE (6-class first), breast-paper workflow (probes → head → full), same geographic tile split as A4.
 
-**New package `multisenge_utae/`** (pushed `632b38e` … `75638de`):
+### 2026-08-31 - A5 `multisenge_utae` coded; PARAM head train job 99003 running
+
+**Scope:** Pillar A phase **A5** - U-TAE on MultiSenGE (6-class first), breast-paper workflow (probes → head → full), same geographic tile split as A4.
+
+**New package** `multisenge_utae/` (pushed `632b38e` … `75638de`):
+
 - Models: vendored U-TAE + L-TAE (`models/utae.py`, `ltae.py`, `positional_encoding.py`); S2+S1 concat → `B×4×12×256×256`
-- `train.py` — `--mode head|full`, `--num-classes 6|10`; reuses `multisenge_seg` dataset/index/metrics
-- `probe_layers.py` — L0–L3 linear/RF probes (P3)
-- `export_notes.py` — JSON → markdown tables (P/R/Sens/Spec/F1, kappa, confusion matrix)
+- `train.py` - `--mode head|full`, `--num-classes 6|10`; reuses `multisenge_seg` dataset/index/metrics
+- `probe_layers.py` - L0–L3 linear/RF probes (P3)
+- `export_notes.py` - JSON → markdown tables (P/R/Sens/Spec/F1, kappa, confusion matrix)
 - PARAM: `train.sbatch`, `train_full.sbatch`, `eval.sbatch`, `probe.sbatch`, `smoke.sbatch`
 - Plan doc: `BenchmarkGuide/A5_UTAE_Phase_Plan.docx` updated; tracked `multisenge_seg/results/run_c6_v0/Table5_v0.docx`
 
-**Metrics (shared `multisenge_seg/metrics.py`):** per-class Precision / Recall / **Sensitivity** / **Specificity** / F1; weighted W-P/R/Sens/Spec/F1; kappa; accuracy; confusion matrix in JSON. Documented in `PROTOCOL.md`, `multisenge_utae/README.md`.
+**Metrics (shared** `multisenge_seg/metrics.py`**):** per-class Precision / Recall / **Sensitivity** / **Specificity** / F1; weighted W-P/R/Sens/Spec/F1; kappa; accuracy; confusion matrix in JSON. Documented in `PROTOCOL.md`, `multisenge_utae/README.md`.
 
 **PARAM submit notes (in README + sbatch headers):**
+
 ```bash
 cd ~/MTP/earth2
 sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train.sbatch
@@ -553,25 +675,28 @@ squeue -u rihak_iitp
 tail -f multisenge_utae/artifacts/slurm-<JOBID>.out   # from ~/MTP/earth2
 ```
 
-**Lab GPU:** account on **`172.30.1.70`** user `riha_2511ai47` (see `multisenge_seg/LAB_GPU_TRANSFER.md`). Alternative if PARAM queue full; needs campus VPN / lab network.
+**Lab GPU:** account on `172.30.1.70` user `riha_2511ai47` (see `multisenge_seg/LAB_GPU_TRANSFER.md`). Alternative if PARAM queue full; needs campus VPN / lab network.
 
 **PARAM day timeline:**
 
-| Job | Result |
-|-----|--------|
-| Login smoke (CPU, 8 train patches) | OK — pipeline runs; low val W-F1 expected |
-| **98984** | **FAILED** ~49 s — `set -u` + `module purge` → conda `CONDA_BACKUP_QT_XCB_GL_INTEGRATION: unbound variable`; no Python output |
-| Fix | `set -eo pipefail` (drop `-u`) in all `multisenge_utae/*.sbatch` (`75638de`) |
-| Earlier code fix | `TemporalAggregator` `att_group` without padding (`a139031`) |
-| **99003** | **RUNNING** on **ragpu003** (gpu partition) |
+
+| Job                                | Result                                                                                                                        |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Login smoke (CPU, 8 train patches) | OK - pipeline runs; low val W-F1 expected                                                                                     |
+| **98984**                          | **FAILED** ~49 s - `set -u` + `module purge` → conda `CONDA_BACKUP_QT_XCB_GL_INTEGRATION: unbound variable`; no Python output |
+| Fix                                | `set -eo pipefail` (drop `-u`) in all `multisenge_utae/*.sbatch` (`75638de`)                                                  |
+| Earlier code fix                   | `TemporalAggregator` `att_group` without padding (`a139031`)                                                                  |
+| **99003**                          | **RUNNING** on **ragpu003** (gpu partition)                                                                                   |
+
 
 **99003 progress (~3h45m, epoch 22/80, head-only P4):** train loss ~0.97→0.74; val **W-F1 ~0.90–0.95** (tiles 31UFP+31UGP); best seen in log **ep 10 W-F1 0.9494**, kappa 0.4904; LR → `1e-4` after ep 16. Checkpoints → `multisenge_utae/checkpoints/run_c6_head_v0/`. `.err` only CuDNN/pynvml warnings.
 
 **Queue:** Cluster saturated (all `ragpu003/004/006/008` at 2+ jobs on `gpu:2`); waited hours in `PD (Priority)`. Job 98984 got a slot then died on module load; 99003 started after resubmit.
 
 **Next when 99003 completes:**
+
 1. `sbatch … multisenge_utae/train_full.sbatch` (P5, init from `best.pt`)
-2. `sbatch … multisenge_utae/eval.sbatch` — test tile **31UEQ** vs A4 **W-F1 0.9037 / kappa 0.4424**
+2. `sbatch … multisenge_utae/eval.sbatch` - test tile **31UEQ** vs A4 **W-F1 0.9037 / kappa 0.4424**
 3. Optional: `probe.sbatch` with `CKPT=…/best.pt`
 4. Add `RESULTS_UTAE_6CLASS.md` + `log` test row after eval
 
@@ -579,9 +704,11 @@ tail -f multisenge_utae/artifacts/slurm-<JOBID>.out   # from ~/MTP/earth2
 
 ---
 
-### 2026-08-30 — Breast-cancer TL paper notes + ignore MultiSenGE `.tar`
 
-Added BenchmarkGuide notes for Singh et al. TCBB 2021 (*Imbalanced Breast Cancer Classification Using Transfer Learning*): PDF + Word summary (`Imbalanced_Breast_Cancer_Paper_Explained.docx`) covering Table 4 (layer-wise RF / negative transfer) vs Table 5 (LR/SVM/RF vs dense head; train dense vs retrain VGG-19 — both still ImageNet TL, not from-scratch).
+
+### 2026-08-30 - Breast-cancer TL paper notes + ignore MultiSenGE `.tar`
+
+Added BenchmarkGuide notes for Singh et al. TCBB 2021 (*Imbalanced Breast Cancer Classification Using Transfer Learning*): PDF + Word summary (`Imbalanced_Breast_Cancer_Paper_Explained.docx`) covering Table 4 (layer-wise RF / negative transfer) vs Table 5 (LR/SVM/RF vs dense head; train dense vs retrain VGG-19 - both still ImageNet TL, not from-scratch).
 
 Working split convention to keep for new experiments: **train 56% / val 14% / test 30%** (val taken from the train pool; test untouched). Paper itself only makes ~70/30 clear from confusion-matrix size.
 
@@ -589,51 +716,65 @@ Working split convention to keep for new experiments: **train 56% / val 14% / te
 
 ---
 
-### 2026-08-21 — Freeze report rows; drop c6_v1 / c10_v1 from repo
 
-Kept **only** report JSON + docs. Removed `run_c6_v1` results, `train_c6_v1` / `eval_v1*` sbatch, and `*_c10_v1*` sbatch (seed/kappa-boost test did not beat 10-class v0 on test: W-F1 0.8719 / kappa 0.7534 vs v0 **0.8711 / 0.7588**).
 
-| Report | Ckpt | Test W-F1 | Kappa | Paper |
-|--------|------|-----------|-------|-------|
-| 6-class | v0 `last.pt` ep 25 | **0.9037** | **0.4424** | 0.9018 / 0.4186 |
-| 10-class | v0 `best.pt` | **0.8711** | **0.7588** | 0.8851 / 0.7945 |
+### 2026-08-21 - Freeze report rows; drop c6_v1 / c10_v1 from repo
+
+Kept **only** report JSON + docs. Removed `run_c6_v1` results, `train_c6_v1` / `eval_v1`* sbatch, and `*_c10_v1*` sbatch (seed/kappa-boost test did not beat 10-class v0 on test: W-F1 0.8719 / kappa 0.7534 vs v0 **0.8711 / 0.7588**).
+
+
+| Report   | Ckpt               | Test W-F1  | Kappa      | Paper           |
+| -------- | ------------------ | ---------- | ---------- | --------------- |
+| 6-class  | v0 `last.pt` ep 25 | **0.9037** | **0.4424** | 0.9018 / 0.4186 |
+| 10-class | v0 `best.pt`       | **0.8711** | **0.7588** | 0.8851 / 0.7945 |
+
 
 Docs: `RESULTS_RS2023_6CLASS.md`, `RESULTS_RS2023_10CLASS.md`, `TABLE5_TEST_FOR_SIR.md`, `CLASS10.md`. Next optional: **A5**.
 
 ---
 
-### 2026-08-19 — 10-class train/eval (A4b) → frozen v0
+
+
+### 2026-08-19 - 10-class train/eval (A4b) → frozen v0
 
 Train job **97047** · test **97153** (`best.pt`). Headline W-F1 **0.8711** / kappa **0.7588** vs paper **0.8851 / 0.7945**. See `CLASS10.md` / `RESULTS_RS2023_10CLASS.md`.
 
 ---
 
-### 2026-08-19 — 6-class freeze: report v0 last.pt (epoch 25)
 
-**Report to sir:** v0 `last.pt`, **epoch 25**, test tile 31UEQ. JSON: [`multisenge_seg/results/run_c6_v0/last_test_metrics.json`](multisenge_seg/results/run_c6_v0/last_test_metrics.json). Tables: [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md).
 
-| Metric | Paper Table 5/6 | v0 last ep 25 |
-|--------|-----------------|---------------|
-| W-F1 | 0.9018 | **0.9037** |
-| Kappa | 0.4186 | **0.4424** |
-| Class 2 F1 | 0.6364 | **0.6649** |
-| Class 3 F1 | 0.5894 | 0.4558 |
-| Class 5 F1 | 0.4064 | 0.3640 |
+### 2026-08-19 - 6-class freeze: report v0 last.pt (epoch 25)
+
+**Report to sir:** v0 `last.pt`, **epoch 25**, test tile 31UEQ. JSON: `[multisenge_seg/results/run_c6_v0/last_test_metrics.json](multisenge_seg/results/run_c6_v0/last_test_metrics.json)`. Tables: `[TABLE5_TEST_FOR_SIR.md](multisenge_seg/TABLE5_TEST_FOR_SIR.md)`.
+
+
+| Metric     | Paper Table 5/6 | v0 last ep 25 |
+| ---------- | --------------- | ------------- |
+| W-F1       | 0.9018          | **0.9037**    |
+| Kappa      | 0.4186          | **0.4424**    |
+| Class 2 F1 | 0.6364          | **0.6649**    |
+| Class 3 F1 | 0.5894          | 0.4558        |
+| Class 5 F1 | 0.4064          | 0.3640        |
+
 
 `last.pt` preferred over `best.pt` (ep 5) for urban F1. **A4 6-class frozen.**
 
 ---
 
-### 2026-08-17 — 6-class test replicate complete (Table 5/6 vs paper)
 
-**Test eval** job **96798** on `best.pt` (train job **96769**, epoch 5). Full comparison: [`multisenge_seg/RESULTS_RS2023_6CLASS.md`](multisenge_seg/RESULTS_RS2023_6CLASS.md).
 
-| Metric | Mine (test 31UEQ) | Paper Table 5/6 | Δ |
-|--------|-------------------|-----------------|---|
-| W-Precision | 0.9506 | 0.9591 | −0.009 |
-| W-Recall | **0.8808** | 0.8596 | **+0.021** |
-| **W-F1** | **0.9098** | **0.9018** | **+0.008** |
-| Kappa | **0.4496** | 0.4186 | **+0.031** |
+### 2026-08-17 - 6-class test replicate complete (Table 5/6 vs paper)
+
+**Test eval** job **96798** on `best.pt` (train job **96769**, epoch 5). Full comparison: `[multisenge_seg/RESULTS_RS2023_6CLASS.md](multisenge_seg/RESULTS_RS2023_6CLASS.md)`.
+
+
+| Metric      | Mine (test 31UEQ) | Paper Table 5/6 | Δ          |
+| ----------- | ----------------- | --------------- | ---------- |
+| W-Precision | 0.9506            | 0.9591          | −0.009     |
+| W-Recall    | **0.8808**        | 0.8596          | **+0.021** |
+| **W-F1**    | **0.9098**        | **0.9018**      | **+0.008** |
+| Kappa       | **0.4496**        | 0.4186          | **+0.031** |
+
 
 Per-class P/R/F1 logged; metrics defined in `multisenge_seg/metrics.py`. JSON (repo): `multisenge_seg/results/run_c6_v0/test_metrics.json`. PARAM: `checkpoints/run_c6_v0/test_metrics.json`.
 
@@ -641,15 +782,19 @@ Per-class P/R/F1 logged; metrics defined in `multisenge_seg/metrics.py`. JSON (r
 
 ---
 
-### 2026-08-17 — CNN replicate train finished (job 96769); next = test eval
+
+
+### 2026-08-17 - CNN replicate train finished (job 96769); next = test eval
 
 **Done:** EarlyStopping after epoch **25** (20 epochs without beating val_wF1). Best checkpoint is **epoch 5**.
 
-| Split | Metric | Mine | Paper (RS 2023 Table 5/6, **test** tile 31UEQ) |
-|-------|--------|------|-----------------------------------------------|
-| **Val** (31UFP+31UGP) | Weighted F1 | **0.9411** | — (paper reports test, not val) |
-| Val | Kappa | **0.448** (epoch 5) | paper test kappa **0.4186** |
-| Paper target | Weighted F1 | pending **test** | **0.9018** (ConvLSTM+Inception-S1S2, 6-class) |
+
+| Split                 | Metric      | Mine                | Paper (RS 2023 Table 5/6, **test** tile 31UEQ) |
+| --------------------- | ----------- | ------------------- | ---------------------------------------------- |
+| **Val** (31UFP+31UGP) | Weighted F1 | **0.9411**          | - (paper reports test, not val)                |
+| Val                   | Kappa       | **0.448** (epoch 5) | paper test kappa **0.4186**                    |
+| Paper target          | Weighted F1 | pending **test**    | **0.9018** (ConvLSTM+Inception-S1S2, 6-class)  |
+
 
 Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpoints/run_c6_v0/{best.pt,last.pt,best_metrics.json,history.json}`.
 
@@ -657,7 +802,9 @@ Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpo
 
 ---
 
-### 2026-08-17 — PARAM smoke OK; CNN train job submitted (A4)
+
+
+### 2026-08-17 - PARAM smoke OK; CNN train job submitted (A4)
 
 **Smoke** (`python -m multisenge_seg.smoke_index --max-labels 400`): **135** patches from first 400 labels; example `31TFN_4626_514` with months [7,8,9,11]. Env: `MLDL/Pytorch-gpu` + `rasterio` OK on login01 (`cuda False` on login is normal).
 
@@ -665,26 +812,31 @@ Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpo
 
 **Docs added locally:** `multisenge_seg/PARAM_TRANSFER.md`, `LAB_GPU_TRANSFER.md`; `train.sbatch` uses absolute PARAM paths.
 
-**Next:** ~~wait for `best_metrics.json`~~ → train finished (see later 2026-08-17 entry). Test eval still pending.
+**Next:** ~~wait for~~ `best_metrics.json` → train finished (see later 2026-08-17 entry). Test eval still pending.
 
 ---
 
-### 2026-08-15 / 08-17 — MultiSenGE data + code on PARAM; next = CNN train (A4)
+
+
+### 2026-08-15 / 08-17 - MultiSenGE data + code on PARAM; next = CNN train (A4)
 
 **PARAM transfer done** (`~/MTP/earth2`):
+
 - Code: `git pull` → `multisenge_seg/` present
 - Data under `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/`:
   - labels **8157** · ground_reference **8157**
   - s2 **72033** · s1 **209854**
 - Labels were already on PARAM; GR then S2 (~5.5 h) then S1 (overnight, one disconnect + resume via `scp -r`)
 
-**Not zero-shot.** Pillar A is **pixel CNN segmentation** — train ConvLSTM+Inception→VGG-16 U-Net from scratch (paper replicate). Zero-shot was Pillar B (EarthDial VLM), already done.
+**Not zero-shot.** Pillar A is **pixel CNN segmentation** - train ConvLSTM+Inception→VGG-16 U-Net from scratch (paper replicate). Zero-shot was Pillar B (EarthDial VLM), already done.
 
 **Next on PARAM:** ~~smoke + sbatch~~ → job **96769** running (see 2026-08-17 entry).
 
 ---
 
-### 2026-08-11 — Patch counts match paper; train tricks; VGG-16 U-Net
+
+
+### 2026-08-11 - Patch counts match paper; train tricks; VGG-16 U-Net
 
 **Index:** Added missing train tile **32ULV** (793 patches). With ≥17-day S2 gap → **train 3369 / val 1911 / test 610 = 5890** (paper). S1 paired by same month / nearest date (not a second gap filter).
 
@@ -692,7 +844,9 @@ Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpo
 
 ---
 
-### 2026-08-11 — VGG-16 U-Net; single CNN path naming
+
+
+### 2026-08-11 - VGG-16 U-Net; single CNN path naming
 
 **Why SmallUNet before:** temporary scaffold so index + train loop could land without a heavy backbone. **Now:** `model.py` uses paper-style **VGG-16 U-Net** (from scratch on fused features). Dataset keeps **10** S2 bands (on-disk TIFs are 10-band).
 
@@ -702,11 +856,13 @@ Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpo
 
 ---
 
-### 2026-08-11 — CNN index smoke OK after date-filter fix
+
+
+### 2026-08-11 - CNN index smoke OK after date-filter fix
 
 **Data confirmed present** under `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/`: S1 (~115 GB), S2 (~88 GB / 72033 tifs), GR (8157), labels (8157).
 
-**Bugfix:** `build_patch_index` initially only kept **9** patches — label JSON listed S1 dates whose files were not on disk. Fix: pick Jul/Aug/Sep/Nov dates only from filenames that **exist** on disk before applying the ≥17-day gap rule (`multisenge_seg/dataset.py`).
+**Bugfix:** `build_patch_index` initially only kept **9** patches - label JSON listed S1 dates whose files were not on disk. Fix: pick Jul/Aug/Sep/Nov dates only from filenames that **exist** on disk before applying the ≥17-day gap rule (`multisenge_seg/dataset.py`).
 
 **Smoke:** `python -m multisenge_seg.smoke_index` → **3305** patches (train **1545** / val **1218** / test **542**).
 
@@ -714,54 +870,60 @@ Train loss 1.29 → 0.48; LR 1e-3 → 1e-6. Checkpoints: `multisenge_seg/checkpo
 
 **Still pending:** email authors (`BenchmarkGuide/EMAIL_AUTHORS_CODE_REQUEST.md`); PARAM train loop + VGG-UNet parity; advanced model after replicate.
 
-### 2026-08-10 — S2+GR downloaded; CNN validation scaffold started
+### 2026-08-10 - S2+GR downloaded; CNN validation scaffold started
 
 **Data on laptop** (`LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/`):
 
-| Dir | Files | Size |
-|-----|-------|------|
-| `s1/` | 209854 | ~115 GB |
-| `s2/` | 72033 | ~88 GB |
-| `ground_reference/` | 8157 | ~0.03 GB |
-| `labels/` | 8157 | ~0.04 GB |
 
-**Scaffold added:** `multisenge_seg/` — PROTOCOL, geographic split, 6/10-class maps, patch index + Dataset, ConvLSTM+Inception+SmallUNet stub, `smoke_index.py`.
+| Dir                 | Files  | Size     |
+| ------------------- | ------ | -------- |
+| `s1/`               | 209854 | ~115 GB  |
+| `s2/`               | 72033  | ~88 GB   |
+| `ground_reference/` | 8157   | ~0.03 GB |
+| `labels/`           | 8157   | ~0.04 GB |
+
+
+**Scaffold added:** `multisenge_seg/` - PROTOCOL, geographic split, 6/10-class maps, patch index + Dataset, ConvLSTM+Inception+SmallUNet stub, `smoke_index.py`.
 
 **Next (at the time):** run smoke_index; email authors; PARAM train later.
 
-### 2026-08-10 — CNN validation next; RUNBOOK moved; new umbrella ROADMAP
+### 2026-08-10 - CNN validation next; RUNBOOK moved; new umbrella ROADMAP
 
 **Decision:** Professor path = **CNN validation** (replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2, then advanced model). Metz-only IRRG baseline idea dropped. Pillar B (LULCDial) treated as core-complete.
 
 **Doc moves:**
+
 - `RUNBOOK.md` → `LULCDial-s1/RUNBOOK.md` (VLM/PARAM commands only)
 - Old root `ROADMAP.md` archived as `LULCDial-s1/ROADMAP_VLM.md`
-- New root [`ROADMAP.md`](ROADMAP.md) = dual-pillar plan with CNN validation checklist
-- Root [`README.md`](README.md) updated pointers
+- New root `[ROADMAP.md](ROADMAP.md)` = dual-pillar plan with CNN validation checklist
+- Root `[README.md](README.md)` updated pointers
 
-**Data fact (HTTP Content-Length):** MultiSenGE `s2.tgz` ≈ **80 GB**; `s1.tgz` ≈ **110 GB**; `ground_reference.tgz` ≈ **25 MB**. Workspace currently **S1 + labels only** — S2 + GR must be downloaded on **sir PC** before full CNN training data can be built.
+**Data fact (HTTP Content-Length):** MultiSenGE `s2.tgz` ≈ **80 GB**; `s1.tgz` ≈ **110 GB**; `ground_reference.tgz` ≈ **25 MB**. Workspace currently **S1 + labels only** - S2 + GR must be downloaded on **sir PC** before full CNN training data can be built.
 
 **Before implementing the RS-2023 model** (needs from user): see chat checklist (disk, download, email authors, confirm 6 vs 10 classes).
 
 **Next:** email authors (code on demand) + laptop scaffold after A0 protocol freeze; sir PC downloads S2+GR.
 
-### 2026-08-03 — MultiSenNA soft dialogue F1 (laptop scorer on PARAM)
+### 2026-08-03 - MultiSenNA soft dialogue F1 (laptop scorer on PARAM)
 
 After pushing dialogue scorer (`87a24fa`) and fixing PARAM pull conflicts: re-scored MultiSenNA 11939/11939.
 
-| Metric | Value |
-|--------|-------|
-| classify example F1 | **0.679** |
-| T1 / T2 set-match | 0.013 / 0.079 |
+
+| Metric                 | Value             |
+| ---------------------- | ----------------- |
+| classify example F1    | **0.679**         |
+| T1 / T2 set-match      | 0.013 / 0.079     |
 | **T1 / T2 example F1** | **0.687 / 0.686** |
+
 
 Same story as GE: soft dialogue F1 ≈ classify; exact set-match is the bottleneck (worse on transfer). Updated metrics + leaderboard locally.
 
-### 2026-08-03 — Dialogue improvement track (soft F1 + format-aligned prompts)
+### 2026-08-03 - Dialogue improvement track (soft F1 + format-aligned prompts)
 
 **Why:** GE dialogue set-match looks weak (T1 0.134) vs classify F1 0.812; failure cases show format/consistency, not perception.
 
-**Done (laptop — not heavy):**
+**Done (laptop - not heavy):**
+
 - `eval_zero_shot` now also reports `dialogue.turn1_example_f1` / `turn2_example_f1`
 - Re-scored GE: T1 F1 **0.813**, T2 F1 **0.870** (set-match unchanged)
 - Dialogue prompts in `instruct_templates.py` now force option-list + comma-separated answers (aligned with classify)
@@ -769,8 +931,9 @@ Same story as GE: soft dialogue F1 ≈ classify; exact set-match is the bottlene
 - Draft public package `sar_lc_bench_v0.1/` (Zenodo deferred)
 
 **Machine:**
+
 - Step A (metrics / re-score): **laptop only**
-- Steps C–D (rebuild shards + FT): **sir PC + PARAM** — only when ready to lift set-match
+- Steps C–D (rebuild shards + FT): **sir PC + PARAM** - only when ready to lift set-match
 
 **PARAM:** after this commit is pushed, `git pull` (stash/move local metrics/preds conflicts first), then re-score MultiSenNA for soft T1/T2 F1.
 
@@ -778,7 +941,7 @@ Same story as GE: soft dialogue F1 ≈ classify; exact set-match is the bottlene
 
 **Next:** optional Continuetrain after shard rebuild for higher set-match.
 
-### 2026-08-03 — Defer public data release; Phase 3 bi-temporal is next
+### 2026-08-03 - Defer public data release; Phase 3 bi-temporal is next
 
 **Decision:** Do not upload TIFF packs / create public `SAR-LC-Bench` GitHub yet. Finish **Phase 3 (2-date lite, ~100 patches)** first, then one Zenodo + public-repo release with single-date + bi-temporal data.
 
@@ -786,68 +949,76 @@ Same story as GE: soft dialogue F1 ≈ classify; exact set-match is the bottlene
 
 **Next:** on sir PC, find MultiSenGE patches with ≥2 S1 dates and sample ~100 for `ai4lcc_bitemp_100.jsonl`.
 
-### 2026-08-03 — Phase 2 started: draft `sar_lc_bench_v0.1/` package
+### 2026-08-03 - Phase 2 started: draft `sar_lc_bench_v0.1/` package
 
 Scaffolded public-ready bench package (protocol, manifest+SHA256, leaderboard, MIT LICENSE, `data/ge/ai4lcc_test.jsonl`, `PUBLISH.md`).
 
-**Publishing advice:** use a **separate public GitHub repo** (e.g. `SAR-LC-Bench`) when going live — do not turn this MTP research repo into the public face (personal notes / PARAM ops). Large TIFF packs → Zenodo / GitHub Release, not git.
+**Publishing advice:** use a **separate public GitHub repo** (e.g. `SAR-LC-Bench`) when going live - do not turn this MTP research repo into the public face (personal notes / PARAM ops). Large TIFF packs → Zenodo / GitHub Release, not git.
 
 Still TODO for Phase 2: ship/link compact `s1_test_bench` rasters; optional MultiSenNA JSONL+checksum; create empty public repo when ready.
 
-### 2026-08-03 — Refresh Phase 1 failure cases with post-fix preds
+### 2026-08-03 - Refresh Phase 1 failure cases with post-fix preds
 
 Re-ran `dump_patch_preds.py` + `rank_failures.py` on post-fix ZS/FT JSONLs. Updated local `writeup/04_failure_cases.md`:
+
 - Case 1 still mode-collapse (`Dense Built-Up`; **2329/2497** ZS)
 - Case 2 switched to `31UFP_3084_1542` (old free-text patch no longer free-text after fix)
 - Cases 3–5 answers/rank tables match new FT preds; metrics already 0.812 / 0.134 / 0.390
 
-### 2026-07-31 — Phase 1 complete (post-radiometry-fix): MultiSenNA F1 0.679
 
-**MultiSenNA predict:** job 93033 COMPLETED on `ragpu008` — 11939/11939 preds (~9.5 h).
 
-**Metrics (`metrics/v0.1/lulcdial_v0.1_multisenna.json`):**
+### 2026-07-31 - Phase 1 complete (post-radiometry-fix): MultiSenNA F1 0.679
+
+**MultiSenNA predict:** job 93033 COMPLETED on `ragpu008` - 11939/11939 preds (~9.5 h).
+
+**Metrics (**`metrics/v0.1/lulcdial_v0.1_multisenna.json`**):**
+
 - classification example F1 **0.679** (was **0.674** pre-fix)
 - dialogue T1 **0.013** / T2 **0.079** (was 0.014 / 0.081)
 
 **Full post-fix table:**
 
-| Model | Example F1 | T1 | T2 |
-|-------|------------|-----|-----|
-| EarthDial ZS | 0.052 | 0.000 | 0.000 |
-| LULCDial_S1_v0.1 | **0.812** | 0.134 | 0.390 |
-| → MultiSenNA transfer | **0.679** | 0.013 | 0.079 |
 
-Radiometry fix lifted all three F1s slightly (ZS +0.033, FT +0.012, MultiSenNA +0.005). Dialogue transfer remains weak — report as limitation.
+| Model                 | Example F1 | T1    | T2    |
+| --------------------- | ---------- | ----- | ----- |
+| EarthDial ZS          | 0.052      | 0.000 | 0.000 |
+| LULCDial_S1_v0.1      | **0.812**  | 0.134 | 0.390 |
+| → MultiSenNA transfer | **0.679**  | 0.013 | 0.079 |
+
+
+Radiometry fix lifted all three F1s slightly (ZS +0.033, FT +0.012, MultiSenNA +0.005). Dialogue transfer remains weak - report as limitation.
 
 Updated `README.md`, `ROADMAP.md`, local `writeup/`, metrics JSONs. Phase 1 done.
 
-### 2026-07-31 — Post-fix FT scored (F1 0.812); MultiSenNA re-eval running
+### 2026-07-31 - Post-fix FT scored (F1 0.812); MultiSenNA re-eval running
 
-**Train:** job 92652 COMPLETED alone on `racn115` — `train_loss=0.1658`, epoch 1.0, full `checkpoints/LULCDial_S1_v0.1/` weights saved.
+**Train:** job 92652 COMPLETED alone on `racn115` - `train_loss=0.1658`, epoch 1.0, full `checkpoints/LULCDial_S1_v0.1/` weights saved.
 
-**FT predict:** job 93032 COMPLETED on `racn116` — 2497/2497 preds.
+**FT predict:** job 93032 COMPLETED on `racn116` - 2497/2497 preds.
 
-**FT metrics (`metrics/v0.1/lulcdial_v0.1.json`):**
+**FT metrics (**`metrics/v0.1/lulcdial_v0.1.json`**):**
+
 - classification example F1 **0.812** (was **0.800** pre-fix)
 - dialogue T1 **0.134** / T2 **0.390** (was 0.121 / 0.364)
 
 **ZS (already scored):** F1 **0.052** (was 0.019).
 
-**MultiSenNA:** job 93033 `pred_na` on `ragpu008` (pinned `--exclude=racn116`) — still running; leave alone until ~11939 lines, then score.
+**MultiSenNA:** job 93033 `pred_na` on `ragpu008` (pinned `--exclude=racn116`) - still running; leave alone until ~11939 lines, then score.
 
 Updated `README.md`, `ROADMAP.md`, and local `writeup/` (01, 04, 05, README) with post-fix ZS/FT; MultiSenNA row marked re-running / TBD. Failure-case patch dumps still pre-fix until new preds are downloaded.
 
-### 2026-07-30 — Post-fix ZS scored; first re-train killed by co-scheduling
+### 2026-07-30 - Post-fix ZS scored; first re-train killed by co-scheduling
 
-**ZS (post-radiometry-fix):** job 92607 COMPLETED, 2497/2497 preds. `metrics/v0.1/earthdial_zs_baseline.json` → classification example F1 **0.0517** (was 0.0194 pre-fix), dialogue T1/T2 **0.0** (base model does not follow the dialogue format — expected).
+**ZS (post-radiometry-fix):** job 92607 COMPLETED, 2497/2497 preds. `metrics/v0.1/earthdial_zs_baseline.json` → classification example F1 **0.0517** (was 0.0194 pre-fix), dialogue T1/T2 **0.0** (base model does not follow the dialogue format - expected).
 
-**Re-train 92602 FAILED — root cause co-scheduling, not code/OOM:**
+**Re-train 92602 FAILED - root cause co-scheduling, not code/OOM:**
+
 - `sacct`: `FAILED ExitCode 0:9` (SIGKILL), batch step `CANCELLED`, elapsed 01:23:18, died at step **82/127** (loss ~0.13, healthy)
-- `zs_v01` 92607 ended **16:56:42**; `ft_v01` 92602 killed **16:56:49** — 7 s later, same node `racn115`
+- `zs_v01` 92607 ended **16:56:42**; `ft_v01` 92602 killed **16:56:49** - 7 s later, same node `racn115`
 - Ruled out: node healthy (`mix`), ~106 GB free, `racn115` is `gpu:2` so each job had its own GPU
 - Ruled out memory flags: `SelectTypeParameters = CR_CORE`, `RealMemory=1`, `CfgTRES=mem=1M` → `--mem` not enforced
 - Conclusion: node cleanup on the finishing job SIGKILLs the user's other processes on that node
-- `save_strategy epoch` meant **no weights saved** — only `runs/`; all 82 steps lost
+- `save_strategy epoch` meant **no weights saved** - only `runs/`; all 82 steps lost
 
 **Rule added to RUNBOOK:** never run two of your own jobs on one node; Slurm packs onto partially-used `gpu:2` nodes even when others are idle. Pin with `--exclude=<node>` / `--nodelist=`.
 
@@ -855,21 +1026,23 @@ Updated `README.md`, `ROADMAP.md`, and local `writeup/` (01, 04, 05, README) wit
 
 **Local:** recreated `metrics/v0.1/` + `bench/v0.1/preds/{earthdial_zs,lulcdial_v0.1,lulcdial_v0.1_multisenna}/`; ZS metrics written.
 
-### 2026-07-30 — Radiometry rebuild in progress (shards + PARAM re-train)
+### 2026-07-30 - Radiometry rebuild in progress (shards + PARAM re-train)
 
-**Why:** Option 3 — rebuild shards with unconditional linear→dB, re-train, re-eval all metrics.
+**Why:** Option 3 - rebuild shards with unconditional linear→dB, re-train, re-eval all metrics.
 
 **Sir PC:**
+
 - Cleaned leftover `baresoil` / `baresoil_s1`
 - Rebuilt GE shards with fixed `s1_vh_io`: train 11320 / 5660 patches, val 4992 / 2496; manifests `vh_units=dB`, `linear_to_db=unconditional`
 - Re-packed `s1_val_bench` / laptop copy aligned to `ai4lcc_test.jsonl` (2497 tifs, 0 missing)
-- GE bench JSONL stays path+label only (no image bake) — radiometry-independent
+- GE bench JSONL stays path+label only (no image bake) - radiometry-independent
 
 **PARAM:**
+
 - `git pull` after moving conflicting untracked `metrics/.../lulcdial_v0.1_multisenna.json`; confirmed no `nanmax` gate in `s1_vh_io.py`
 - Deleted old shards, `preds/`, `metrics/v0.1`, `checkpoints/LULCDial_S1_v0.1` (kept `LULCDial_S1_v0.1_old_9010`)
 - Uploaded new train/val shards; verified manifests
-- Bench still 2497 + `s1_test_bench_v0.1` 2497 (kept — no re-upload needed)
+- Bench still 2497 + `s1_test_bench_v0.1` 2497 (kept - no re-upload needed)
 - **Re-train job 92602** (`ft_v01`) running on `racn115`
 
 **MultiSenNA:** no sir-PC shard rebuild. Transfer eval only; TIFFs re-read at predict with fixed code. Keep existing MultiSenNA bench + S1 on PARAM; re-run predict after new checkpoint.
@@ -878,13 +1051,14 @@ Updated `README.md`, `ROADMAP.md`, and local `writeup/` (01, 04, 05, README) wit
 
 **Next:** wait for 92602 → ZS + FT predict + MultiSenNA → score metrics → update README/ROADMAP/writeup numbers.
 
-### 2026-07-29 — Fix VH radiometry (unconditional linear→dB)
+### 2026-07-29 - Fix VH radiometry (unconditional linear→dB)
 
 **Decision:** Fix for publication credibility (Option 3 path). Old v0.1 checkpoint + metrics stay as historical until rebuild+retrain.
 
-**Code:** `lulcdial/s1_vh_io.py::read_s1_vh_db` — removed per-patch `max < 1.0` gate; always `10*log10(clip(vh, 1e-10))` then clip to [-50, 10] dB. Shard manifests now record `vh_units=dB`, `linear_to_db=unconditional`.
+**Code:** `lulcdial/s1_vh_io.py::read_s1_vh_db` - removed per-patch `max < 1.0` gate; always `10*log10(clip(vh, 1e-10))` then clip to [-50, 10] dB. Shard manifests now record `vh_units=dB`, `linear_to_db=unconditional`.
 
 **Required next (sir PC → PARAM):**
+
 1. `git pull` on sir PC + PARAM
 2. Rename leftover `baresoil` → `lulcdial` on sir PC if still present
 3. Rebuild train/val shards with `build_instruct_s1` (images bake radiometry)
@@ -892,39 +1066,42 @@ Updated `README.md`, `ROADMAP.md`, and local `writeup/` (01, 04, 05, README) wit
 
 Bench JSONL does **not** need rebuild for radiometry (TIFFs re-read at predict). Shards **do**.
 
-### 2026-07-29 — Phase 1 finished; found mixed VH radiometry
+### 2026-07-29 - Phase 1 finished; found mixed VH radiometry
 
 **Why:** Close out the remaining Phase 1 items (figures, failure cases).
 
-**Done (local `writeup/`, gitignored):**
+**Done (local** `writeup/`**, gitignored):**
+
 - 10/10 figure previews → `writeup/figures/v0.1/`
 - 5 failure cases filled with **real** ZS/FT predictions (both `ai4lcc_test_predictions.jsonl` files were already tracked locally)
 - New helper `writeup/scripts/dump_patch_preds.py` (GT/ZS/FT per patch)
 - Fixed `rank_failures.py` (unclosed paren) and `export_figure_previews.py` (bench `s1_path` is relative to `LULCDial-s1/`)
 
-**Found — mixed VH radiometry (needs a decision):** `lulcdial/s1_vh_io.py::read_s1_vh_db` converts linear→dB only when a patch satisfies `max < 1.0`. AI4LCC patches are linear intensity (mean ≈ 0.02) but some pixels exceed 1.0, so on a 300-patch sample of the v0.1 test bench **193 (64%) were converted to dB and 107 (36%) stayed linear**; the following `clip(-50, 10)` is a no-op for linear values. This is why the first preview export came out flat grey.
+**Found - mixed VH radiometry (needs a decision):** `lulcdial/s1_vh_io.py::read_s1_vh_db` converts linear→dB only when a patch satisfies `max < 1.0`. AI4LCC patches are linear intensity (mean ≈ 0.02) but some pixels exceed 1.0, so on a 300-patch sample of the v0.1 test bench **193 (64%) were converted to dB and 107 (36%) stayed linear**; the following `clip(-50, 10)` is a no-op for linear values. This is why the first preview export came out flat grey.
 
-Impact: model input is a mixture of two radiometric scales. It applied identically at train and test, so ZS 0.019 / FT 0.800 / MultiSenNA 0.674 remain internally valid, but it likely costs accuracy and a reviewer will spot it. **`s1_vh_io.py` intentionally left unchanged** — fixing it invalidates the v0.1 checkpoint and all metrics. Figure previews do their own unconditional dB conversion + 2–98 percentile stretch instead. Recorded in `ROADMAP.md` §5 and `writeup/05_*.md` §5.
+Impact: model input is a mixture of two radiometric scales. It applied identically at train and test, so ZS 0.019 / FT 0.800 / MultiSenNA 0.674 remain internally valid, but it likely costs accuracy and a reviewer will spot it. `s1_vh_io.py` **intentionally left unchanged** - fixing it invalidates the v0.1 checkpoint and all metrics. Figure previews do their own unconditional dB conversion + 2–98 percentile stretch instead. Recorded in `ROADMAP.md` §5 and `writeup/05_*.md` §5.
 
-### 2026-07-29 — MultiSenNA transfer eval done (v0.1)
+### 2026-07-29 - MultiSenNA transfer eval done (v0.1)
 
 **Why:** Fill the regional-generalization row for `LULCDial_S1_v0.1`.
 
 **What:** Ran `lulcdial.eval_zero_shot` on the completed MultiSenNA predictions (job 91686, 11939/11939 patches) on PARAM.
 
-**Result (`metrics/v0.1/lulcdial_v0.1_multisenna.json`):**
+**Result (**`metrics/v0.1/lulcdial_v0.1_multisenna.json`**):**
+
 - classification example F1 **0.674** (11939 rows, 0 missing)
-- dialogue T1 **0.014**, T2 **0.081** (collapse on transfer — reported as limitation)
+- dialogue T1 **0.014**, T2 **0.081** (collapse on transfer - reported as limitation)
 
 **Takeaway:** GE-trained model transfers to Nouvelle-Aquitaine with **no retraining** at F1 0.67 (vs 0.80 in-domain). Updated `README.md`, `ROADMAP.md` (§4, §6.1.6, §10, §11), and local `writeup/` (01, 05).
 
 **PARAM note:** predictions/bench had ended up nested under `data/lulcdial_s1/baresoil_s1/...` after the pull+`mv` rename; recovered with an instant `mv` of the preds dir and pointed eval at the nested bench path directly (no re-run needed).
 
-### 2026-07-28 — Rename baresoil → lulcdial (project-aligned naming)
+### 2026-07-28 - Rename baresoil → lulcdial (project-aligned naming)
 
 **Why:** “BareSoil” was not part of this project scope; align names with LULCDial-S1 / SAR-LC-Bench.
 
 **Changed:**
+
 - Package `LULCDial-s1/baresoil/` → `lulcdial/`
 - Data `data/baresoil_s1/` → `data/lulcdial_s1/`
 - Stage4 configs `Stage4_LULCDial_S1*.json`; keys `LULCDial_AI4LCC_GE_*`
@@ -935,27 +1112,33 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-28 — Phase 1 write-up pack (MultiSenNA row blank)
+
+
+### 2026-07-28 - Phase 1 write-up pack (MultiSenNA row blank)
 
 **Why:** Complete paper draft materials while MultiSenNA GPU job runs.
 
-**Added:** `writeup/` — Table 1, bench spec, 10 figure patch IDs, 5 failure-case templates, Intro/Method/Results draft; scripts `export_figure_previews.py`, `rank_failures.py`. ROADMAP §6 updated.
+**Added:** `writeup/` - Table 1, bench spec, 10 figure patch IDs, 5 failure-case templates, Intro/Method/Results draft; scripts `export_figure_previews.py`, `rank_failures.py`. ROADMAP §6 updated.
 
 **Pending:** Fill MultiSenNA row + §4.4 in draft after `lulcdial_v0.1_multisenna.json` eval.
 
 ---
 
-### 2026-07-27 — Rename v0.2 → v0.1; drop old 90/10 v0.1 artifacts
+
+
+### 2026-07-27 - Rename v0.2 → v0.1; drop old 90/10 v0.1 artifacts
 
 **Why:** Single version line for thesis (70/30 only).
 
 **Changed:** `bench/v0.2` → `bench/v0.1`, `metrics/v0.2` → `metrics/v0.1`, checkpoint name `LULCDial_S1_v0.1`, sbatch paths `s1_test_bench_v0.1`. Old scaling / 801-val results removed from repo.
 
-**Next:** MultiSenNA — use `multisenna/s1` if `s1_na_bench` is empty (sbatch auto-fallback).
+**Next:** MultiSenNA - use `multisenna/s1` if `s1_na_bench` is empty (sbatch auto-fallback).
 
 ---
 
-### 2026-07-16 / 07-17 — v0.2 70/30 DONE (LULCDial example F1 ≈ 0.800)
+
+
+### 2026-07-16 / 07-17 - v0.2 70/30 DONE (LULCDial example F1 ≈ 0.800)
 
 **Why:** Professor rejected comparing LULCDial’s old **90/10 val** F1 (0.799) to MultiSenGE paper U-Net **pixel wF1**. Need a fair shared split + same patch metric; then CNN baselines.
 
@@ -964,46 +1147,56 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 **EarthDial ZS (v0.2):** all **2497** scored → `metrics/v0.2/earthdial_zs_baseline.json`  
 **LULCDial_S1_v0.2 FT:** job **89647** on `ragpu004` (`CUDA_VISIBLE_DEVICES=1`; GPU0 held by another user). 1 epoch, 127 steps, ~2 h. Checkpoint `checkpoints/LULCDial_S1_v0.2/`. Preds → `preds/lulcdial_v0.2/`. Metrics → `metrics/v0.2/lulcdial_v0.2.json`.
 
+
 | Eval (70/30 test, n=2497) | example F1 | turn1 set-match | turn2 set-match |
-|---------------------------|------------|-----------------|-----------------|
+| ------------------------- | ---------- | --------------- | --------------- |
 | EarthDial ZS              | 0.019      | 0.000           | 0.000           |
 | **LULCDial_S1_v0.2**      | **0.800**  | 0.121           | 0.364           |
 
+
 **Ops notes:** Forced `CUDA_VISIBLE_DEVICES=0` caused OOM when GPU0 was full; use free GPU index or let Slurm assign. `predict_zero_shot.py` now **skips corrupt TIFFs** instead of dying. Train/pred `*_v0.2.sbatch` no longer hard-pin GPU 0.
 
-**Plan doc:** `BenchmarkGuide/Fair_Comparison_CNN_vs_LULCDial_Plan.md` — next: ResNet S1 multi-label, then U-Net on `ground_reference` (pixel wF1 + map→tags example F1).
+**Plan doc:** `BenchmarkGuide/Fair_Comparison_CNN_vs_LULCDial_Plan.md` - next: ResNet S1 multi-label, then U-Net on `ground_reference` (pixel wF1 + map→tags example F1).
 
 **Git:** `69ed2b7` (70/30 builders + launchers), `80a3050` (metrics + preds + sbatch harden).
 
 ---
 
-### 2026-07-13 — E4 MultiSenNA transfer DONE (F1 ≈ 0.670)
 
-**Why:** Regional transfer claim — GE-trained `LULCDial_S1_v0.1` on MultiSenNA, no NA fine-tune.
+
+### 2026-07-13 - E4 MultiSenNA transfer DONE (F1 ≈ 0.670)
+
+**Why:** Regional transfer claim - GE-trained `LULCDial_S1_v0.1` on MultiSenNA, no NA fine-tune.
 
 **Predict:** 12115 / 12115 preds (`preds/lulcdial_v0.1_multisenna/`).  
 **Metrics:** `metrics/v0.1/lulcdial_v0.1_multisenna.json`
 
-| Eval | example F1 | turn1 set-match | turn2 set-match |
-|------|------------|-----------------|-----------------|
-| GE val (100% FT) | 0.799 | ~0.12 | ~0.37 |
-| **NA transfer** | **0.670** | 0.018 | 0.081 |
-| NA smoke (100) | 0.609 | 0.00 | 0.00 |
+
+| Eval             | example F1 | turn1 set-match | turn2 set-match |
+| ---------------- | ---------- | --------------- | --------------- |
+| GE val (100% FT) | 0.799      | ~0.12           | ~0.37           |
+| **NA transfer**  | **0.670**  | 0.018           | 0.081           |
+| NA smoke (100)   | 0.609      | 0.00            | 0.00            |
+
 
 **Story:** Clear GE→NA drop (~0.13 F1) but still strong vs GE ZS (~0.02). Optional next: EarthDial ZS on NA for transfer baseline table.
 
 ---
 
-### 2026-07-12 — MultiSenNA transfer setup (smoke + full sbatch)
 
-**Why:** Start Stage 2 E4 — GE model on NA without NA training.
+
+### 2026-07-12 - MultiSenNA transfer setup (smoke + full sbatch)
+
+**Why:** Start Stage 2 E4 - GE model on NA without NA training.
 
 **Repo:** `pred_multisenna_smoke.sbatch` (100) · `pred_multisenna_v0.1.sbatch` (~12k, 16 h wall).  
 **Blocker to check on PARAM:** MultisenNA S1 TIFFs under `s1_na_bench` or `multisenna/s1` must match bench filenames.
 
 ---
 
-### 2026-07-12 — Doc sync: Stage 1 done / MultiSenNA next
+
+
+### 2026-07-12 - Doc sync: Stage 1 done / MultiSenNA next
 
 **Why:** Align roadmap, workflow guide, Stage1 guide, MultiSenGE §11, baresoil README with locked **14-class** policy and Jul 2026 metrics.
 
@@ -1011,7 +1204,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-12 — 1C-c + 1D DONE (100% FT, F1 0.799)
+
+
+### 2026-07-12 - 1C-c + 1D DONE (100% FT, F1 0.799)
 
 **Why:** Finish MultiSenGE data-scaling curve (25 / 50 / 100%, same 1-epoch recipe).
 
@@ -1019,11 +1214,13 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 **Predict (job 88591):** 801 preds on PARAM.  
 **Metrics (git):** `lulcdial_v0.1.json`, `train_v0.1/`.
 
-| Metric | ZS | p25 | p50 | **100%** |
-|--------|-----|-----|-----|----------|
-| example F1 | 0.019 | 0.782 | 0.783 | **0.799** |
-| turn1 set-match | 0.0 | 0.104 | 0.122 | 0.122 |
-| turn2 set-match | 0.0 | 0.376 | 0.377 | 0.371 |
+
+| Metric          | ZS    | p25   | p50   | **100%**  |
+| --------------- | ----- | ----- | ----- | --------- |
+| example F1      | 0.019 | 0.782 | 0.783 | **0.799** |
+| turn1 set-match | 0.0   | 0.104 | 0.122 | 0.122     |
+| turn2 set-match | 0.0   | 0.376 | 0.377 | 0.371     |
+
 
 **Verdict:** Big win vs ZS. Scaling after 25% is **weak** (p25≈p50; 100% only ~+0.017 F1). Stage 1 scaling curve is complete.
 
@@ -1031,7 +1228,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-12 — 1C-c (100%) launch ready
+
+
+### 2026-07-12 - 1C-c (100%) launch ready
 
 **Why:** Complete data-scaling curve with full MultiSenGE train shard (same 1-epoch recipe as p25/p50).
 
@@ -1042,7 +1241,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-12 — 1C-b + 1D p50 DONE (F1 ≈ flat vs p25)
+
+
+### 2026-07-12 - 1C-b + 1D p50 DONE (F1 ≈ flat vs p25)
 
 **Why:** Finish 50% scaling point and compare to ZS / p25 on the same 801 bench.
 
@@ -1050,11 +1251,13 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 **Predict (job 88568):** 801 preds → `preds/lulcdial_p50/`.  
 **Metrics (git):** `metrics/v0.1/lulcdial_p50.json`, `metrics/v0.1/train_p50/`.
 
-| Metric | ZS | p25 | p50 |
-|--------|-----|-----|-----|
-| example F1 | **0.0194** | **0.7816** | **0.7834** |
-| turn1 set-match | 0.0 | 0.104 | 0.122 |
-| turn2 set-match | 0.0 | 0.376 | 0.377 |
+
+| Metric          | ZS         | p25        | p50        |
+| --------------- | ---------- | ---------- | ---------- |
+| example F1      | **0.0194** | **0.7816** | **0.7834** |
+| turn1 set-match | 0.0        | 0.104      | 0.122      |
+| turn2 set-match | 0.0        | 0.376      | 0.377      |
+
 
 **Verdict:** Fine-tuning works (≫ ZS). **25% → 50% barely moves F1** on this bench (~+0.002). Scaling curve so far is **flat after p25**.
 
@@ -1062,7 +1265,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-11 — 1C-b TRAINING overnight (job 88490)
+
+
+### 2026-07-11 - 1C-b TRAINING overnight (job 88490)
 
 **Why:** Start 50% fine-tune after p50 shard + scripts were ready.
 
@@ -1070,11 +1275,14 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-11 — 1C-b (50%) environment ready; train tomorrow
+
+
+### 2026-07-11 - 1C-b (50%) environment ready; train tomorrow
 
 **Why:** Prep scaling run (shard + scripts) before GPU train.
 
 **Done on PARAM:**
+
 - Built `shards/ai4lcc_ge_train_p50` (**7355** rows)
 - `git pull` brought `Stage4_LULCDial_S1_p50.json`, `train_p50.sbatch`, `pred_p50.sbatch`
 
@@ -1082,31 +1290,39 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-11 — 1D p25 eval DONE (beats ZS by a large margin)
+
+
+### 2026-07-11 - 1D p25 eval DONE (beats ZS by a large margin)
 
 **Why:** Score 25% fine-tune on the same 801 MultiSenGE val bench as 1B.
 
 **Done:**
+
 - Predict job **88461** (`sbatch ~/pred_p25.sh`) → wrote 801 preds → `preds/lulcdial_p25/ai4lcc_val_predictions.jsonl`
 - Metrics (git): `metrics/v0.1/lulcdial_p25.json`
 
-| Metric | ZS (`earthdial_zs_baseline`) | p25 (`lulcdial_p25`) |
-|--------|------------------------------|----------------------|
-| example F1 | **0.0194** | **0.7816** |
-| turn1 set-match | 0.0 | 0.104 |
-| turn2 set-match | 0.0 | 0.376 |
 
-**Verdict:** 1C-a / 1D **pass** — primary F1 ~40× ZS on identical bench.
+| Metric          | ZS (`earthdial_zs_baseline`) | p25 (`lulcdial_p25`) |
+| --------------- | ---------------------------- | -------------------- |
+| example F1      | **0.0194**                   | **0.7816**           |
+| turn1 set-match | 0.0                          | 0.104                |
+| turn2 set-match | 0.0                          | 0.376                |
+
+
+**Verdict:** 1C-a / 1D **pass** - primary F1 ~40× ZS on identical bench.
 
 **Next:** 1C-b (50%) / 1C-c (100%) with same hyperparams + same eval pattern, or MultiSenNA transfer later.
 
 ---
 
-### 2026-07-11 — 1C-a DONE (p25 fine-tune on PARAM)
+
+
+### 2026-07-11 - 1C-a DONE (p25 fine-tune on PARAM)
 
 **Why:** Complete Stage 1C-a 25% fine-tune and archive train metrics locally.
 
 **Result:** Slurm job **88440** (`sbatch ~/train_p25.sh`) → **COMPLETED** `0:0`, elapsed ~46 min (train ~41:42).
+
 - Out (PARAM): `~/MTP/earth2/LULCDial-s1/checkpoints/LULCDial_S1_p25/` (+ `checkpoint-41`, safetensors)
 - Metrics (git): `LULCDial-s1/data/lulcdial_s1/metrics/v0.1/train_p25/`
   - `train_loss` ≈ **0.2431**, `epoch` ≈ 0.99, `train_samples` = 5280
@@ -1115,21 +1331,26 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-11 — 1C-a via `sbatch` (interactive runs kept dying)
+
+
+### 2026-07-11 - 1C-a via `sbatch` (interactive runs kept dying)
 
 **Why:** Two interactive `salloc`+`tmux` attempts died mid-run (SSH reset / exiting outer `srun` kills the allocation). No epoch checkpoint → only `runs/` left; aborted runs do **not** affect the next start (reload `EarthDial_4B_MS`).
 
 **Launch:** `sbatch ~/train_p25.sh` → job **88440** on `racn115`. First loss **2.4005**, token length **1024**.
 
 **Gotchas locked into RUNBOOK:**
-- Prefer **`sbatch`** for fine-tune; close CMD freely.
+
+- Prefer `sbatch` for fine-tune; close CMD freely.
 - `#SBATCH -o ~/…` → literal path `~/~/ft25_JOBID.out` (Slurm does not expand `~`). Use `/home/rihak_iitp/…`.
 - Do **not** `conda deactivate` after `module load MLDL/Pytorch-gpu`.
 - FlashAttention warnings OK; must not see 64↔256 token mismatch / zero loss.
 
 ---
 
-### 2026-07-11 — 1C-a interactive attempt (p25, image 448) — superseded by sbatch
+
+
+### 2026-07-11 - 1C-a interactive attempt (p25, image 448) - superseded by sbatch
 
 **Why:** Finish Stage 1C-a after dataloader / OOM / token fixes.
 
@@ -1139,9 +1360,11 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-11 — Fix S1 dataloader: pass PIL into transform (not pre-tensor)
 
-**Why:** 1C-a model loaded, then crashed with `ToTensor ... Got <class 'torch.Tensor'>` — SAR branch converted images to tensors before `build_transform(s1)` which expects PIL.
+
+### 2026-07-11 - Fix S1 dataloader: pass PIL into transform (not pre-tensor)
+
+**Why:** 1C-a model loaded, then crashed with `ToTensor ... Got <class 'torch.Tensor'>` - SAR branch converted images to tensors before `build_transform(s1)` which expects PIL.
 
 **Fix:** `dataloader.py` SAR paths apply `transform` on PIL; train `s1` transform adds `ToTensor`; `S1_MEAN/STD` are proper 1-tuples.
 
@@ -1152,35 +1375,41 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 **Why:** Start 25% fine-tune from `EarthDial_4B_MS` on PARAM.
 
 **Done:**
+
 - Subsampled train shard → `shards/ai4lcc_ge_train_p25` (3678 / 14710)
 - `Stage4_LULCDial_S1.json` → PARAM p25 + val paths (commit `f6c02ba`)
 - Code: optional `flash_attn` (`0d5bb03`), optional `decord` (`016ab2f`)
 - Installed train deps under **Pytorch-gpu / Python 3.10** (`deepspeed`, `cv2`, `imageio`, `decord`, …)
 
 **Gotchas logged in RUNBOOK:**
+
 - `pip` in `(base)` / py3.13 ≠ visible to Pytorch-gpu py3.10
 - `git` only on login01; compute has no PyPI
-- Plain `python finetune.py` → `KeyError: RANK` — must use `python -m torch.distributed.run --nproc_per_node=1 …`
+- Plain `python finetune.py` → `KeyError: RANK` - must use `python -m torch.distributed.run --nproc_per_node=1 …`
 - Always `module load MLDL/Pytorch-gpu` inside tmux before train
 
 **Next:** Run 1C-a with `torch.distributed.run` and **without** `--deepspeed` if `c++` missing on node (A100 80GB + bf16 is enough for 4B).
 
 ---
 
-### 2026-07-11 — Docs: status + PARAM env pins; next = 1C-a
+
+
+### 2026-07-11 - Docs: status + PARAM env pins; next = 1C-a
 
 **Why:** Capture yesterday’s PARAM installs/commands and where everything lives so 1C can reuse the same env.
 
 **Docs:**
-- `RUNBOOK.md` — status checklist; **Which file holds what**; full **PARAM GPU env** (module, pip pins, tmux, MS download); 1B paths → `preds/` + `metrics/v0.1/`; 1C.0 subsample-from-uploaded-shard
-- `README.md` — reading order + current status
+
+- `RUNBOOK.md` - status checklist; **Which file holds what**; full **PARAM GPU env** (module, pip pins, tmux, MS download); 1B paths → `preds/` + `metrics/v0.1/`; 1C.0 subsample-from-uploaded-shard
+- `README.md` - reading order + current status
 - This log entry
 
 **Done till now:** 1A (shards+bench) · 1B ZS (801, F1≈0.0194) · artifacts on PARAM + git (`e3ab205`).
 
 **Next:** On PARAM, subsample train → `ai4lcc_ge_train_p25` (~25%), edit `Stage4_LULCDial_S1.json`, fine-tune from `EarthDial_4B_MS` → `LULCDial_S1_p25`, eval same 801 bench.
 
-**PARAM env (reuse — do not reinstall blindly):**
+**PARAM env (reuse - do not reinstall blindly):**
+
 - Module: `MLDL/Pytorch-gpu` after `salloc` + `srun --pty bash`
 - Pins: `transformers==4.37.2`, `tokenizers==0.15.1`, `peft==0.10.0`, `numpy==1.26.4`, `protobuf`, `sentencepiece`
 - Avoid `opencv-python-headless` (numpy 2.x clash)
@@ -1188,39 +1417,47 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-10 — Stage 1B complete: EarthDial_4B_MS zero-shot on 801 val
+
+
+### 2026-07-10 - Stage 1B complete: EarthDial_4B_MS zero-shot on 801 val
 
 **Why:** Lock strict-F1 baseline before 25/50/100% fine-tune scaling.
 
 **PARAM result** (`metrics/v0.1/earthdial_zs_baseline.json`):
+
 - `num_scored_rows`: **801** / `missing_predictions`: 0
 - classification `example_f1`: **~0.0194**
 - dialogue turn1 / turn2 set-match: **0.0** / **0.0**
 
-**Artifacts (committed `e3ab205`):**
+**Artifacts (committed** `e3ab205`**):**
+
 - `data/lulcdial_s1/bench/v0.1/preds/earthdial_zs/ai4lcc_val_predictions.jsonl` (801 lines)
 - `data/lulcdial_s1/metrics/v0.1/earthdial_zs_baseline.json`
 
 **PARAM commands used (purpose):**
-- `pack_bench_s1` — copy only 801 val TIFFs (not full S1)
-- `huggingface-cli download … EarthDial_4B_MS` — MS/SAR weights (~8.3 GB)
-- `salloc` + `srun --pty` + `module load MLDL/Pytorch-gpu` — GPU shell
-- `predict_zero_shot --max-samples 20` then `--resume` full 801 (~47 min) — ZS preds
-- `eval_zero_shot` — strict F1 + dialogue set-match
-- `tmux` session `zs801` — survive SSH drops
+
+- `pack_bench_s1` - copy only 801 val TIFFs (not full S1)
+- `huggingface-cli download … EarthDial_4B_MS` - MS/SAR weights (~8.3 GB)
+- `salloc` + `srun --pty` + `module load MLDL/Pytorch-gpu` - GPU shell
+- `predict_zero_shot --max-samples 20` then `--resume` full 801 (~47 min) - ZS preds
+- `eval_zero_shot` - strict F1 + dialogue set-match
+- `tmux` session `zs801` - survive SSH drops
 
 **Readout:** Near-floor ZS expected. Next: 25% → 50% → 100% separate fine-tunes from `EarthDial_4B_MS`.
 
 ---
 
-### 2026-07-10 — Lock plan: full 801 ZS, then 25/50/100% separate fine-tunes
+
+
+### 2026-07-10 - Lock plan: full 801 ZS, then 25/50/100% separate fine-tunes
 
 **Why:** User wants a data-scaling study (prove more AI4LCC data helps) without redesigning metrics/templates mid-1B.
 
 **Docs updated:**
-- `RUNBOOK.md` — 1B notes (keep clean class-list GT; strict F1); new **1C scaling** block (25→50→100%, separate runs from `EarthDial_4B_MS`); checklist
-- `LULCDial-s1/lulcdial/README.md` — post-1B plan
-- `Stage1_Summer_Intern_Guide.md` — 1C scaling wording
+
+- `RUNBOOK.md` - 1B notes (keep clean class-list GT; strict F1); new **1C scaling** block (25→50→100%, separate runs from `EarthDial_4B_MS`); checklist
+- `LULCDial-s1/lulcdial/README.md` - post-1B plan
+- `Stage1_Summer_Intern_Guide.md` - 1C scaling wording
 
 **Do not:** treat 8 `.arrow` files as 8 datasets; change answer format mid-ZS; replace strict F1 with sentence metrics.
 
@@ -1228,12 +1465,15 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-10 — PARAM: EarthDial_4B_MS downloaded; Stage 1B ready to smoke
+
+
+### 2026-07-10 - PARAM: EarthDial_4B_MS downloaded; Stage 1B ready to smoke
 
 **Why:** Stage 1B needs MS/SAR weights; PARAM previously had only `EarthDial_4B_RGB`.
 
-**Done on PARAM (`login01`):**
-- `s1_val_bench` present — **801** TIFFs
+**Done on PARAM (**`login01`**):**
+
+- `s1_val_bench` present - **801** TIFFs
 - Downloaded `akshaydudhane/EarthDial_4B_MS` → `~/EarthDial_Models/EarthDial_4B_MS` (~8.29 GB)
 - Code at `b39ae8f` (`predict_zero_shot.py`, `pack_bench_s1.py`)
 
@@ -1241,35 +1481,43 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-10 — Stage 1B zero-shot inference runner
+
+
+### 2026-07-10 - Stage 1B zero-shot inference runner
 
 **Why:** Start Stage 1B (EarthDial_4B_MS baseline before fine-tune). Scorer already existed; model batch runner did not. PARAM has shards/bench but not full raw S1.
 
 **Added:**
-- `baresoil/predict_zero_shot.py` — S1 VH → `s1` norm → `sequential_vit_features` → classify + 2-turn dialogue preds
-- `baresoil/pack_bench_s1.py` — copy only bench-referenced TIFFs (~801) for upload
-- `RUNBOOK.md` / `baresoil/README.md` — Stage 1B pack → infer → score commands
+
+- `baresoil/predict_zero_shot.py` - S1 VH → `s1` norm → `sequential_vit_features` → classify + 2-turn dialogue preds
+- `baresoil/pack_bench_s1.py` - copy only bench-referenced TIFFs (~801) for upload
+- `RUNBOOK.md` / `baresoil/README.md` - Stage 1B pack → infer → score commands
 
 **Next on user side:** pack `s1_val_bench`, scp to PARAM, confirm `EarthDial_4B_MS` weights, smoke `--max-samples 20`, then full + `eval_zero_shot`.
 
 ---
 
-### 2026-07-10 — Stage 1A full build + MultiSenNA bench; artifacts on PARAM
+
+
+### 2026-07-10 - Stage 1A full build + MultiSenNA bench; artifacts on PARAM
 
 **Why:** Finish MultiSenGE train/val shards + GE/NA benches on remote CPU, then stage prepared artifacts on PARAM for Stage 1B/1C (no raw 110 GB S1 on GPU login).
 
 **Code:**
-- `baresoil/build_instruct_s1.py` — stream via `Dataset.from_generator` (fixes `MemoryError` on full train save)
-- `baresoil/taxonomy.py` — add MultiSenNA class **15 = Beaches, Sand**; classify options include 1–15
+
+- `baresoil/build_instruct_s1.py` - stream via `Dataset.from_generator` (fixes `MemoryError` on full train save)
+- `baresoil/taxonomy.py` - add MultiSenNA class **15 = Beaches, Sand**; classify options include 1–15
 - Commit `fdd0960` pushed to `origin/main`
 
-**Remote CPU (`D:\Riha\earth2`) outputs:**
+**Remote CPU (**`D:\Riha\earth2`**) outputs:**
+
 - Train shard: `14710` samples / `7355` patches (`bad_tif: 1`)
 - Val shard: `1602` samples / `801` patches
 - GE bench: `bench/v0.1/ai4lcc_val.jsonl` → **801** rows
 - MultiSenNA bench: `12115` rows (`skipped_missing_s1: 143`)
 
-**PARAM (`~/MTP/earth2`):**
+**PARAM (**`~/MTP/earth2`**):**
+
 - `git pull` → `fdd0960`
 - Copied: `shards/ai4lcc_ge_train_{train,val}/`, `bench/multisenna/v0.1/multisenna_bench.jsonl` (+ summary)
 - Verified: GE `801` lines; MultiSenNA `12115` lines; both shard dirs present
@@ -1278,34 +1526,43 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-09 — PARAM demo config defaults from old EarthDial copy
+
+
+### 2026-07-09 - PARAM demo config defaults from old EarthDial copy
 
 **Why:** Port only server-specific demo startup settings from downloaded `EarthDial-old`, without touching LULCDial training/eval pipeline.
 
 **Changed:**
-- `LULCDial-s1/demo/app.py` — controller/SD worker defaults now from env vars (`EARTHDIAL_CONTROLLER_URL`, `EARTHDIAL_SD_WORKER_URL`), PARAM fallback `http://login01:40000`
-- `LULCDial-s1/demo/earthdial_demo.sh` — env-based GPU/model path defaults (`EARTHDIAL_GPU`, `EARTHDIAL_MODEL_PATH`)
-- `RUNBOOK.md` — added PARAM demo startup block
 
-**Not changed:** `baresoil/*`, `finetune.py`, `Stage4_LULCDial_S1.json`, training/eval logic.
+- `LULCDial-s1/demo/app.py` - controller/SD worker defaults now from env vars (`EARTHDIAL_CONTROLLER_URL`, `EARTHDIAL_SD_WORKER_URL`), PARAM fallback `http://login01:40000`
+- `LULCDial-s1/demo/earthdial_demo.sh` - env-based GPU/model path defaults (`EARTHDIAL_GPU`, `EARTHDIAL_MODEL_PATH`)
+- `RUNBOOK.md` - added PARAM demo startup block
+
+**Not changed:** `baresoil/`*, `finetune.py`, `Stage4_LULCDial_S1.json`, training/eval logic.
 
 ---
 
-### 2026-07-09 — Add single RUNBOOK.md command file
+
+
+### 2026-07-09 - Add single RUNBOOK.md command file
 
 **Why:** User needed one main file with copy-paste commands for full pipeline (data → ZS → train → eval → MultiSenNA).
 
 **Changed:**
+
 - Added `RUNBOOK.md` at repo root with stage checklist and all command blocks
 - Updated root `README.md` to point to `RUNBOOK.md` as primary command reference
 
 ---
 
-### 2026-07-08 — Add MultiSenNA folders + bench builder
+
+
+### 2026-07-08 - Add MultiSenNA folders + bench builder
 
 **Why:** Prepare Stage 2 transfer-eval data layout now, while short-time server access is available.
 
 **Changed:**
+
 - Added folder placeholders:
   - `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/labels/.gitkeep`
   - `LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenna/s1/.gitkeep`
@@ -1321,11 +1578,14 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-08 — Add Stage 1B zero-shot eval scorer (no fine-tune changes)
+
+
+### 2026-07-08 - Add Stage 1B zero-shot eval scorer (no fine-tune changes)
 
 **Why:** Prepare zero-shot baseline workflow now, while waiting for the allocated system, without touching Stage 4 fine-tune path.
 
 **Changed:**
+
 - Added `LULCDial-s1/lulcdial/eval_zero_shot.py`
   - Exports bench request rows (`--dump-requests-jsonl`)
   - Scores predictions JSONL against bench ground truth (`--pred-jsonl`)
@@ -1336,41 +1596,49 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-08 — Sync docs to earth2 workspace; drop caption from plan
+
+
+### 2026-07-08 - Sync docs to earth2 workspace; drop caption from plan
 
 **Why:** Local folder is `e:\MTP\earth2\` (not `LULCDial\`). Caption task removed from code; roadmap and guides still mentioned it. `readGuide.md` duplicated `README.md`.
 
 **Changed:**
-- `Stage4_LULCDial_S1.json` — paths → `e:/MTP/earth2/LULCDial-s1/data/...`
-- `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md` — caption removed; 2 tasks/patch (~16k QA); workspace `earth2`
-- `Stage1_Summer_Intern_Guide.md`, `LULCDial_AI4LCC_Workflow_Guide.md`, `baresoil/README.md` — same
+
+- `Stage4_LULCDial_S1.json` - paths → `e:/MTP/earth2/LULCDial-s1/data/...`
+- `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md` - caption removed; 2 tasks/patch (~16k QA); workspace `earth2`
+- `Stage1_Summer_Intern_Guide.md`, `LULCDial_AI4LCC_Workflow_Guide.md`, `baresoil/README.md` - same
 - Deleted `readGuide.md` (use root `README.md`)
 
 **Naming:** Workspace folder = `earth2`; thesis product = **LULCDial-S1**; code repo = `LULCDial-s1/`.
 
 ---
 
-### 2026-07-07 — Inline study comments in baresoil core modules
+
+
+### 2026-07-07 - Inline study comments in baresoil core modules
 
 **Why:** Add readable inline notes while learning the pipeline (`taxonomy` → `patch_meta` → `s1_vh_io`). No logic changes.
 
 **Changed:**
-- `LULCDial-s1/lulcdial/taxonomy.py` — comment tweak in `ai4lcc_names_from_ids`
-- `LULCDial-s1/lulcdial/patch_meta.py` — notes on JSON parsing, `iter_patches`, `pick_s1_path`
-- `LULCDial-s1/lulcdial/s1_vh_io.py` — notes on rasterio, VH dB conversion, PIL float shard, preview PNG
+
+- `LULCDial-s1/lulcdial/taxonomy.py` - comment tweak in `ai4lcc_names_from_ids`
+- `LULCDial-s1/lulcdial/patch_meta.py` - notes on JSON parsing, `iter_patches`, `pick_s1_path`
+- `LULCDial-s1/lulcdial/s1_vh_io.py` - notes on rasterio, VH dB conversion, PIL float shard, preview PNG
 
 ---
 
-### 2026-07-07 — Prune BenchmarkGuide; remove Bench2.0 duplicates
+
+
+### 2026-07-07 - Prune BenchmarkGuide; remove Bench2.0 duplicates
 
 **Why:** Project only needs AI4LCC guides under `BenchmarkGuide/`. BigEarthNet, DynamicWorld, OpenEarthMap, and old `LULCDial_S1_VLM_Dataset_Guide.md` (7-class plan) are out of scope. `Bench2.0/AI4LCC/` duplicated `BenchmarkGuide/AI4LCC/` with stale `earth2` / `EarthDial-main` paths.
 
 **Kept (correct / latest):**
 
-- `BenchmarkGuide/AI4LCC/LULCDial_AI4LCC_Workflow_Guide.md` — LULCDial paths, current pipeline
-- `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md` — LULCDial-s1 module names
-- `BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf` — moved from `Bench2.0/AI4LCC/` (only copy)
-- `Stage1_Summer_Intern_Guide.md` (repo root) — 2 QA/patch, `patch_meta.py` / `s1_vh_io.py` names
+- `BenchmarkGuide/AI4LCC/LULCDial_AI4LCC_Workflow_Guide.md` - LULCDial paths, current pipeline
+- `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md` - LULCDial-s1 module names
+- `BenchmarkGuide/AI4LCC/multiSenge_AI4LCC.pdf` - moved from `Bench2.0/AI4LCC/` (only copy)
+- `Stage1_Summer_Intern_Guide.md` (repo root) - 2 QA/patch, `patch_meta.py` / `s1_vh_io.py` names
 
 **Removed:**
 
@@ -1380,7 +1648,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-07 — Connect repo to GitHub; add LULCDial-s1 + updated docs
+
+
+### 2026-07-07 - Connect repo to GitHub; add LULCDial-s1 + updated docs
 
 **Why:** Sync local `e:\MTP\LULCDial\` with [Riha-K/MTP](https://github.com/Riha-K/MTP.git). Update already-pushed docs; add new code, guides, and label JSONs. Exclude ~115 GB S1 imagery via `.gitignore`.
 
@@ -1396,7 +1666,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-07 — Cleared stale bench artifacts before full rebuild
+
+
+### 2026-07-07 - Cleared stale bench artifacts before full rebuild
 
 **Why:** Old `ai4lcc_val.jsonl` used 3-task schema (caption fields, old prompts). Preview PNGs were from a partial debug run. User will rerun full `build_bench.py` after shard build.
 
@@ -1407,7 +1679,9 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-07 — Rename workspace paths: earth2 → LULCDial, EarthDial-main → LULCDial-s1
+
+
+### 2026-07-07 - Rename workspace paths: earth2 → LULCDial, EarthDial-main → LULCDial-s1
 
 **Why:** Docs and configs still pointed at old folder names (`e:\MTP\earth2\`, `EarthDial-main/`). Actual workspace is `e:\MTP\LULCDial\` with code in `LULCDial-s1/`.
 
@@ -1416,12 +1690,14 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 - `AI4LCC_S1_VLM_MTech_3Stage_Roadmap.md`, `readGuide.md`, `Stage1_Summer_Intern_Guide.md`, `EarthDial_Complete_Analysis.md`
 - `BenchmarkGuide/AI4LCC/LULCDial_AI4LCC_Workflow_Guide.md`, `BenchmarkGuide/AI4LCC/MultiSenGE_AI4LCC_Complete_Analysis.md`
 - `LULCDial-s1/lulcdial/README.md`, `build_instruct_s1.py`, `sample_qa.txt`, `requirements.txt`
-- `LULCDial-s1/src/shell/data/Stage4_LULCDial_S1.json` — shard paths now `e:/MTP/LULCDial/LULCDial-s1/data/...`
-- `log.md` — title + historical path references updated
+- `LULCDial-s1/src/shell/data/Stage4_LULCDial_S1.json` - shard paths now `e:/MTP/LULCDial/LULCDial-s1/data/...`
+- `log.md` - title + historical path references updated
 
 ---
 
-### 2026-07-07 — Rename baresoil modules for clarity
+
+
+### 2026-07-07 - Rename baresoil modules for clarity
 
 **Why:** `ai4lcc.py` and `s1_io.py` names were unclear; renamed to match what each file does.
 
@@ -1433,79 +1709,33 @@ Impact: model input is a mixture of two radiometric scales. It applied identical
 
 ---
 
-### 2026-07-07 — Drop caption; classify + 2-turn dialogue only
+
+
+### 2026-07-07 - Drop caption; classify + 2-turn dialogue only
 
 **Why:** Caption duplicated classify (verbatim class list). Chose Option D1 from `sample_qa.txt`: keep structured classify + 2-turn dialogue (natural/ag subset).
 
 **Changed:**
 
-- `LULCDial-s1/lulcdial/instruct_templates.py` — removed `build_caption_qa()` and `[caption]` token
-- `LULCDial-s1/lulcdial/build_instruct_s1.py` — 2 QA rows per patch (classify + dialogue)
-- `LULCDial-s1/lulcdial/build_bench.py` — removed caption_question/caption_answer fields
-- `LULCDial-s1/lulcdial/sample_qa.txt` — marked D1 as active in code
-- `LULCDial-s1/lulcdial/README.md` — ~14.7k QA count (8157 × 2)
+- `LULCDial-s1/lulcdial/instruct_templates.py` - removed `build_caption_qa()` and `[caption]` token
+- `LULCDial-s1/lulcdial/build_instruct_s1.py` - 2 QA rows per patch (classify + dialogue)
+- `LULCDial-s1/lulcdial/build_bench.py` - removed caption_question/caption_answer fields
+- `LULCDial-s1/lulcdial/sample_qa.txt` - marked D1 as active in code
+- `LULCDial-s1/lulcdial/README.md` - ~14.7k QA count (8157 × 2)
 
 **Scale:** 8,157 patches × 2 tasks ≈ 16,314 max instruction rows (before split).
 
 ---
 
-### 2026-07-03 — Simpler EarthDial-style instruction templates
+
+
+### 2026-07-03 - Simpler EarthDial-style instruction templates
 
 **Why:** Prompts were too technical ("official OCSGE", "Sentinel-1 VH backscatter"). Aligned with EarthDial AID-style short questions while keeping 14-class option list for classify.
 
-**Changed:** `LULCDial-s1/lulcdial/instruct_templates.py` — shorter human questions; caption answer uses **verbatim** class names (pending professor choice vs natural sentence).
+**Changed:** `LULCDial-s1/lulcdial/instruct_templates.py` - shorter human questions; caption answer uses **verbatim** class names (pending professor choice vs natural sentence).
 
 **Review doc for PI:** `LULCDial-s1/lulcdial/sample_qa.txt` (shows classify, caption A/B, dialogue samples).
-
----
-
-### 2026-07-02 (restore) — Re-applied 14-class OCSGE + S1 date fix after undo
-
-**Context:** User undid prior session changes (including accidental rebuild runs). Restored code and this log only — **no build commands run**.
-
-**Code restored** (`LULCDial-s1/lulcdial/`):
-
-
-| File                    | Purpose / change                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------------------- |
-| `taxonomy.py`           | Official **14 OCSGE** class map and helpers (no 7-class unified remapping).              |
-| `instruct_templates.py` | Classify + caption + 2-turn dialogue QA using OCSGE names.                               |
-| `ai4lcc.py`             | `PatchMeta` with `label_names`, `dominant_class_name`; added `pick_available_s1_file()`. |
-| `build_instruct_s1.py`  | 3 QA per patch; uses `pick_available_s1_file` for full patch coverage.                   |
-| `build_bench.py`        | Val JSONL with classify/caption/dialogue; ASCII print; uses `pick_available_s1_file`.    |
-
-
-**S1 date fix (why):** JSON lists many dates per patch; old code picked median of full list. Often that exact file was not on disk. New code picks median among **files that exist** — verified 8,157/8,157 patches resolvable without re-download.
-
-**Expected full outputs (when you run builds later):**
-
-
-| Artifact     | Patches | QA / rows |
-| ------------ | ------- | --------- |
-| Train shards | 7,356   | 22,068 QA |
-| Val shards   | 801     | 2,403 QA  |
-| Bench JSONL  | —       | 801 rows  |
-
-
-**Risk:** Full shard build loads all images into RAM before save — can hit `MemoryError` on laptop (~11 min then crash observed). Use professor PC or `--max-patches 100` on laptop.
-
----
-
-### 2026-07-02 — 14-class OCSGE templates, deps, partial shards & bench
-
-**Goal:** Switch from 7-class bare-soil remapping to official **14 OCSGE** names; install deps; first shard/bench attempt.
-
-**Dependencies:** `pip install -r LULCDial-s1/lulcdial/requirements.txt`
-
-**First build (before S1 fix):** Only 1,666 patches matched (train 1,510, val 156) because median JSON date often missing on disk.
-
-**Partial outputs on disk (may be stale after undo/rebuild attempts):**
-
-- `data/lulcdial_s1/shards/ai4lcc_ge_train_train/` — partial
-- `data/lulcdial_s1/shards/ai4lcc_ge_train_val/` — partial
-- `data/lulcdial_s1/bench/v0.1/ai4lcc_val.jsonl` — may contain 801 rows from one successful bench run
-
-**Next when user requests:** Re-run shard build on suitable machine with restored code.
 
 ---
 

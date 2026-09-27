@@ -1,6 +1,6 @@
-"""Novelty Task H — hierarchical / agent heads (A1 UF-vs-rest, A2 Dense-vs-Sparse).
+"""Novelty Task H - hierarchical / agent heads (A1 UF-vs-rest, A2 Dense-vs-Sparse).
 
-Skip water agent (10c-only, optional). Do not call this "P2" — clashes with U-TAE P3/P4/P5.
+Skip water agent (10c-only, optional). Do not call this "P2" - clashes with U-TAE P3/P4/P5.
 
 Training masks are 0-indexed (dataset remaps paper class c → c-1); ignore=255.
 Paper UF 1..5 → code 0..4; Dense=0; Sparse=1.

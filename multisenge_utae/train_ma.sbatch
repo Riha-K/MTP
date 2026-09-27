@@ -1,5 +1,5 @@
 #!/bin/bash
-# PARAM: Task M — MA-UTAE gated 6c P4 head. Ablate with --fusion concat.
+# PARAM: Task M - MA-UTAE gated 6c P4 head. Ablate with --fusion concat.
 # Optional Task H: add --use-a1 --use-a2
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma.sbatch
 #SBATCH -J ma_utae_g_head

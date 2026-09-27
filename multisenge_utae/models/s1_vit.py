@@ -7,6 +7,21 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+def _interpolate_pos_embed(pos: torch.Tensor, grid: int) -> torch.Tensor:
+  """Resize ViT patch position embeddings from the ImageNet 14×14 grid."""
+  cls_tok, patch = pos[:, :1], pos[:, 1:]
+  dim = patch.shape[-1]
+  old = int(patch.shape[1] ** 0.5)
+  if old * old != patch.shape[1]:
+    raise RuntimeError(f"position grid is not square: {patch.shape[1]} tokens")
+  if old == grid:
+    return pos
+  patch = patch.reshape(1, old, old, dim).permute(0, 3, 1, 2).float()
+  patch = F.interpolate(patch, size=(grid, grid), mode="bicubic", align_corners=False)
+  patch = patch.permute(0, 2, 3, 1).reshape(1, grid * grid, dim)
+  return torch.cat([cls_tok, patch.to(dtype=pos.dtype)], dim=1)
+
+
 class S1ViTB16(nn.Module):
   """ViT-B/16 with 2-channel patch embed.
 
@@ -14,35 +29,49 @@ class S1ViTB16(nn.Module):
   - forward_tokens: patch-token map B,768,Gh,Gw for Stage 2 adapter
   """
 
-  def __init__(self, in_chans: int = 2, image_size: int = 256):
+  def __init__(self, in_chans: int = 2, image_size: int = 256, pretrained: bool = True):
     super().__init__()
-    from torchvision.models import vit_b_16
+    from torchvision.models import ViT_B_16_Weights, vit_b_16
 
     self.in_chans = in_chans
     self.requested_size = int(image_size)
-    self.vit = None
-    self.image_size = 224
+    weights = ViT_B_16_Weights.IMAGENET1K_V1 if pretrained else None
+    # ImageNet checkpoint is 224. Build at 224, then stretch positions if needed.
     try:
-      self.vit = vit_b_16(weights=None, image_size=self.requested_size)
-      self.image_size = self.requested_size
+      self.vit = vit_b_16(weights=weights)
     except TypeError:
-      self.vit = vit_b_16(weights=None)
-      self.image_size = 224
+      self.vit = vit_b_16(pretrained=bool(pretrained))
+    self.image_size = 224
+    self.patch_size = int(getattr(self.vit, "patch_size", 16))
 
     old = self.vit.conv_proj
-    self.vit.conv_proj = nn.Conv2d(
+    rgb = old.weight.detach()
+    if rgb.shape[1] != 3:
+      raise RuntimeError(f"expected RGB stem, got {rgb.shape[1]} input channels")
+    stem = nn.Conv2d(
         in_chans,
         old.out_channels,
         kernel_size=old.kernel_size,
         stride=old.stride,
         bias=old.bias is not None,
     )
-    nn.init.kaiming_normal_(self.vit.conv_proj.weight, mode="fan_out", nonlinearity="relu")
-    if self.vit.conv_proj.bias is not None:
-      nn.init.zeros_(self.vit.conv_proj.bias)
+    with torch.no_grad():
+      stem.weight.copy_(rgb.mean(dim=1, keepdim=True).repeat(1, in_chans, 1, 1))
+      if stem.bias is not None and old.bias is not None:
+        stem.bias.copy_(old.bias)
+      elif stem.bias is not None:
+        stem.bias.zero_()
+    self.vit.conv_proj = stem
     self.vit.heads = nn.Identity()
+
+    grid = self.requested_size // self.patch_size
+    if self.requested_size % self.patch_size != 0:
+      raise ValueError(f"image_size {self.requested_size} is not divisible by patch {self.patch_size}")
+    if grid * self.patch_size != 224:
+      pos = _interpolate_pos_embed(self.vit.encoder.pos_embedding.detach(), grid)
+      self.vit.encoder.pos_embedding = nn.Parameter(pos)
+      self.image_size = self.requested_size
     self.embed_dim = int(getattr(self.vit, "hidden_dim", 768))
-    self.patch_size = int(getattr(self.vit, "patch_size", 16))
 
   def _maybe_resize(self, x: torch.Tensor) -> torch.Tensor:
     if x.shape[1] != self.in_chans:

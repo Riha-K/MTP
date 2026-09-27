@@ -1,4 +1,4 @@
-# RS 2023 replicate — 6-class test results vs paper
+# RS 2023 replicate - 6-class test results vs paper
 
 Independent reimplementation of **ConvLSTM+Inception-S1S2** (Wenger et al., *Remote Sensing* 2023, §4.1, Table 5 & 6).
 
@@ -13,7 +13,7 @@ Independent reimplementation of **ConvLSTM+Inception-S1S2** (Wenger et al., *Rem
 
 ---
 
-## Table 5 — report row
+## Table 5 - report row
 
 | Class | Name | Paper P | My P | Paper R | My R | Paper F1 | My F1 |
 |-------|------|---------|------|---------|------|----------|-------|

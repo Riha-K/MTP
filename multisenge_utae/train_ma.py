@@ -5,7 +5,7 @@ Phases (same names as stock U-TAE):
   --mode full  = P5 (fine-tune all; --init-ckpt from P4 best.pt)
 
 P3 layer probes: not wired for MA-UTAE yet (probe_layers.py is stock UTAE only).
-Do not use "P1/P2" for novelty — those clash with P3/P4/P5.
+Do not use "P1/P2" for novelty - those clash with P3/P4/P5.
 
 Same geographic split / metrics as multisenge_utae.train.
 Does NOT load concat-U-TAE weights (architecture differs).

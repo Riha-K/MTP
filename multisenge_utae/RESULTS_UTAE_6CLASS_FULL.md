@@ -1,4 +1,4 @@
-# U-TAE A5 — 6-class test results (P5 full fine-tune) vs A4 / P4
+# U-TAE A5 - 6-class test results (P5 full fine-tune) vs A4 / P4
 
 **Model:** U-TAE · **Phase:** P5 (`--mode full`, init from P4 head `best.pt`)  
 **Protocol:** Same geographic split (test tile **31UEQ**, ~610 patches, 6-class).
@@ -13,18 +13,18 @@
 
 ---
 
-## Headline (test 31UEQ) — **beats A4**
+## Headline (test 31UEQ) - **beats A4**
 
 | Metric | **P5 full** | P4 head | A4 ConvLSTM | Δ vs A4 |
 |--------|-------------|---------|-------------|---------|
 | **W-F1** | **0.9387** | 0.9012 | 0.9037 | **+0.035** |
 | **Kappa** | **0.5757** | 0.4033 | 0.4424 | **+0.133** |
 | Accuracy | 0.9225 | 0.8778 | ~0.88 | higher |
-| Mean F1 | 0.5540 | 0.3718 | — | — |
+| Mean F1 | 0.5540 | 0.3718 | - | - |
 
 ---
 
-## Table 5 style — test (U-TAE P5 full)
+## Table 5 style - test (U-TAE P5 full)
 
 | Class | Name | Precision | Recall | Sens | Spec | F1 |
 |-------|------|-----------|--------|------|------|-----|
@@ -40,7 +40,7 @@ Kappa: **0.5757** · Mean F1: **0.5540**
 
 ---
 
-## Per-class F1 — P5 vs P4 vs A4 (test)
+## Per-class F1 - P5 vs P4 vs A4 (test)
 
 | Class | P5 full | P4 head | A4 | Note |
 |-------|---------|---------|-----|------|

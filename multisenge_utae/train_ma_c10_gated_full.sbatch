@@ -1,5 +1,5 @@
 #!/bin/bash
-# PARAM: Task M — MA-UTAE gated 10c P5 full (after ma_c10_gated_head_v0/best.pt).
+# PARAM: Task M - MA-UTAE gated 10c P5 full (after ma_c10_gated_head_v0/best.pt).
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_gated_full.sbatch
 # Then test:
 #   CKPT=multisenge_utae/checkpoints/ma_c10_gated_full_v0/best.pt \

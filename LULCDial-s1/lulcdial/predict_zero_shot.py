@@ -218,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                     pred_turn2, _ = _chat(
                         model, tokenizer, pixel_values, turn2_q, generation_config, history=history
                     )
-            except Exception as exc:  # noqa: BLE001 — keep long jobs alive on corrupt uploads
+            except Exception as exc:  # noqa: BLE001 - keep long jobs alive on corrupt uploads
                 skipped_bad_tif += 1
                 print(f"bad S1 (skip): {s1_path} ({type(exc).__name__}: {exc})", file=sys.stderr)
                 continue

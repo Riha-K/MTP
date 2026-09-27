@@ -18,7 +18,7 @@ def plot_probe_summary(summary: dict, out: Path, title: str, metric: str = "weig
         import matplotlib.pyplot as plt
     except ImportError as exc:
         raise SystemExit(
-            "matplotlib not installed — on PARAM: python -m pip install --user matplotlib"
+            "matplotlib not installed - on PARAM: python -m pip install --user matplotlib"
         ) from exc
 
     levels = list(summary.keys())

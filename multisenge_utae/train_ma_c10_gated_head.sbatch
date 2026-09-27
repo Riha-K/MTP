@@ -1,5 +1,5 @@
 #!/bin/bash
-# PARAM: Task M — MA-UTAE gated 10c P4 head.
+# PARAM: Task M - MA-UTAE gated 10c P4 head.
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_ma_c10_gated_head.sbatch
 #SBATCH -J ma_c10_g_head
 #SBATCH -N 1

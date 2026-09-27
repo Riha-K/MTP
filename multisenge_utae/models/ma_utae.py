@@ -4,7 +4,7 @@ S2 (10ch) and S1 (2ch) get separate encoders + L-TAEs, fuse, then one decoder.
 Fusion: concat+1x1 or gated (default for publishable claim).
 
 Training phases reuse breast-style names: P4=head, P5=full (see train_ma.py).
-Do not call this "P1" — that clashes with U-TAE P3/P4/P5.
+Do not call this "P1" - that clashes with U-TAE P3/P4/P5.
 """
 
 from __future__ import annotations

@@ -1,7 +1,7 @@
-# Lab GPU transfer — `172.30.1.70` (riha_2511ai47)
+# Lab GPU transfer - `172.30.1.70` (riha_2511ai47)
 
 **Host:** `172.30.1.70` · **User:** `riha_2511ai47`  
-**Not PARAM** — usually no `sbatch`; train with `tmux` + `python` (or whatever they use).
+**Not PARAM** - usually no `sbatch`; train with `tmux` + `python` (or whatever they use).
 
 **Do not** git-push rasters. Copy data with `scp`/`rsync` only.
 
@@ -10,7 +10,7 @@ Remote home target (suggested): `~/MTP/earth2/`
 
 ---
 
-## Step 0 — On the GPU box (you are already logged in)
+## Step 0 - On the GPU box (you are already logged in)
 
 ```bash
 hostname
@@ -27,7 +27,7 @@ Paste `df -h` and `nvidia-smi` output before starting the big copy.
 
 ---
 
-## Step 1 — Code via Git (preferred; small)
+## Step 1 - Code via Git (preferred; small)
 
 On the **GPU box**:
 
@@ -51,7 +51,7 @@ Better: clone once; then only sync data folders.
 
 ---
 
-## Step 2 — Create data dirs on GPU box
+## Step 2 - Create data dirs on GPU box
 
 ```bash
 MS=~/MTP/earth2/LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge
@@ -60,7 +60,7 @@ mkdir -p "$MS"
 
 ---
 
-## Step 3 — Laptop → GPU: small data first
+## Step 3 - Laptop → GPU: small data first
 
 **PowerShell on laptop** (keep window open):
 
@@ -88,7 +88,7 @@ find "$MS/ground_reference" -type f | wc -l  # 8157
 
 ---
 
-## Step 4 — Large rasters (overnight)
+## Step 4 - Large rasters (overnight)
 
 | Folder | ~Size | Need? |
 |--------|-------|--------|
@@ -122,8 +122,8 @@ rsync -avh --progress --partial "$L/s1/" "$H:$R/s1/"
 
 ## What **not** to copy
 
-- `LULCDial-s1/checkpoints/` (old VLM weights — optional later)
-- `LULCDial-s1/data/.../shards/` (VLM shards — not needed for CNN)
+- `LULCDial-s1/checkpoints/` (old VLM weights - optional later)
+- `LULCDial-s1/data/.../shards/` (VLM shards - not needed for CNN)
 - `.venv`, `__pycache__`, `writeup/` unless you want them
 - Whole `EarthDial` weights unless doing VLM again
 
@@ -131,7 +131,7 @@ For **CNN validation** you only need: **repo + labels + GR + s1 + s2**.
 
 ---
 
-## Step 5 — Env on GPU box (after code exists)
+## Step 5 - Env on GPU box (after code exists)
 
 ```bash
 cd ~/MTP/earth2
@@ -147,7 +147,7 @@ Ask the lab admin which CUDA/`module` they use if `pip` torch fails.
 
 ---
 
-## Step 6 — Smoke + train (no Slurm)
+## Step 6 - Smoke + train (no Slurm)
 
 ```bash
 cd ~/MTP/earth2

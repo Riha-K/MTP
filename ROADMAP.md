@@ -9,8 +9,8 @@
 
 | Pillar             | Goal                                                                                                                                 | Status                                |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| **A — Validation** | Replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2 on MultiSenGE, then beat/match with a modern model under the **same** protocol | **6-class + 10-class frozen** — 6c last.pt W-F1 **0.9037** vs **0.9018**; 10c best.pt W-F1 **0.8711** vs **0.8851**. Next optional: **A5** |
-| **B — Extension**  | SAR-LC-Bench + LULCDial-S1 (S1 VH · 14-class OCSGE · dialogue) + MultiSenNA transfer                                                 | **Core done** (optional polish later) |
+| **A - Validation** | Replicate Remote Sensing 2023 ConvLSTM+Inception-S1S2 on MultiSenGE, then beat/match with a modern model under the **same** protocol | **6-class + 10-class frozen** - 6c last.pt W-F1 **0.9037** vs **0.9018**; 10c best.pt W-F1 **0.8711** vs **0.8851**. Next optional: **A5** |
+| **B - Extension**  | SAR-LC-Bench + LULCDial-S1 (S1 VH · 14-class OCSGE · dialogue) + MultiSenNA transfer                                                 | **Core done** (optional polish later) |
 
 
 ---
@@ -30,7 +30,7 @@
 | Metric  | Weighted F1 / per-class F1 / Kappa (pixel segmentation)             |
 
 
-*(Earlier Metz-only IRRG baseline idea was dropped — this RS-2023 setup is the only CNN track.)*
+*(Earlier Metz-only IRRG baseline idea was dropped - this RS-2023 setup is the only CNN track.)*
 
 ---
 
@@ -74,15 +74,15 @@ URLs: [THEIA AI4LCC](https://doi.theia.data-terra.org/ai4lcc/) · Unistra S3 lin
 | **A1**  | Download S2 + GR                                                 | Laptop         | ✅ S2 ~88 GB · GR 8157                       |
 | **A2**  | Build 4-date train/val/test index (+ optional cache)             | Laptop         | ✅ ~5890 after adding tile **32ULV**; S1 by month match |
 | **A3**  | Reimplement ConvLSTM+Inception → VGG-16 U-Net in PyTorch         | Laptop → PARAM | ✅ VGG-16 U-Net + train (aug / ReduceLR / EarlyStop / norm) |
-| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | ✅ 6-class frozen — report **v0 last.pt ep 25** W-F1 **0.9037** vs **0.9018**; see [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md) |
+| **A4**  | Train replicate; report Weighted F1 vs paper                     | PARAM          | ✅ 6-class frozen - report **v0 last.pt ep 25** W-F1 **0.9037** vs **0.9018**; see [`TABLE5_TEST_FOR_SIR.md`](multisenge_seg/TABLE5_TEST_FOR_SIR.md) |
 | **A4b** | 10-class replicate (paper Table 7/8)                             | PARAM          | ✅ v0 `best.pt` test W-F1 **0.8711** vs paper **0.8851**; kappa **0.7588** vs **0.7945** ([`RESULTS_RS2023_10CLASS.md`](multisenge_seg/RESULTS_RS2023_10CLASS.md)) |
 | **A5**  | Same protocol + advanced model (e.g. U-TAE / SegFormer-temporal) | PARAM          | Optional next |
-| **B**   | VLM numbers frozen for Extension §                               | —              | Done                                        |
+| **B**   | VLM numbers frozen for Extension §                               | -              | Done                                        |
 
 
 ---
 
-## 6. Pillar B (done) — pointers
+## 6. Pillar B (done) - pointers
 
 
 | Item                        | Where                                                      |
@@ -103,11 +103,11 @@ GE test F1 **0.812** · MultiSenNA **0.679** (post-radiometry-fix).
 
 | File                                                   | Role                               |
 | ------------------------------------------------------ | ---------------------------------- |
-| `ROADMAP.md` (this)                                    | Whole-project plan — Pillar A next |
+| `ROADMAP.md` (this)                                    | Whole-project plan - Pillar A next |
 | `LULCDial-s1/RUNBOOK.md`                               | LULCDial/VLM copy-paste commands   |
 | `log.md`                                               | Chronological changes              |
 | `BenchmarkGuide/MultiSenGE_Validation_and_VLM_Plan.md` | Paper survey + gaps                |
 | `BenchmarkGuide/*.pdf`                                 | MultiSenGE paper PDFs              |
 
 
-*Updated 2026-08-11 — single CNN track (RS-2023); VGG-16 U-Net in code.*
+*Updated 2026-08-11 - single CNN track (RS-2023); VGG-16 U-Net in code.*

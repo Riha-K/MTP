@@ -1,8 +1,8 @@
-# Paper modality ablations (RS 2023) — 6-class + 10-class test 31UEQ
+# Paper modality ablations (RS 2023) - 6-class + 10-class test 31UEQ
 
 Transcribed from Wenger et al. *Remote Sensing* 2023 (`BenchmarkGuide/3_ConvLSTM_Inception_MultiSenGE_RemoteSensing.pdf`).
 
-Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not** S1-only vs paper Inception-S1S2.
+Use these rows when comparing **our** S1-only / S2-only / both U-TAE - **not** S1-only vs paper Inception-S1S2.
 
 **Last updated:** 2026-09-23
 
@@ -69,7 +69,7 @@ Use these rows when comparing **our** S1-only / S2-only / both U-TAE — **not**
 | 6 | 0.9965 | 0.8719 | 0.9301 |
 | **W-Avg** | 0.9591 | 0.8596 | **0.9018** |
 
-### Ours vs paper — 6c fair modality match
+### Ours vs paper - 6c fair modality match
 
 | Setting | Paper model | Paper W-F1 | Paper κ | Ours | Ours W-F1 | Ours κ | Δ W-F1 | Δ κ |
 |---------|-------------|------------|---------|------|-----------|--------|--------|-----|
@@ -166,7 +166,7 @@ Source: paper **Table 7** (P / R / F1) and **Table 8** (kappa). Same test zone p
 | 10 | 0.4654 | 0.7074 | 0.5614 |
 | **W-Avg** | 0.8977 | 0.8831 | **0.8851** |
 
-### Ours vs paper — 10c fair modality match
+### Ours vs paper - 10c fair modality match
 
 | Setting | Paper model | Paper W-F1 | Paper κ | Ours | Ours W-F1 | Ours κ | Δ W-F1 | Δ κ |
 |---------|-------------|------------|---------|------|-----------|--------|--------|-----|

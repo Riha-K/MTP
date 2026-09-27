@@ -1,18 +1,18 @@
-# Table 5 / Table 6 — show this to sir
+# Table 5 / Table 6 - show this to sir
 
 **Paper:** Wenger et al., Remote Sensing 2023, §4.1  
 PDF: `BenchmarkGuide/3_ConvLSTM_Inception_MultiSenGE_RemoteSensing.pdf`  
 **Setting:** ConvLSTM+Inception-S1S2 · **6 classes** · **test tile T31UEQ** (~610 patches)
 
 **Report row:** v0 **`last.pt`, epoch 25**.  
-(`best.pt` epoch 5 = max val W-F1; weaker urban F1 — do not quote as main result.)
+(`best.pt` epoch 5 = max val W-F1; weaker urban F1 - do not quote as main result.)
 
 JSON: [`results/run_c6_v0/last_test_metrics.json`](results/run_c6_v0/last_test_metrics.json)  
 Train job **96769** · test job **96802**
 
 ---
 
-## Table 5 — Precision / Recall / F1
+## Table 5 - Precision / Recall / F1
 
 ### Paper (RS 2023 Table 5)
 
@@ -26,7 +26,7 @@ Train job **96769** · test job **96802**
 | 6 Non-urban / other | 0.9965 | 0.8719 | 0.9301 |
 | **W-Avg** | **0.9591** | **0.8596** | **0.9018** |
 
-### Ours — v0 `last.pt` · **epoch 25**
+### Ours - v0 `last.pt` · **epoch 25**
 
 | Class | Precision | Recall | F1 |
 |------:|----------:|-------:|---:|
@@ -40,7 +40,7 @@ Train job **96769** · test job **96802**
 
 ---
 
-## Table 6 — Cohen’s Kappa (6-class, test)
+## Table 6 - Cohen’s Kappa (6-class, test)
 
 | Method | Kappa |
 |--------|------:|

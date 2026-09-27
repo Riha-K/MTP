@@ -1,4 +1,4 @@
-LULCDial-S1 — Sample instruction templates for professor review
+LULCDial-S1 - Sample instruction templates for professor review
 ================================================================
 
 Context: We fine-tune EarthDial on AI4LCC MultiSenGE (Sentinel-1, 14 OCSGE land-cover classes).
@@ -18,7 +18,7 @@ Natural / agricultural subset for dialogue turn 2:
 
 
 ----------------------------------------------------------------------
-1. CLASSIFY (multi-label — choose all that apply)
+1. CLASSIFY (multi-label - choose all that apply)
 ----------------------------------------------------------------------
 
 Human:
@@ -40,17 +40,17 @@ contain several classes at once.
 2. DIALOGUE (2-turn)
 ----------------------------------------------------------------------
 
-Turn 1 — Human:
+Turn 1 - Human:
   [lulc] [s1_vh_10] <image>
   What land cover classes do you see in this image?
 
-Turn 1 — GPT:
+Turn 1 - GPT:
   Sparse Built-Up, Large Scale Networks, Arable Lands, Grasslands, Forests
 
-Turn 2 — Human:
+Turn 2 - Human:
   Which of these are natural or agricultural areas?
 
-Turn 2 — GPT:
+Turn 2 - GPT:
   Arable Lands, Grasslands, Forests
 
 

@@ -22,7 +22,7 @@ sar_lc_bench_v0.1/
 |----------|-----|
 | Labels / patch metadata | AI4LCC MultiSenGE / MultiSenNA releases |
 | Full S1 `.tif` stacks | AI4LCC `s1.tgz` (large; use sir PC / server if needed) |
-| Frozen GE test JSONL | Copy `ai4lcc_test.jsonl` — see `BENCH_MANIFEST_v0.1.json` SHA256 |
+| Frozen GE test JSONL | Copy `ai4lcc_test.jsonl` - see `BENCH_MANIFEST_v0.1.json` SHA256 |
 | Compact GE TIFF pack | Build once with `python -m lulcdial.pack_bench_s1` against the test JSONL |
 
 ## Verify the GE bench file
