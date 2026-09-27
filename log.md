@@ -10,6 +10,29 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-27 — Access log for datasets and papers
+
+Local record of when datasets and official papers were first opened. Notes, plans, and duplicate PDF copies are not listed.
+
+- `access_log.md` — **DATASET** (MultiSenGE 02-07-2026, MultiSenNA 08-07-2026, plus the benches and shards we built) and **PAPER** (23 PDFs, chronological).
+- MultiSenNA raw tree was removed from the laptop. `labels.tgz`, `ground_reference.tgz`, `s1.tgz`, and `s2.tgz` stay on https://s3.unistra.fr/a2s_datasets/MultiSenNA/
+- `shards` and `s1_val_bench` can be rebuilt from MultiSenGE `s1` + `labels` with `lulcdial.build_instruct_s1` and `lulcdial.pack_bench_s1` (~1–2 h on the professor PC).
+
+---
+
+### 2026-09-26 — Stage 2 CMU-ViT U-TAE code (6c P4/P5 ready)
+
+Scaffold Stage 2 while CMU smoke waits on PARAM:
+
+- `models/cmu_vit_utae.py` — S2 CNN + S1 CMU-ViT → both L-TAE → **CONCAT** bottleneck; **S2 skips only** (§8.4)
+- `S1ViTB16.forward_tokens` — spatial patch map for adapter
+- `train_cmu_vit.py` + `train_cmu_vit_c6_head.sbatch` / `_full.sbatch`
+- P4 trains **adapter + fusion + decoder** (ViT/L-TAEs frozen); needs `--student-ckpt`
+
+**Do not sbatch Stage 2 until** `student_best.pt` exists (smoke or full CMU).
+
+---
+
 ### 2026-09-26 — CMU schedule = paper 80/20; Stage2 order 6c then 10c
 
 - CMU train defaults aligned with MultiSenGE RS 2023 / A4 / U-TAE: **max 80 epochs**, EarlyStopping **patience 20** (was 40/12).

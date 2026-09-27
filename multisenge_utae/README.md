@@ -54,6 +54,18 @@ sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu.sbatch
 # outputs: checkpoints/cmu_s1_vit_v0/{best.pt,student_best.pt,history.json}
 ```
 
+### Stage 2 CMU-ViT U-TAE (after Stage 1 student_best.pt)
+
+CONCAT bottleneck, **S2 skips only**, 6c first then 10c:
+
+```bash
+# after CMU full has student_best.pt
+STUDENT=multisenge_utae/checkpoints/cmu_s1_vit_v0/student_best.pt \
+  sbatch multisenge_utae/train_cmu_vit_c6_head.sbatch
+# after P4 best.pt:
+sbatch multisenge_utae/train_cmu_vit_c6_full.sbatch
+```
+
 ### Modality ablations (paper-style S1-only / S2-only)
 
 Like MultiSenGE ConvLSTM-S1 / ConvLSTM-S2: stock U-TAE with `--modality s2` (10ch) or `s1` (2ch).
