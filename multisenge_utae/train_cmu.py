@@ -138,6 +138,12 @@ def main() -> int:
   p.add_argument("--max-val", type=int, default=None)
   p.add_argument("--seed", type=int, default=42)
   p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/checkpoints/cmu_s1_vit_v0"))
+  p.add_argument(
+      "--fail-if-train-loss-above",
+      type=float,
+      default=None,
+      help="exit 1 when the last train loss stays at chance (smoke gate)",
+  )
   p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
   args = p.parse_args()
 
@@ -274,6 +280,14 @@ def main() -> int:
 
   (args.out_dir / "history.json").write_text(json.dumps(history, indent=2), encoding="utf-8")
   print("done. best val retrieval acc", best_acc, "dir", args.out_dir)
+  if args.fail_if_train_loss_above is not None and history:
+    last_loss = float(history[-1]["train_loss"])
+    if last_loss >= args.fail_if_train_loss_above:
+      print(
+          f"FAIL train loss {last_loss:.4f} >= {args.fail_if_train_loss_above} "
+          "(N=8 chance is 2.079; full job must not start)"
+      )
+      return 1
   return 0
 
 

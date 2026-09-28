@@ -1,7 +1,8 @@
 """CMU-ViT U-TAE Stage 2: S1 ViT (CMU'd) + S2 CNN encoder, L-TAE both, CONCAT fuse.
 
-Plan §8.4: bottleneck fusion only; decoder uses **S2 skips** (no S1 skips).
-Plan §8.6 P4: freeze S2 encoder + S1 ViT + both L-TAEs; train adapter + fusion + decoder.
+Plan §8.4: bottleneck fusion only; decoder uses S2 skips (no S1 skips).
+P4: freeze the loaded S2 encoder, S2 L-TAE, and CMU ViT.
+S1 L-TAE is new, so it trains with the adapter, fusion, and decoder.
 """
 
 from __future__ import annotations
@@ -119,6 +120,7 @@ class CMUViTUTAE(nn.Module):
         for i in range(self.n_stages - 1, 0, -1)
     )
     self.out_conv = ConvBlock(nkernels=[decoder_widths[0], 32, num_classes], padding_mode=padding_mode)
+    self._frozen_eval: list[nn.Module] = []
 
   def _split(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     return x[:, :, : self.s2_dim], x[:, :, self.s2_dim : self.s2_dim + self.s1_dim]
@@ -159,6 +161,27 @@ class CMUViTUTAE(nn.Module):
       return logits, {"att_s2": att_s2, "att_s1": att_s1}
     return logits
 
+  def load_s2_utae(self, ckpt_path, map_location="cpu") -> None:
+    """Copy the trained S2 U-TAE encoder and its L-TAE (not the class head)."""
+    try:
+      ckpt = torch.load(ckpt_path, map_location=map_location, weights_only=False)
+    except TypeError:
+      ckpt = torch.load(ckpt_path, map_location=map_location)
+    state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
+    enc_state = {
+        k: v for k, v in state.items() if k.startswith("in_conv.") or k.startswith("down_blocks.")
+    }
+    ltae_state = {
+        k[len("temporal_encoder.") :]: v
+        for k, v in state.items()
+        if k.startswith("temporal_encoder.")
+    }
+    if not enc_state or not ltae_state:
+      raise RuntimeError(f"S2 checkpoint has no encoder/L-TAE weights: {ckpt_path}")
+    self.encoder_s2.load_state_dict(enc_state, strict=True)
+    self.temporal_s2.load_state_dict(ltae_state, strict=True)
+    print(f"loaded S2 encoder+L-TAE from {ckpt_path} keys={len(enc_state)}+{len(ltae_state)}")
+
   def load_student_vit(self, ckpt_path, map_location="cpu") -> None:
     try:
       ckpt = torch.load(ckpt_path, map_location=map_location, weights_only=False)
@@ -168,23 +191,37 @@ class CMUViTUTAE(nn.Module):
     if isinstance(ckpt, dict) and "student" in ckpt and "model" not in ckpt:
       state = ckpt["student"]
     missing, unexpected = self.s1_vit.load_state_dict(state, strict=False)
-    print(f"loaded S1 ViT from {ckpt_path} missing={len(missing)} unexpected={len(unexpected)}")
+    if missing or unexpected:
+      raise RuntimeError(
+          f"S1 ViT load mismatch missing={missing} unexpected={unexpected}"
+      )
+    print(f"loaded S1 ViT from {ckpt_path}")
+
+  def train(self, mode: bool = True):
+    super().train(mode)
+    if mode:
+      for mod in self._frozen_eval:
+        mod.eval()
+    return self
 
   def set_train_mode(self, mode: str) -> None:
-    """P4 head: freeze S2 enc + S1 ViT + L-TAEs; train adapter + fusion + decoder.
+    """P4 head: freeze loaded S2 encoder, S2 L-TAE, and CMU ViT.
+    S1 L-TAE has no checkpoint, so it trains with the adapter, fusion, and decoder.
     P5 full: train all.
     """
     if mode == "full":
       for p in self.parameters():
         p.requires_grad = True
+      self._frozen_eval = []
       return
     if mode != "head":
       raise ValueError(f"unknown train mode {mode}")
-    freeze = [self.encoder_s2, self.s1_vit, self.temporal_s2, self.temporal_s1, self.temporal_aggregator]
+    freeze = [self.encoder_s2, self.s1_vit, self.temporal_s2, self.temporal_aggregator]
     for mod in freeze:
       for p in mod.parameters():
         p.requires_grad = False
-    train = [self.s1_adapter, self.fuse_bottleneck, self.up_blocks, self.out_conv]
+    train = [self.temporal_s1, self.s1_adapter, self.fuse_bottleneck, self.up_blocks, self.out_conv]
     for mod in train:
       for p in mod.parameters():
         p.requires_grad = True
+    self._frozen_eval = freeze

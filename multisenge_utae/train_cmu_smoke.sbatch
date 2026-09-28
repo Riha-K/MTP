@@ -32,4 +32,5 @@ python -m multisenge_utae.train_cmu \
   --max-train 8 \
   --max-val 4 \
   --workers 0 \
+  --fail-if-train-loss-above 2.079 \
   --out-dir multisenge_utae/checkpoints/cmu_s1_vit_smoke

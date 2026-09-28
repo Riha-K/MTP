@@ -39,7 +39,6 @@ from multisenge_seg.metrics import (
 from multisenge_seg.taxonomy import num_output_classes
 from multisenge_seg.train import (
     apply_class_boost,
-    estimate_channel_stats,
     estimate_class_counts,
     estimate_class_counts_from_gr,
     parse_class_boost,
@@ -95,6 +94,28 @@ def train_one_epoch(
   return total / max(n, 1)
 
 
+def _load_torch(path: Path, device: torch.device):
+  try:
+    return torch.load(path, map_location=device, weights_only=False)
+  except TypeError:
+    return torch.load(path, map_location=device)
+
+
+def norm_stats_from_ckpt(path: Path) -> dict:
+  """Stats the S2 encoder and the CMU ViT were trained with. Do not re-estimate."""
+  if not path.is_file():
+    raise FileNotFoundError(f"checkpoint not found: {path}")
+  ckpt = _load_torch(path, torch.device("cpu"))
+  stats = ckpt.get("norm_stats") if isinstance(ckpt, dict) else None
+  if not stats:
+    side = path.parent / "norm_stats.json"
+    if side.is_file():
+      stats = json.loads(side.read_text(encoding="utf-8"))
+  if not stats or "s2_mean" not in stats or "s1_mean" not in stats:
+    raise RuntimeError(f"no norm_stats in {path} (and no sibling norm_stats.json)")
+  return stats
+
+
 def build_model(args, n_cls: int, device: torch.device) -> CMUViTUTAE:
   model = CMUViTUTAE(
       num_classes=n_cls,
@@ -103,16 +124,21 @@ def build_model(args, n_cls: int, device: torch.device) -> CMUViTUTAE:
   ).to(device)
   if args.student_ckpt is not None:
     model.load_student_vit(args.student_ckpt, map_location=device)
+  if args.init_ckpt is None:
+    if args.s2_ckpt is None or not args.s2_ckpt.is_file():
+      raise SystemExit(f"missing S2 U-TAE checkpoint: {args.s2_ckpt}")
+    model.load_s2_utae(args.s2_ckpt, map_location=device)
   if args.init_ckpt is not None:
     if not args.init_ckpt.is_file():
       raise FileNotFoundError(f"init checkpoint not found: {args.init_ckpt}")
-    try:
-      ckpt = torch.load(args.init_ckpt, map_location=device, weights_only=False)
-    except TypeError:
-      ckpt = torch.load(args.init_ckpt, map_location=device)
+    ckpt = _load_torch(args.init_ckpt, device)
     state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
     missing, unexpected = model.load_state_dict(state, strict=False)
-    print(f"loaded init_ckpt={args.init_ckpt} missing={len(missing)} unexpected={len(unexpected)}")
+    if missing or unexpected:
+      raise RuntimeError(
+          f"init_ckpt mismatch missing={missing} unexpected={unexpected}"
+      )
+    print(f"loaded init_ckpt={args.init_ckpt}")
   model.set_train_mode(args.mode)
   trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
   total = sum(p.numel() for p in model.parameters())
@@ -179,6 +205,12 @@ def main() -> int:
   p.add_argument("--num-classes", type=int, default=6, choices=[6, 10])
   p.add_argument("--mode", type=str, default="head", choices=["head", "full"])
   p.add_argument("--student-ckpt", type=Path, default=None, help="Stage 1 student_best.pt (load ViT)")
+  p.add_argument(
+      "--s2-ckpt",
+      type=Path,
+      default=Path("multisenge_utae/checkpoints/run_c10_s2_full_v0/best.pt"),
+      help="10c S2-only U-TAE P5; encoder + L-TAE init for P4",
+  )
   p.add_argument("--init-ckpt", type=Path, default=None, help="P4 best.pt for P5")
   p.add_argument("--fusion", type=str, default="concat", choices=["concat", "gated"])
   p.add_argument("--vit-image-size", type=int, default=256)
@@ -223,8 +255,12 @@ def main() -> int:
     set_seed(args.seed)
     print("seed", args.seed)
 
-  print("estimating channel stats…")
-  stats = estimate_channel_stats(records, args.num_classes, max_patches=args.stats_patches)
+  if args.mode == "full" and args.init_ckpt is not None:
+    stats_src = args.init_ckpt
+  else:
+    stats_src = args.s2_ckpt
+  print("using norm_stats from", stats_src)
+  stats = norm_stats_from_ckpt(stats_src)
 
   train_ds = MultiSenGETemporalDataset(
       records, "train", num_classes=args.num_classes, augment=not args.no_augment,

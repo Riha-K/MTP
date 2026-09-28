@@ -20,8 +20,13 @@ module load MLDL/Pytorch-gpu
 export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
 
 STUDENT="${STUDENT:-multisenge_utae/checkpoints/cmu_s1_vit_v0/student_best.pt}"
+S2="${S2:-multisenge_utae/checkpoints/run_c10_s2_full_v0/best.pt}"
 if [[ ! -f "$STUDENT" ]]; then
   echo "missing Stage1 student: $STUDENT"
+  exit 1
+fi
+if [[ ! -f "$S2" ]]; then
+  echo "missing S2 teacher: $S2"
   exit 1
 fi
 
@@ -32,6 +37,7 @@ python -m multisenge_utae.train_cmu_vit \
   --mode head \
   --fusion concat \
   --student-ckpt "$STUDENT" \
+  --s2-ckpt "$S2" \
   --epochs 80 \
   --batch-size 2 \
   --workers 2 \
