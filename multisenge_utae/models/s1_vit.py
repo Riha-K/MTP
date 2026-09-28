@@ -71,6 +71,8 @@ class S1ViTB16(nn.Module):
       pos = _interpolate_pos_embed(self.vit.encoder.pos_embedding.detach(), grid)
       self.vit.encoder.pos_embedding = nn.Parameter(pos)
       self.image_size = self.requested_size
+      # torchvision forward asserts x.shape[-2] == vit.image_size (still 224 after load).
+      self.vit.image_size = self.requested_size
     self.embed_dim = int(getattr(self.vit, "hidden_dim", 768))
 
   def _maybe_resize(self, x: torch.Tensor) -> torch.Tensor:
