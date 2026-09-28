@@ -22,13 +22,14 @@ import time
 from pathlib import Path
 
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from multisenge_seg.build_index import records_from_json
 from multisenge_seg.dataset import MultiSenGETemporalDataset, build_patch_index
 from multisenge_seg.train import set_seed, _seed_worker
 from multisenge_utae.data import collate_utae
-from multisenge_utae.models.cmu import ProjHead, global_pool, info_nce, retrieval_acc
+from multisenge_utae.models.cmu import ProjHead, project_map, spatial_info_nce, spatial_retrieval_acc
 from multisenge_utae.models.s1_vit import S1ViTB16
 from multisenge_utae.models.utae import UTAE
 
@@ -96,10 +97,14 @@ def run_epoch(
       with torch.no_grad():
         # S2 encoder stays frozen. Projector is outside no_grad so it can train.
         feat_t = teacher.encode_spatial_bottleneck(s2_f.unsqueeze(1))
-        pooled_t = global_pool(feat_t)
-      z_t = proj_t(pooled_t)
-      z_s = proj_s(student(s1_f))
-      loss = info_nce(z_s, z_t, temperature=temperature)
+        if feat_t.dim() == 5:
+          feat_t = feat_t.squeeze(1)
+      tok_s = student.forward_tokens(s1_f)
+      if feat_t.shape[-2:] != tok_s.shape[-2:]:
+        feat_t = F.interpolate(feat_t, size=tok_s.shape[-2:], mode="bilinear", align_corners=False)
+      z_t = project_map(proj_t, feat_t)
+      z_s = project_map(proj_s, tok_s)
+      loss = spatial_info_nce(z_s, z_t, temperature=temperature)
 
       if train:
         assert opt is not None
@@ -107,7 +112,7 @@ def run_epoch(
         loss.backward()
         opt.step()
 
-    acc = retrieval_acc(z_s.detach(), z_t.detach())
+    acc = spatial_retrieval_acc(z_s.detach(), z_t.detach())
     total_loss += float(loss.item())
     total_acc += acc
     n += 1
@@ -209,7 +214,8 @@ def main() -> int:
   n_train = sum(p.numel() for p in params)
   print(
       f"CMU student+proj params={n_train:,} train/val={len(train_ds)}/{len(val_ds)} "
-      f"T=4 → InfoNCE N≈batch*{4} tau={args.temperature} proj={args.proj_dim}"
+      f"T=4 spatial InfoNCE over the batch at each ViT site "
+      f"tau={args.temperature} proj={args.proj_dim}"
   )
 
   args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -221,7 +227,7 @@ def main() -> int:
       "batch_size": args.batch_size,
       "image_size": args.image_size,
       "teacher_ckpt": str(args.teacher_ckpt),
-      "pairing": "same_patch_same_t",
+      "pairing": "same_patch_same_t_spatial",
       "student": "ViT-B/16 in_chans=2 ImageNet stem=mean RGB",
   }
   (args.out_dir / "cmu_hparams.json").write_text(json.dumps(hparams, indent=2), encoding="utf-8")
