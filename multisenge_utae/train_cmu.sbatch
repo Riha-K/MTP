@@ -24,7 +24,7 @@ if [[ ! -f "$TEACHER" ]]; then
   exit 1
 fi
 
-OUT="${OUT:-multisenge_utae/checkpoints/cmu_s1_vit_v0}"
+OUT="${OUT:-multisenge_utae/checkpoints/cmu_s1_vit_v1}"
 
 python -m multisenge_utae.train_cmu \
   --index multisenge_seg/artifacts/patch_index.json \

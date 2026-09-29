@@ -10,6 +10,44 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-29 - CMU projector was dying and locking the loss at chance
+
+Job **105991** moved for 7 epochs (best val loss **2.005**, acc **0.189** at epoch 5), then epochs 8-16 printed **2.0794 / 2.0787** and accuracy **0.125** on every epoch. That is exactly `ln(8)` on full batches, including the one shorter val batch. A ReLU projector can map every sample to one vector. InfoNCE then ties, and the gradient stays zero, so later epochs cannot leave chance.
+
+- `multisenge_utae/models/cmu.py` - projector is Linear, LayerNorm, GELU, Linear.
+- `multisenge_utae/train_cmu.sbatch` - next run writes `checkpoints/cmu_s1_vit_v1`, so the epoch-5 weights in `cmu_s1_vit_v0` stay put.
+- Cancel **105991**. It will not recover. Early stop would only fire around epoch 25.
+
+---
+
+### 2026-09-29 - CMU full job 105991 running
+
+Smoke **105990** passed the gate (train loss **2.0771**, spatial InfoNCE) and **105991** started on `racn116` at about 03:30. It excludes `ragpu004`, `ragpu005`, and `ragpu007`. Log: `multisenge_utae/artifacts/slurm-cmu-105991.out`. Pass if epoch loss keeps falling from **2.079**.
+
+---
+
+### 2026-09-28 - CMU progress note for the professor briefing
+
+Wrote `multisenge_utae/CMU_PROGRESS.md`: what Stage 1 compares, which files implement it, why jobs 105732 / 105801 / 105986 failed, and what the spatial InfoNCE smoke must show before Stage 2.
+
+---
+
+### 2026-09-28 - CMU smoke fixes: 256 ViT, chance-loss gate, spatial InfoNCE
+
+**105801** (00:25) failed in the first step. The ViT position grid was 256, but torchvision still had `image_size` 224 (`Wrong image height! Expected 224 but got 256`).
+
+- `s1_vit.py` - set `vit.image_size` to 256 after the position resize. Commit `a9b7c6f`.
+
+**105986** (07:13, ragpu006) finished the epoch, then exited 1 on purpose. Train loss **2.0793** is chance (`ln 8`). Val acc 0.250 on 4 patches is noise. One pooled S2 vector made every teacher target the same, so InfoNCE could not move. **105987** became `DependencyNeverSatisfied` and was cancelled.
+
+- `train_cmu_smoke.sbatch` - `--fail-if-train-loss-above 2.079`, so a chance smoke does not release the 80-epoch job. Commit `1246af1`.
+- `cmu.py`, `train_cmu.py` - InfoNCE is per spatial site (ViT 16x16 vs the S2 bottleneck resized to that grid). Positive is still the same patch and the same date. Chance loss stays `ln(batch*T) = 2.079`. Commit `493a566`.
+- Stage 2 (not run yet): `cmu_vit_utae.py`, `train_cmu_vit.py` load the trained S2 encoder and its L-TAE from `run_c10_s2_full_v0` and reuse that checkpoint's norm stats. P4 freezes that S2 encoder, the S2 L-TAE, and the CMU ViT. The S1 L-TAE trains, because Stage 1 has no L-TAE. Frozen modules stay in eval. Commit `1246af1`.
+
+**Next:** smoke **105990**, full **105991** with `afterok`. Pass only if the log says `spatial InfoNCE` and train loss is below 2.079.
+
+---
+
 ### 2026-09-27 - CMU rerun: train teacher projector, ImageNet ViT
 
 Cancelled **105732** after 6 epochs. Loss stayed at **2.0794** (`ln 8`) and val retrieval acc at **0.125** (chance).

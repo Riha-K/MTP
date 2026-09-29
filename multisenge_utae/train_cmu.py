@@ -215,7 +215,7 @@ def main() -> int:
   print(
       f"CMU student+proj params={n_train:,} train/val={len(train_ds)}/{len(val_ds)} "
       f"T=4 spatial InfoNCE over the batch at each ViT site "
-      f"tau={args.temperature} proj={args.proj_dim}"
+      f"tau={args.temperature} proj={args.proj_dim} projector=Linear-LayerNorm-GELU-Linear"
   )
 
   args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -228,6 +228,7 @@ def main() -> int:
       "image_size": args.image_size,
       "teacher_ckpt": str(args.teacher_ckpt),
       "pairing": "same_patch_same_t_spatial",
+      "projector": "Linear-LayerNorm-GELU-Linear",
       "student": "ViT-B/16 in_chans=2 ImageNet stem=mean RGB",
   }
   (args.out_dir / "cmu_hparams.json").write_text(json.dumps(hparams, indent=2), encoding="utf-8")

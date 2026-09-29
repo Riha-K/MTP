@@ -8,14 +8,19 @@ import torch.nn.functional as F
 
 
 class ProjHead(nn.Module):
-  """MLP projector for contrastive CMU."""
+  """128/768 to 256. LayerNorm keeps the hidden units alive.
+
+  A dead ReLU projector maps every sample to one vector. InfoNCE then ties,
+  the loss locks at ln(N), and the gradient stays zero.
+  """
 
   def __init__(self, in_dim: int, proj_dim: int = 256, hidden: int | None = None):
     super().__init__()
     h = int(hidden) if hidden is not None else max(in_dim, proj_dim)
     self.net = nn.Sequential(
         nn.Linear(in_dim, h),
-        nn.ReLU(inplace=True),
+        nn.LayerNorm(h),
+        nn.GELU(),
         nn.Linear(h, proj_dim),
     )
 
