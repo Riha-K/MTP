@@ -10,9 +10,15 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
-### 2026-09-29 - CMU full job 106245 running
+### 2026-10-01 - CMU can resume from epoch 80
 
-**105991** was cancelled after the loss locked at chance. **106245** is the Linear-LayerNorm-GELU-Linear projector run, output `checkpoints/cmu_s1_vit_v1`. It started on `racn116`. At 13:00 on 30 Sep it had finished epoch 48: train/val loss **1.4315 / 1.5742**, accuracy **0.421 / 0.377** (chance is 2.079 and 0.125). Best validation accuracy is epoch 47 at **0.388**, so `student_best.pt` is that epoch. Recent epochs are about 33 minutes, so epoch 80 should finish around 06:30 on 1 Oct, inside the 48-hour limit. Log: `multisenge_utae/artifacts/slurm-cmu-106245.out`.
+**106245** ended at learning rate 0, so submitting `train_cmu.sbatch` again would start a new ViT and overwrite `cmu_s1_vit_v1`. `train_cmu.py --resume` loads `last.pt` (ViT and both projectors) and trains epochs 81-160 with a new cosine peaking at **3e-5**. Patience 20 stops the job if validation accuracy does not beat **0.416**. `student_best.pt` stays epoch 70 until then. Script: `multisenge_utae/train_cmu_resume.sbatch`.
+
+---
+
+### 2026-10-01 - CMU full job 106245 finished 80 epochs
+
+**106245** completed on `racn116`. Output `checkpoints/cmu_s1_vit_v1`. Final epoch 80 train/val loss **0.9649 / 1.7882**, accuracy **0.601 / 0.412** (chance 2.079 and 0.125). Best validation accuracy is epoch 70 at **0.416**, so Stage 2 must load `student_best.pt`, not `student_last.pt`. Train loss kept falling after validation accuracy stopped rising around epoch 64-70. Log: `multisenge_utae/artifacts/slurm-cmu-106245.out`.
 
 ---
 

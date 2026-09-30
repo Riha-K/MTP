@@ -144,6 +144,12 @@ def main() -> int:
   p.add_argument("--seed", type=int, default=42)
   p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/checkpoints/cmu_s1_vit_v0"))
   p.add_argument(
+      "--resume",
+      type=Path,
+      default=None,
+      help="last.pt from a finished run. Loads ViT and both projectors, then trains start_epoch..--epochs with a new cosine.",
+  )
+  p.add_argument(
       "--fail-if-train-loss-above",
       type=float,
       default=None,
@@ -202,14 +208,24 @@ def main() -> int:
   train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, **loader_kw)
   val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, collate_fn=collate_utae)
 
-  student = S1ViTB16(in_chans=2, image_size=args.image_size).to(device)
+  resume_ckpt = _load_ckpt(args.resume, device) if args.resume else None
+  student = S1ViTB16(in_chans=2, image_size=args.image_size, pretrained=resume_ckpt is None).to(device)
   bottleneck_dim = int(teacher.encoder_widths[-1])
   proj_t = ProjHead(bottleneck_dim, proj_dim=args.proj_dim).to(device)
   proj_s = ProjHead(student.embed_dim, proj_dim=args.proj_dim).to(device)
+  start_epoch = 1
+  if resume_ckpt is not None:
+    student.load_state_dict(resume_ckpt["student"])
+    proj_s.load_state_dict(resume_ckpt["proj_student"])
+    proj_t.load_state_dict(resume_ckpt["proj_teacher"])
+    start_epoch = int(resume_ckpt["epoch"]) + 1
+    if start_epoch > args.epochs:
+      raise SystemExit(f"resume epoch {start_epoch - 1} is already past --epochs {args.epochs}")
 
   params = list(student.parameters()) + list(proj_s.parameters()) + list(proj_t.parameters())
   opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=0.05)
-  sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(args.epochs, 1))
+  cosine_epochs = args.epochs if resume_ckpt is None else (args.epochs - start_epoch + 1)
+  sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(cosine_epochs, 1))
 
   n_train = sum(p.numel() for p in params)
   print(
@@ -230,13 +246,28 @@ def main() -> int:
       "pairing": "same_patch_same_t_spatial",
       "projector": "Linear-LayerNorm-GELU-Linear",
       "student": "ViT-B/16 in_chans=2 ImageNet stem=mean RGB",
+      "resume": str(args.resume) if args.resume else None,
+      "start_epoch": start_epoch,
   }
   (args.out_dir / "cmu_hparams.json").write_text(json.dumps(hparams, indent=2), encoding="utf-8")
 
-  history = []
+  history: list[dict] = []
   best_acc = -1.0
+  if resume_ckpt is not None:
+    hist_path = args.out_dir / "history.json"
+    if hist_path.is_file():
+      history = [row for row in json.loads(hist_path.read_text(encoding="utf-8")) if int(row["epoch"]) < start_epoch]
+    best_acc = max((float(row["val_acc"]) for row in history), default=-1.0)
+    metrics_path = args.out_dir / "best_metrics.json"
+    if metrics_path.is_file():
+      best_acc = max(best_acc, float(json.loads(metrics_path.read_text(encoding="utf-8"))["acc"]))
   stale = 0
-  for epoch in range(1, args.epochs + 1):
+  if resume_ckpt is not None:
+    print(
+        f"resume weights from epoch {start_epoch - 1} -> epochs {start_epoch}..{args.epochs} "
+        f"new cosine T_max={cosine_epochs} lr={args.lr:.1e} kept best val acc={best_acc:.3f}"
+    )
+  for epoch in range(start_epoch, args.epochs + 1):
     t0 = time.time()
     print(f"epoch {epoch}/{args.epochs} train…", flush=True)
     tr = run_epoch(teacher, student, proj_t, proj_s, train_loader, opt, device, args.temperature, train=True)
@@ -267,6 +298,7 @@ def main() -> int:
         "norm_stats": stats,
         "hparams": hparams,
         "val": va,
+        "optimizer": opt.state_dict(),
         "args": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
     }
     torch.save(ckpt, args.out_dir / "last.pt")

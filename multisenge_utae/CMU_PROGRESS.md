@@ -95,4 +95,6 @@ After a real `student_best.pt` exists:
 5. P5 fine-tunes everything from the P4 checkpoint.
 6. Order: 6-class P4 then P5, then 10-class. Test tile 31UEQ.
 
-Do not start Stage 2 until Stage 1 loss has moved below chance.
+Job **106245** finished all 80 epochs on 1 Oct 2026. Final train accuracy **0.601**, validation accuracy **0.412**. The saved best is epoch 70, validation accuracy **0.416**, in `checkpoints/cmu_s1_vit_v1/student_best.pt`. Use that file for Stage 2. `student_last.pt` is epoch 80, where validation accuracy had already stopped rising.
+
+Do not start Stage 2 from `cmu_s1_vit_v0` or from the cancelled 105732 checkpoint.
