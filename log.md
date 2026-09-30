@@ -10,6 +10,12 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-09-29 - CMU full job 106245 running
+
+**105991** was cancelled after the loss locked at chance. **106245** is the Linear-LayerNorm-GELU-Linear projector run, output `checkpoints/cmu_s1_vit_v1`. It started on `racn116`. At 13:00 on 30 Sep it had finished epoch 48: train/val loss **1.4315 / 1.5742**, accuracy **0.421 / 0.377** (chance is 2.079 and 0.125). Best validation accuracy is epoch 47 at **0.388**, so `student_best.pt` is that epoch. Recent epochs are about 33 minutes, so epoch 80 should finish around 06:30 on 1 Oct, inside the 48-hour limit. Log: `multisenge_utae/artifacts/slurm-cmu-106245.out`.
+
+---
+
 ### 2026-09-29 - CMU projector was dying and locking the loss at chance
 
 Job **105991** moved for 7 epochs (best val loss **2.005**, acc **0.189** at epoch 5), then epochs 8-16 printed **2.0794 / 2.0787** and accuracy **0.125** on every epoch. That is exactly `ln(8)` on full batches, including the one shorter val batch. A ReLU projector can map every sample to one vector. InfoNCE then ties, and the gradient stays zero, so later epochs cannot leave chance.
