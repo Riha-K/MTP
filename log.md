@@ -10,6 +10,24 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-10-01 - Stage 2 10c P4 script
+
+`train_cmu_vit_c10_head.sbatch` trains the 10-class head from the same epoch-70 student and `run_c10_s2_full_v0`. Output `checkpoints/cmu_vit_c10_head_v0`. It can queue beside the 6-class P4. 10c P5 still waits for this run's `best.pt`.
+
+---
+
+### 2026-10-01 - Stage 2 6c P4 points at the epoch-70 student
+
+`train_cmu_vit_c6_head.sbatch` now loads `checkpoints/cmu_s1_vit_v1/student_best.pt` (epoch 70, val acc **0.416**). P4 can start while resume **106796** is still running, because that job only replaces `student_best.pt` if validation accuracy beats **0.416**. 10c P4 does not need the 6c result. 6c P5 waits for this P4 `best.pt`.
+
+---
+
+### 2026-10-01 - CMU resume job 106796 running
+
+**106796** resumed from epoch 80 on `racn116` (cosine peak **3e-5**, epochs 81-160). Through epoch 97 the best validation accuracy in the continuation is **0.411**. Train accuracy rose to **0.594** while validation stayed around **0.40**. `student_best.pt` is still epoch 70 at **0.416**. Log: `multisenge_utae/artifacts/slurm-cmu-106796.out`.
+
+---
+
 ### 2026-10-01 - CMU can resume from epoch 80
 
 **106245** ended at learning rate 0, so submitting `train_cmu.sbatch` again would start a new ViT and overwrite `cmu_s1_vit_v1`. `train_cmu.py --resume` loads `last.pt` (ViT and both projectors) and trains epochs 81-160 with a new cosine peaking at **3e-5**. Patience 20 stops the job if validation accuracy does not beat **0.416**. `student_best.pt` stays epoch 70 until then. Script: `multisenge_utae/train_cmu_resume.sbatch`.
