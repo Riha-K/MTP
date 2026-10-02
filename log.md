@@ -10,17 +10,73 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-10-02 - 10c P5 train job and 10c P4 test job
+
+`train_cmu_vit_c10_full.sbatch` fine-tunes all weights from `checkpoints/cmu_vit_c10_head_v0/best.pt` (epoch 33, val **0.8523 / 0.7776**) into `checkpoints/cmu_vit_c10_full_v0`. `eval_cmu_vit_c10_head.sbatch` scores that same P4 file on tile **31UEQ** and writes `results/cmu_vit/cmu_vit_c10_head_v0`. Neither job retrains the P4 head.
+
+---
+
+### 2026-10-02 - 10c P4 stopped after epoch 53, 6c P5 test started
+
+**106826** left the queue. Epochs 52-53 stayed under the best (**0.8476**, **0.8445**). That is 20 epochs without a weighted-F1 gain, so patience stops the run. `best.pt` remains epoch 33: val weighted F1 **0.8523**, kappa **0.7776**, in `checkpoints/cmu_vit_c10_head_v0`. **107070** (6c P5 test) is running on `ragpu006`. **107071** (6c P4 test) is still pending on Priority.
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 51, two epochs left
+
+**106826** best remains epoch 33: val weighted F1 **0.8523**, kappa **0.7776**. Epochs 34-51 are 18 stale. Patience 20 stops the run after epoch 53, about 17:35, if weighted F1 stays at or under **0.8523**. **107070** is **27738** and **107071** is **27737**. Ahead: aakashr **107076** (Resources, 28870), manishn **107069**, **107079**, and **107078**, srijang **107068** (28131). Usable nodes are full.
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 48, tests still pending
+
+**106826** best remains epoch 33: val weighted F1 **0.8523**, kappa **0.7776**. Epochs 34-48 are 15 stale. Five epochs remain before patience 20 stops it after epoch 53, around 17:25 if the score stays at or under **0.8523**. **107070** is **27724** and **107071** is **27723**. Ahead: neetishk **107096** (Resources, 34586), aakashr **107076** (28856), manishn **107061** tasks 1-3 (28554), manishn **107069** (28528), manishn **107079** and **107078** (28499), srijang **107068** (28117). Usable nodes are full.
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 44, tests still behind
+
+**106826** best remains epoch 33: val weighted F1 **0.8523**, kappa **0.7776**. Epochs 34-44 are 11 stale. Patience 20 still stops after epoch 53 unless weighted F1 goes above **0.8523**. saig and rakshits took both GPUs on `racn116`. Ahead of **107070** (**27703**) and **107071** (**27702**): aakashr **107076** (Resources, 28835), manishn **107061** tasks 1-3 (28533), manishn **107069** (28507), srijang **107068** (28096).
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 41, best still epoch 33
+
+**106826** best remains epoch 33: val weighted F1 **0.8523**, kappa **0.7776**. Epochs 34-41 are 8 stale. Patience 20 stops the run after epoch 53 unless weighted F1 goes above **0.8523**. At about 12 minutes an epoch, that is around 17:30.
+
+---
+
+### 2026-10-02 - 6c P4 test resubmitted as 107071
+
+**107071** (`cmuvit_eval`) is pending on Priority and replaces the stuck **107017**, which is still `QOSMaxGRESPerUser`. Cancel **107017**. Both would write `results/cmu_vit/cmu_vit_c6_head_v0`. **107070** is the 6c P5 test. **106826** is still the 10c P4 on `ragpu006`.
+
+---
+
+
+
+### 2026-10-02 - 6c P5 test queued as 107070
+
+**107070** is the 6-class P5 31UEQ test (`cmuvit_c6fe`), pending on Priority. **107017** is still the 6-class P4 test and still says `QOSMaxGRESPerUser`. **106826** (10c P4) is still running on `ragpu006`.
+
+---
+
+
+
 ### 2026-10-02 - 6c P5 test job
 
 `eval_cmu_vit_c6_full.sbatch` scores tile **31UEQ** from `checkpoints/cmu_vit_c6_full_v0/best.pt` (epoch 2, val **0.9574 / 0.5597**) and writes `results/cmu_vit/cmu_vit_c6_full_v0/test_metrics.json`. It does not retrain and does not replace the P4 test job **107017**.
 
 ---
 
+
+
 ### 2026-10-02 - 6c P5 left the queue, test still shows the GPU cap
 
 **106969** stopped with `EarlyStopping after 20 epochs without val weighted_f1 improvement`. **106826** (10c P4) is still on `ragpu006`. A minute later **107017** still said `QOSMaxGRESPerUser` with only that one GPU running.
 
 ---
+
+
 
 ### 2026-10-02 - 10c P4 epoch 33 is best, 6c P5 reached patience
 
@@ -30,6 +86,8 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ---
 
+
+
 ### 2026-10-02 - 10c P4 through epoch 26, 6c P5 through epoch 16
 
 **106969** (6c P5) best remains epoch 2: val weighted F1 **0.9574**, kappa **0.5597**. Epochs 3-16 are 14 stale (patience 20). Epoch 12 was the closest later try (**0.9558 / 0.5523**).
@@ -38,21 +96,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ---
 
-### 2026-10-02 - 10c P4 through epoch 23, 6c P5 through epoch 13
 
-**106826** (10c P4, `ragpu006`) best is now epoch 15: val weighted F1 **0.8522**, kappa **0.7770**. Epochs 16-23 did not beat it (8 stale, patience 20). Still above the old CONCAT 10c P4 validation (**0.8256 / 0.7351**). Train loss **0.596** at epoch 23.
-
-**106969** (6c P5, `racn116`) best remains epoch 2: **0.9574 / 0.5597**. Closest later try is epoch 12 at **0.9558 / 0.5523**. Epochs 3-13 are 11 stale. Still above the 6c P4 best **0.9511 / 0.5220**. **107017** stays `QOSMaxGRESPerUser` while both GPUs are in use.
-
----
-
-### 2026-10-02 - 10c P4 through epoch 12, 6c P5 through epoch 2
-
-**106826** loaded the epoch-70 ViT and `run_c10_s2_full_v0`. Head mode, **605,566** trainable. Best so far is epoch 10: val weighted F1 **0.8489**, kappa **0.7693**. That is above the old CONCAT 10c P4 validation (**0.8256 / 0.7351**). Epoch 12 dipped to **0.8285 / 0.7276**. Train loss is still falling (**0.705**).
-
-**106969** loaded `cmu_vit_c6_head_v0/best.pt` and unfroze all **86,946,098** parameters. Epoch 2 val weighted F1 **0.9574**, kappa **0.5597**, above the P4 best **0.9511 / 0.5220** and level with the old CONCAT 6c P5 validation (**0.9585 / 0.5600**).
-
----
 
 ### 2026-10-02 - 10c P4 and 6c P5 running, test held by the GPU cap
 
@@ -60,11 +104,15 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ---
 
+
+
 ### 2026-10-02 - CMU 6c P4 test job
 
 The 6-class P4 score **0.9511 / 0.5220** is validation. Tile **31UEQ** was not scored. `eval_cmu_vit.sbatch` loads `checkpoints/cmu_vit_c6_head_v0/best.pt` through `train_cmu_vit.py --eval-ckpt` and writes `results/cmu_vit/cmu_vit_c6_head_v0/test_metrics.json`. Two-hour wall, one GPU. It does not retrain.
 
 ---
+
+
 
 ### 2026-10-02 - 10c P4 still pending, one job ahead
 
@@ -72,11 +120,15 @@ At 06:28, **106826** is pending at **27725** and **106969** (6c P5) at **27519**
 
 ---
 
+
+
 ### 2026-10-01 - Stage 2 6c P5 queued as 106969
 
 **106969** is the 6-class P5 (`cmuvit_c6_f`), pending at priority **27330**. **106826** (10c P4) is ahead of it at **27535**. Both are waiting on Priority. Ahead of the 10c job: aakashr **106806** (Resources, 29900) and srijang **106977** (Priority, 27695). One free GPU starts the 10c job first.
 
 ---
+
+
 
 ### 2026-10-01 - Noted why CMU Stage 2 keeps the trained 10c S2 encoder
 
@@ -84,11 +136,15 @@ U-TAE and MA-UTAE P4 start basic (random weights). P5 continues that same P4 fil
 
 ---
 
+
+
 ### 2026-10-01 - Stage 2 6c P4 job 106824 stopped after epoch 35
 
 **106824** left the queue. Epochs 33-35 stayed under the best: **0.9460**, **0.9425**, **0.9419**. That is 20 epochs without a weighted-F1 gain, so patience 20 stops the run. `best.pt` remains epoch 15: val weighted F1 **0.9511**, kappa **0.5220**. This is the validation score, not the 31UEQ test. **106826** (10c P4) is still pending. Log: `multisenge_utae/logs/slurm-cmuvit-c6-head-106824.out`.
 
 ---
+
+
 
 ### 2026-10-01 - Stage 2 10c P4 script
 
@@ -96,11 +152,15 @@ U-TAE and MA-UTAE P4 start basic (random weights). P5 continues that same P4 fil
 
 ---
 
+
+
 ### 2026-10-01 - Stage 2 6c P4 points at the epoch-70 student
 
 `train_cmu_vit_c6_head.sbatch` now loads `checkpoints/cmu_s1_vit_v1/student_best.pt` (epoch 70, val acc **0.416**). P4 can start while resume **106796** is still running, because that job only replaces `student_best.pt` if validation accuracy beats **0.416**. 10c P4 does not need the 6c result. 6c P5 waits for this P4 `best.pt`.
 
 ---
+
+
 
 ### 2026-10-01 - CMU resume job 106796 running
 
@@ -108,17 +168,23 @@ U-TAE and MA-UTAE P4 start basic (random weights). P5 continues that same P4 fil
 
 ---
 
+
+
 ### 2026-10-01 - CMU can resume from epoch 80
 
 **106245** ended at learning rate 0, so submitting `train_cmu.sbatch` again would start a new ViT and overwrite `cmu_s1_vit_v1`. `train_cmu.py --resume` loads `last.pt` (ViT and both projectors) and trains epochs 81-160 with a new cosine peaking at **3e-5**. Patience 20 stops the job if validation accuracy does not beat **0.416**. `student_best.pt` stays epoch 70 until then. Script: `multisenge_utae/train_cmu_resume.sbatch`.
 
 ---
 
+
+
 ### 2026-10-01 - CMU full job 106245 finished 80 epochs
 
 **106245** completed on `racn116`. Output `checkpoints/cmu_s1_vit_v1`. Final epoch 80 train/val loss **0.9649 / 1.7882**, accuracy **0.601 / 0.412** (chance 2.079 and 0.125). Best validation accuracy is epoch 70 at **0.416**, so Stage 2 must load `student_best.pt`, not `student_last.pt`. Train loss kept falling after validation accuracy stopped rising around epoch 64-70. Log: `multisenge_utae/artifacts/slurm-cmu-106245.out`.
 
 ---
+
+
 
 ### 2026-09-29 - CMU projector was dying and locking the loss at chance
 
@@ -130,17 +196,23 @@ Job **105991** moved for 7 epochs (best val loss **2.005**, acc **0.189** at epo
 
 ---
 
+
+
 ### 2026-09-29 - CMU full job 105991 running
 
 Smoke **105990** passed the gate (train loss **2.0771**, spatial InfoNCE) and **105991** started on `racn116` at about 03:30. It excludes `ragpu004`, `ragpu005`, and `ragpu007`. Log: `multisenge_utae/artifacts/slurm-cmu-105991.out`. Pass if epoch loss keeps falling from **2.079**.
 
 ---
 
+
+
 ### 2026-09-28 - CMU progress note for the professor briefing
 
 Wrote `multisenge_utae/CMU_PROGRESS.md`: what Stage 1 compares, which files implement it, why jobs 105732 / 105801 / 105986 failed, and what the spatial InfoNCE smoke must show before Stage 2.
 
 ---
+
+
 
 ### 2026-09-28 - CMU smoke fixes: 256 ViT, chance-loss gate, spatial InfoNCE
 
@@ -158,6 +230,8 @@ Wrote `multisenge_utae/CMU_PROGRESS.md`: what Stage 1 compares, which files impl
 
 ---
 
+
+
 ### 2026-09-27 - CMU rerun: train teacher projector, ImageNet ViT
 
 Cancelled **105732** after 6 epochs. Loss stayed at **2.0794** (`ln 8`) and val retrieval acc at **0.125** (chance).
@@ -169,6 +243,8 @@ Cancelled **105732** after 6 epochs. Loss stayed at **2.0794** (`ln 8`) and val 
 **Next on PARAM:** `git pull`, then smoke. Pass if epoch loss drops below 2.079. Do not resubmit the 80-epoch job on the cancelled checkpoint.
 
 ---
+
+
 
 ### 2026-09-27 - Access log for datasets and papers
 
@@ -868,7 +944,7 @@ Working split convention to keep for new experiments: **train 56% / val 14% / te
 
 ### 2026-08-21 - Freeze report rows; drop c6_v1 / c10_v1 from repo
 
-Kept **only** report JSON + docs. Removed `run_c6_v1` results, `train_c6_v1` / `eval_v1`* sbatch, and `*_c10_v1*` sbatch (seed/kappa-boost test did not beat 10-class v0 on test: W-F1 0.8719 / kappa 0.7534 vs v0 **0.8711 / 0.7588**).
+Kept **only** report JSON + docs. Removed `run_c6_v1` results, `train_c6_v1` / `eval_v1`* sbatch, and `*_c10_v1`* sbatch (seed/kappa-boost test did not beat 10-class v0 on test: W-F1 0.8719 / kappa 0.7534 vs v0 **0.8711 / 0.7588**).
 
 
 | Report   | Ckpt               | Test W-F1  | Kappa      | Paper           |

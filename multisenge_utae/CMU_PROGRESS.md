@@ -111,7 +111,7 @@ After a real `student_best.pt` exists:
 3. Fuse at the bottleneck only (CONCAT). The decoder uses S2 skip connections, not S1 skips, because the ViT is one scale and the U-TAE is a pyramid.
 4. P4 freezes the loaded S2 encoder, the S2 L-TAE, and the CMU ViT. It trains the S1 L-TAE (Stage 1 has no L-TAE), the adapter, the fusion, and the decoder.
 5. P5 fine-tunes everything from the P4 checkpoint.
-6. Order: 6-class P4 then P5, then 10-class. Test tile 31UEQ is a separate job. P4 uses `eval_cmu_vit.sbatch`. P5 uses `eval_cmu_vit_c6_full.sbatch`. The training log's weighted F1 is validation, not that test.
+6. Order: 6-class P4 then P5, then 10-class. Test tile 31UEQ is a separate job. 6c P4 uses `eval_cmu_vit.sbatch`. 6c P5 uses `eval_cmu_vit_c6_full.sbatch`. 10c P5 training uses `train_cmu_vit_c10_full.sbatch`. 10c P4 test uses `eval_cmu_vit_c10_head.sbatch`. The training log's weighted F1 is validation, not that test.
 
 Job **106245** finished all 80 epochs on 1 Oct 2026. Final train accuracy **0.601**, validation accuracy **0.412**. The saved best is epoch 70, validation accuracy **0.416**, in `checkpoints/cmu_s1_vit_v1/student_best.pt`. Use that file for Stage 2. `student_last.pt` is epoch 80, where validation accuracy had already stopped rising.
 
