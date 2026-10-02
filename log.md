@@ -10,6 +10,56 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-10-02 - 6c P5 test job
+
+`eval_cmu_vit_c6_full.sbatch` scores tile **31UEQ** from `checkpoints/cmu_vit_c6_full_v0/best.pt` (epoch 2, val **0.9574 / 0.5597**) and writes `results/cmu_vit/cmu_vit_c6_full_v0/test_metrics.json`. It does not retrain and does not replace the P4 test job **107017**.
+
+---
+
+### 2026-10-02 - 6c P5 left the queue, test still shows the GPU cap
+
+**106969** stopped with `EarlyStopping after 20 epochs without val weighted_f1 improvement`. **106826** (10c P4) is still on `ragpu006`. A minute later **107017** still said `QOSMaxGRESPerUser` with only that one GPU running.
+
+---
+
+### 2026-10-02 - 10c P4 epoch 33 is best, 6c P5 reached patience
+
+**106826** (10c P4) best is now epoch 33: val weighted F1 **0.8523**, kappa **0.7776**. That replaces epoch 15 (**0.8522 / 0.7770**). Epochs 34-38 did not beat it (5 stale, patience 20).
+
+**106969** (6c P5) best remains epoch 2: **0.9574 / 0.5597**. Epoch 22 is the 20th epoch without a weighted-F1 gain, so patience 20 stops this run. `best.pt` stays epoch 2 in `checkpoints/cmu_vit_c6_full_v0`.
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 26, 6c P5 through epoch 16
+
+**106969** (6c P5) best remains epoch 2: val weighted F1 **0.9574**, kappa **0.5597**. Epochs 3-16 are 14 stale (patience 20). Epoch 12 was the closest later try (**0.9558 / 0.5523**).
+
+**106826** (10c P4) best remains epoch 15: **0.8522 / 0.7770**. Epochs 16-26 are 11 stale. Epoch 24 was **0.8511 / 0.7725**.
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 23, 6c P5 through epoch 13
+
+**106826** (10c P4, `ragpu006`) best is now epoch 15: val weighted F1 **0.8522**, kappa **0.7770**. Epochs 16-23 did not beat it (8 stale, patience 20). Still above the old CONCAT 10c P4 validation (**0.8256 / 0.7351**). Train loss **0.596** at epoch 23.
+
+**106969** (6c P5, `racn116`) best remains epoch 2: **0.9574 / 0.5597**. Closest later try is epoch 12 at **0.9558 / 0.5523**. Epochs 3-13 are 11 stale. Still above the 6c P4 best **0.9511 / 0.5220**. **107017** stays `QOSMaxGRESPerUser` while both GPUs are in use.
+
+---
+
+### 2026-10-02 - 10c P4 through epoch 12, 6c P5 through epoch 2
+
+**106826** loaded the epoch-70 ViT and `run_c10_s2_full_v0`. Head mode, **605,566** trainable. Best so far is epoch 10: val weighted F1 **0.8489**, kappa **0.7693**. That is above the old CONCAT 10c P4 validation (**0.8256 / 0.7351**). Epoch 12 dipped to **0.8285 / 0.7276**. Train loss is still falling (**0.705**).
+
+**106969** loaded `cmu_vit_c6_head_v0/best.pt` and unfroze all **86,946,098** parameters. Epoch 2 val weighted F1 **0.9574**, kappa **0.5597**, above the P4 best **0.9511 / 0.5220** and level with the old CONCAT 6c P5 validation (**0.9585 / 0.5600**).
+
+---
+
+### 2026-10-02 - 10c P4 and 6c P5 running, test held by the GPU cap
+
+**106826** (10c P4) is on `ragpu006`. **106969** (6c P5) is on `racn116`. **107017** (31UEQ test) is pending with `QOSMaxGRESPerUser` because those two jobs already use the account's two GPUs. The test starts after one of them ends and a GPU is free.
+
+---
+
 ### 2026-10-02 - CMU 6c P4 test job
 
 The 6-class P4 score **0.9511 / 0.5220** is validation. Tile **31UEQ** was not scored. `eval_cmu_vit.sbatch` loads `checkpoints/cmu_vit_c6_head_v0/best.pt` through `train_cmu_vit.py --eval-ckpt` and writes `results/cmu_vit/cmu_vit_c6_head_v0/test_metrics.json`. Two-hour wall, one GPU. It does not retrain.
