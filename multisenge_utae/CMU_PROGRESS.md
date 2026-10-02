@@ -9,7 +9,7 @@ We are aligning Sentinel-1 to a frozen Sentinel-2 U-TAE, the way MM-OVSeg aligns
 
 One date of S2 (10 bands) goes through the frozen S2 U-TAE encoder. The same patch and the same date of S1 (VV, VH) goes through a ViT-B/16. InfoNCE pulls those two features together. Time is not mixed here. The four dates stay separate so that July SAR is matched to July S2.
 
-Stage 2, which is coded and not trained yet, stacks the four dates, runs L-TAE on both streams, fuses them, and trains a closed-set land-cover head (6 classes first, then 10).
+Stage 2 stacks the four dates, runs L-TAE on both streams, fuses them, and trains a closed-set land-cover head (6 classes and 10 classes). The S2 side of that head is the already-trained 10-class S2 U-TAE, not a new random U-TAE. See the section below.
 
 ## What goes into the loss
 
@@ -84,7 +84,25 @@ Log: `multisenge_utae/logs/slurm-cmu-smoke-105990.out`.
 - Pass: train loss below 2.079. Then full job **105991** is allowed to start (`afterok`).
 - Fail: loss still about 2.079. The full job must not run. Do not use `cmu_s1_vit_smoke` from 105986 or the cancelled 105732 checkpoint.
 
-## Stage 2, coded, not trained
+## Why Stage 2 loads the trained S2 encoder
+
+Earlier U-TAE and MA-UTAE runs start **basic**: random weights, no older checkpoint. P4 freezes the encoder and trains the head. P5 loads that same P4 file and trains the whole network. A 6-class run never loads a 10-class checkpoint, and a 10-class run never loads a 6-class checkpoint. The 10-class S2 model was chosen as the CMU teacher only. That choice does not mean the old land-cover runs mixed class counts.
+
+CMU Stage 2 is the exception. Job **106824** (6-class head) and the 10-class head both copy the encoder and the L-TAE from `run_c10_s2_full_v0`. They do not copy that file's 10-class classifier. The 6-class (or 10-class) decoder is new. The old CONCAT 6-class P4 weights (`run_c6_head_v0`) are a score to compare against. They are not loaded.
+
+The trained encoder stays because Stage 1 matched the ViT to that encoder's maps. A basic S2 encoder would be a different set of maps, and the ViT would be aligned to a teacher that is no longer in the network.
+
+| Run | What the network is | Where the weights start |
+|---|---|---|
+| Paper ConvLSTM, and ConvLSTM+Inception | MultiSenGE paper models. Inception is their extra block on the ConvLSTM. | Published numbers. Those weights are not loaded into our models. |
+| A4 ConvLSTM | Our ConvLSTM, same idea as the paper. | Basic. Its own training. |
+| U-TAE, S1+S2, 6c and 10c | One U-TAE. SAR and optical bands are stacked into one input. | Basic at P4. P5 continues that P4 file. |
+| U-TAE, S2 only, 6c and 10c | Same U-TAE, optical bands only. | Basic at P4. P5 continues that P4. The 10c P5 of this line is `run_c10_s2_full_v0`. |
+| U-TAE, S1 only, 6c and 10c | Same U-TAE, SAR bands only. | Basic at P4. P5 continues that P4. |
+| MA-UTAE, gated and CONCAT, 6c and 10c | Two U-TAE encoders, one SAR and one optical, then a fusion. | Basic at P4. P5 continues that P4. 6c never loads a 10c file. |
+| CMU Stage 2, 6c and 10c | SAR is the Stage 1 ViT. Optical is the trained 10c S2 encoder and L-TAE. New land-cover decoder. | `cmu_s1_vit_v1/student_best.pt` and `run_c10_s2_full_v0`. Not basic. |
+
+## Stage 2, now training
 
 After a real `student_best.pt` exists:
 
@@ -93,7 +111,7 @@ After a real `student_best.pt` exists:
 3. Fuse at the bottleneck only (CONCAT). The decoder uses S2 skip connections, not S1 skips, because the ViT is one scale and the U-TAE is a pyramid.
 4. P4 freezes the loaded S2 encoder, the S2 L-TAE, and the CMU ViT. It trains the S1 L-TAE (Stage 1 has no L-TAE), the adapter, the fusion, and the decoder.
 5. P5 fine-tunes everything from the P4 checkpoint.
-6. Order: 6-class P4 then P5, then 10-class. Test tile 31UEQ.
+6. Order: 6-class P4 then P5, then 10-class. Test tile 31UEQ is a separate job (`eval_cmu_vit.sbatch`). The training log's weighted F1 is validation, not that test.
 
 Job **106245** finished all 80 epochs on 1 Oct 2026. Final train accuracy **0.601**, validation accuracy **0.412**. The saved best is epoch 70, validation accuracy **0.416**, in `checkpoints/cmu_s1_vit_v1/student_best.pt`. Use that file for Stage 2. `student_last.pt` is epoch 80, where validation accuracy had already stopped rising.
 

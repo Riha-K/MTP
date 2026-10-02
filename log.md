@@ -10,6 +10,36 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-10-02 - CMU 6c P4 test job
+
+The 6-class P4 score **0.9511 / 0.5220** is validation. Tile **31UEQ** was not scored. `eval_cmu_vit.sbatch` loads `checkpoints/cmu_vit_c6_head_v0/best.pt` through `train_cmu_vit.py --eval-ckpt` and writes `results/cmu_vit/cmu_vit_c6_head_v0/test_metrics.json`. Two-hour wall, one GPU. It does not retrain.
+
+---
+
+### 2026-10-02 - 10c P4 still pending, one job ahead
+
+At 06:28, **106826** is pending at **27725** and **106969** (6c P5) at **27519**. The only job ahead of the 10c head is srijang **107006** (Resources, **27799**). Usable nodes are full. One free GPU goes to srijang first. The 6c P5 still waits behind the 10c job.
+
+---
+
+### 2026-10-01 - Stage 2 6c P5 queued as 106969
+
+**106969** is the 6-class P5 (`cmuvit_c6_f`), pending at priority **27330**. **106826** (10c P4) is ahead of it at **27535**. Both are waiting on Priority. Ahead of the 10c job: aakashr **106806** (Resources, 29900) and srijang **106977** (Priority, 27695). One free GPU starts the 10c job first.
+
+---
+
+### 2026-10-01 - Noted why CMU Stage 2 keeps the trained 10c S2 encoder
+
+U-TAE and MA-UTAE P4 start basic (random weights). P5 continues that same P4 file. 6-class and 10-class checkpoints were never mixed. CMU Stage 2 is the exception: the ViT was aligned to `run_c10_s2_full_v0`, so the 6c and 10c heads load that encoder and L-TAE and train a new decoder. The old CONCAT 6c P4 weights are a comparison score, not the loaded model. Written in `multisenge_utae/CMU_PROGRESS.md`.
+
+---
+
+### 2026-10-01 - Stage 2 6c P4 job 106824 stopped after epoch 35
+
+**106824** left the queue. Epochs 33-35 stayed under the best: **0.9460**, **0.9425**, **0.9419**. That is 20 epochs without a weighted-F1 gain, so patience 20 stops the run. `best.pt` remains epoch 15: val weighted F1 **0.9511**, kappa **0.5220**. This is the validation score, not the 31UEQ test. **106826** (10c P4) is still pending. Log: `multisenge_utae/logs/slurm-cmuvit-c6-head-106824.out`.
+
+---
+
 ### 2026-10-01 - Stage 2 10c P4 script
 
 `train_cmu_vit_c10_head.sbatch` trains the 10-class head from the same epoch-70 student and `run_c10_s2_full_v0`. Output `checkpoints/cmu_vit_c10_head_v0`. It can queue beside the 6-class P4. 10c P5 still waits for this run's `best.pt`.
@@ -24,7 +54,7 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ### 2026-10-01 - CMU resume job 106796 running
 
-**106796** resumed from epoch 80 on `racn116` (cosine peak **3e-5**, epochs 81-160). Through epoch 97 the best validation accuracy in the continuation is **0.411**. Train accuracy rose to **0.594** while validation stayed around **0.40**. `student_best.pt` is still epoch 70 at **0.416**. Log: `multisenge_utae/artifacts/slurm-cmu-106796.out`.
+**106796** resumed from epoch 80 on `racn116` (cosine peak **3e-5**, epochs 81-160). It stopped itself after epoch 100. Validation accuracy stayed under **0.416** for 20 epochs (best in the continuation **0.411**). Epoch 100 was train/val accuracy **0.603 / 0.396**. `student_best.pt` remains epoch 70. Log: `multisenge_utae/artifacts/slurm-cmu-106796.out`.
 
 ---
 
