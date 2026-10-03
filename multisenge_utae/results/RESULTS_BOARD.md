@@ -4,7 +4,7 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 
 **Legend:** `[ok]` on laptop | `[head]` headline only (JSON still on PARAM) | `[todo]` not run / missing | `~(val)` = validation only
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-02
 
 ---
 
@@ -39,6 +39,10 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | **S2-only 10c P5** | [ok] | [ok] | W-F1 **0.8865** / κ **0.7945** - beats paper S2 (+0.017 / +0.050) |
 | Task H | [deferred] | - | **Future work** - not needed for Task M write-up |
 | P3 probes 6c/10c | [ok] summaries | [ok] | `results/concat_utae/probe_c{6,10}_v0/` |
+| **CMU-ViT U-TAE 6c P5** | [head] | - | Job **107070**. W-F1 **0.9379** / κ **0.5804**. `results/cmu_vit/cmu_vit_c6_full_v0/` on PARAM |
+| **CMU-ViT U-TAE 6c P4** | [head] | - | Job **107071**. W-F1 **0.9264** / κ **0.5312**. `results/cmu_vit/cmu_vit_c6_head_v0/` on PARAM |
+| **CMU-ViT U-TAE 10c P4** | [head] | - | Job **107115**. W-F1 **0.8743** / κ **0.7644**. `results/cmu_vit/cmu_vit_c10_head_v0/` on PARAM |
+| **CMU-ViT U-TAE 10c P5** | [head] | - | Job **107270**. W-F1 **0.8844** / κ **0.7861**. `results/cmu_vit/cmu_vit_c10_full_v0/` on PARAM |
 
 ### Status (2026-09-23)
 
@@ -65,17 +69,19 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | Rank | Model | Phase | W-P | W-R | **W-F1** | **Kappa** | Acc | Mean F1 | vs concat P5 W-F1 |
 |-----:|-------|-------|----:|----:|---------:|----------:|----:|--------:|------------------:|
 | 1 | Concat U-TAE | P5 | 0.9618 | 0.9225 | **0.9387** | **0.5757** | 0.9225 | 0.5540 | - |
-| 2 | MA gated | P5 | 0.9607 | 0.9165 | **0.9353** | **0.5520** | 0.9165 | 0.5384 | -0.0034 |
-| 3 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
-| 4 | S2-only U-TAE | P5 | 0.9432 | 0.9069 | **0.9199** | **0.4809** | 0.9069 | 0.4261 | -0.0188 |
-| 5 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | -0.0216 (head) |
-| 6 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 | -0.0218 |
-| 7 | MA concat fuse | P5 | 0.9502 | 0.8910 | **0.9143** | **0.4672** | 0.8910 | 0.4667 | -0.0244 |
-| 8 | S1-only U-TAE | P4 | 0.9320 | 0.9026 | **0.9111** | **0.3974** | 0.9026 | 0.3100 | -0.0276 |
-| 9 | A4 ConvLSTM (report last.pt) | - | 0.9559 | 0.8681 | **0.9037** | **0.4424** | 0.8681 | - | -0.0350 |
-| 10 | **Paper** ConvLSTM+Inception | - | 0.9591 | 0.8596 | **0.9018** | **0.4186** | - | - | -0.0369 |
-| 11 | Concat U-TAE | P4 | 0.9357 | 0.8778 | **0.9012** | **0.4033** | 0.8778 | 0.3718 | -0.0375 |
-| 12 | S1-only U-TAE | P5 | 0.9395 | 0.8715 | **0.8970** | **0.3537** | 0.8715 | 0.3168 | -0.0417 (worse than S1 P4) |
+| 2 | **CMU-ViT U-TAE** | **P5** | 0.9590 | 0.9237 | **0.9379** | **0.5804** | 0.9237 | 0.5271 | -0.0008 |
+| 3 | MA gated | P5 | 0.9607 | 0.9165 | **0.9353** | **0.5520** | 0.9165 | 0.5384 | -0.0034 |
+| 4 | **CMU-ViT U-TAE** | **P4** | - | - | **0.9264** | **0.5312** | 0.9044 | - | -0.0123 |
+| 5 | MA concat fuse | P4 | 0.9473 | 0.9048 | **0.9218** | **0.4961** | 0.9048 | 0.4606 | -0.0169 |
+| 6 | S2-only U-TAE | P5 | 0.9432 | 0.9069 | **0.9199** | **0.4809** | 0.9069 | 0.4261 | -0.0188 |
+| 7 | S2-only U-TAE | P4 | 0.9482 | 0.8960 | **0.9171** | **0.4658** | 0.8960 | 0.4617 | -0.0216 (head) |
+| 8 | MA gated | P4 | 0.9478 | 0.8954 | **0.9169** | **0.4705** | 0.8954 | 0.4573 | -0.0218 |
+| 9 | MA concat fuse | P5 | 0.9502 | 0.8910 | **0.9143** | **0.4672** | 0.8910 | 0.4667 | -0.0244 |
+| 10 | S1-only U-TAE | P4 | 0.9320 | 0.9026 | **0.9111** | **0.3974** | 0.9026 | 0.3100 | -0.0276 |
+| 11 | A4 ConvLSTM (report last.pt) | - | 0.9559 | 0.8681 | **0.9037** | **0.4424** | 0.8681 | - | -0.0350 |
+| 12 | **Paper** ConvLSTM+Inception | - | 0.9591 | 0.8596 | **0.9018** | **0.4186** | - | - | -0.0369 |
+| 13 | Concat U-TAE | P4 | 0.9357 | 0.8778 | **0.9012** | **0.4033** | 0.8778 | 0.3718 | -0.0375 |
+| 14 | S1-only U-TAE | P5 | 0.9395 | 0.8715 | **0.8970** | **0.3537** | 0.8715 | 0.3168 | -0.0417 (worse than S1 P4) |
 
 ### 1.2 Ten-class test (31UEQ)
 
@@ -84,17 +90,19 @@ Single place for **paper (first-author)**, **A4 ConvLSTM**, **concat U-TAE**, **
 | 1 | **MA concat fuse** | **P5** | 0.9040 | 0.8817 | **0.8885** | **0.7950** | 0.8817 | 0.6332 | vs Inc **+0.0034 / +0.0005** |
 | 2 | **S2-only U-TAE** | **P5** | 0.9005 | 0.8819 | **0.8865** | **0.7945** | 0.8819 | 0.6230 | vs paper **S2** **+0.017 / +0.050** |
 | 3 | **Paper** ConvLSTM+Inception | - | 0.8977 | 0.8831 | **0.8851** | **0.7945** | - | - | fusion baseline |
-| 4 | **MA gated** | **P5** | 0.8994 | 0.8789 | **0.8834** | **0.7895** | 0.8789 | - | vs Inc −0.0017 / −0.0050 |
-| 5 | Concat U-TAE | P5 | 0.8997 | 0.8740 | **0.8811** | **0.7795** | 0.8740 | 0.6043 | vs Inc −0.0040 |
-| 6 | A4 ConvLSTM | - | 0.8947 | 0.8604 | **0.8711** | **0.7588** | 0.8604 | 0.5853 | vs Inc −0.0140 |
-| 7 | **Paper** ConvLSTM-S2 | - | 0.9000 | 0.8517 | **0.8696** | **0.7445** | - | - | fair S2 baseline |
-| 8 | MA concat fuse | P4 | 0.8790 | 0.8425 | **0.8547** | **0.7273** | 0.8425 | - | |
-| 9 | S2-only U-TAE | P4 | 0.8643 | 0.8365 | **0.8437** | **0.7152** | 0.8365 | 0.5150 | |
-| 10 | MA gated | P4 | 0.8735 | 0.8272 | **0.8430** | **0.7061** | 0.8272 | 0.5111 | |
-| 11 | **S1-only U-TAE** | **P5** | 0.8607 | 0.8207 | **0.8365** | **0.6939** | 0.8207 | 0.5157 | vs paper **S1** **+0.031 / +0.052** |
-| 12 | Concat U-TAE | P4 | 0.8549 | 0.8262 | **0.8322** | **0.6971** | 0.8262 | 0.4591 | |
-| 13 | **Paper** ConvLSTM-S1 | - | 0.8422 | 0.7836 | **0.8055** | **0.6422** | - | - | fair S1 baseline |
-| 14 | S1-only U-TAE | P4 | 0.7792 | 0.7146 | **0.7342** | **0.5396** | 0.7146 | 0.3418 | |
+| 4 | **CMU-ViT U-TAE** | **P5** | 0.9027 | 0.8774 | **0.8844** | **0.7861** | 0.8774 | 0.6249 | job **107270**. vs Inc −0.0007 / −0.0084 |
+| 5 | **MA gated** | **P5** | 0.8994 | 0.8789 | **0.8834** | **0.7895** | 0.8789 | - | vs Inc −0.0017 / −0.0050 |
+| 6 | Concat U-TAE | P5 | 0.8997 | 0.8740 | **0.8811** | **0.7795** | 0.8740 | 0.6043 | vs Inc −0.0040 |
+| 7 | **CMU-ViT U-TAE** | **P4** | 0.8989 | 0.8649 | **0.8743** | **0.7644** | 0.8649 | 0.5932 | job **107115**. Above every previous 10c P4 |
+| 8 | A4 ConvLSTM | - | 0.8947 | 0.8604 | **0.8711** | **0.7588** | 0.8604 | 0.5853 | vs Inc −0.0140 |
+| 9 | **Paper** ConvLSTM-S2 | - | 0.9000 | 0.8517 | **0.8696** | **0.7445** | - | - | fair S2 baseline |
+| 10 | MA concat fuse | P4 | 0.8790 | 0.8425 | **0.8547** | **0.7273** | 0.8425 | - | |
+| 11 | S2-only U-TAE | P4 | 0.8643 | 0.8365 | **0.8437** | **0.7152** | 0.8365 | 0.5150 | |
+| 12 | MA gated | P4 | 0.8735 | 0.8272 | **0.8430** | **0.7061** | 0.8272 | 0.5111 | |
+| 13 | **S1-only U-TAE** | **P5** | 0.8607 | 0.8207 | **0.8365** | **0.6939** | 0.8207 | 0.5157 | vs paper **S1** **+0.031 / +0.052** |
+| 14 | Concat U-TAE | P4 | 0.8549 | 0.8262 | **0.8322** | **0.6971** | 0.8262 | 0.4591 | |
+| 15 | **Paper** ConvLSTM-S1 | - | 0.8422 | 0.7836 | **0.8055** | **0.6422** | - | - | fair S1 baseline |
+| 16 | S1-only U-TAE | P4 | 0.7792 | 0.7146 | **0.7342** | **0.5396** | 0.7146 | 0.3418 | |
 
 _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/ma_c10_concat_full_v0/`. S1/S2 P5 on laptop. Fair S2 claim is vs ConvLSTM-S2 only; do not sell S2 as beating paper Inc._
 
@@ -106,6 +114,8 @@ _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/m
 |-------|-------|-----:|--:|-------:|----:|
 | Paper Inc | - | 0.9018 | 0.4186 | - | - |
 | Stock Concat U-TAE | **P5** | **0.9387** | **0.5757** | **+0.0369** | **+0.1571** |
+| **CMU-ViT U-TAE** | **P5** | **0.9379** | **0.5804** | **+0.0361** | **+0.1618** |
+| **CMU-ViT U-TAE** | **P4** | **0.9264** | **0.5312** | **+0.0246** | **+0.1126** |
 | MA gated | P5 | 0.9353 | 0.5520 | +0.0335 | +0.1334 |
 | MA gated | P4 | 0.9169 | 0.4705 | +0.0151 | +0.0519 |
 | MA concat | P4 | 0.9218 | 0.4961 | +0.0200 | +0.0775 |
@@ -120,8 +130,10 @@ _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/m
 |-------|-------|-----:|--:|-------:|----:|
 | Paper Inc | - | 0.8851 | 0.7945 | - | - |
 | **MA concat** | **P5** | **0.8885** | **0.7950** | **+0.0034** | **+0.0005** |
+| **CMU-ViT U-TAE** | **P5** | **0.8844** | **0.7861** | **−0.0007** | **−0.0084** |
 | MA gated | P5 | 0.8834 | 0.7895 | −0.0017 | −0.0050 |
 | Stock Concat U-TAE | P5 | 0.8811 | 0.7795 | −0.0040 | −0.0150 |
+| **CMU-ViT U-TAE** | **P4** | **0.8743** | **0.7644** | **−0.0108** | **−0.0301** |
 | MA concat | P4 | 0.8547 | 0.7273 | −0.0304 | −0.0672 |
 | MA gated | P4 | 0.8430 | 0.7061 | −0.0421 | −0.0884 |
 
@@ -150,6 +162,8 @@ _MA concat P5 from PARAM eval **104545**; JSON+plot on laptop `results/ma_utae/m
 | S2-only P5 test | 0.9069 | 0.9432 | 0.9069 | 0.9069 | 0.8324 | **0.9199** | 0.4261 | 0.5237 | 0.9565 | **0.4809** |
 | MA concat P4 | 0.9048 | 0.9473 | 0.9048 | 0.9048 | 0.8927 | **0.9218** | 0.4606 | 0.6125 | 0.9663 | **0.4961** |
 | MA concat P5 | 0.8910 | 0.9502 | 0.8910 | 0.8910 | 0.8977 | **0.9143** | 0.4667 | 0.5952 | 0.9648 | **0.4672** |
+| **CMU-ViT U-TAE P5 test** | 0.9237 | 0.9590 | 0.9237 | 0.9237 | 0.9389 | **0.9379** | 0.5271 | 0.6669 | 0.9771 | **0.5804** |
+| **CMU-ViT U-TAE P4 test** | 0.9044 | - | - | - | - | **0.9264** | - | - | - | **0.5312** |
 
 ### 2.2 Per-class Precision / Recall / Sens / Spec / F1
 
@@ -349,38 +363,52 @@ Acc 0.9048 | Kappa 0.4961 | Mean F1 0.4606
 
 Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 
+#### CMU-ViT U-TAE P5 test (31UEQ, job 107070)
+
+| Class | Name | Precision | Recall | Sensitivity | Specificity | F1 | Support |
+|------:|------|----------:|-------:|------------:|------------:|---:|--------:|
+| 1 | Dense Built-Up | 0.3076 | 0.4434 | 0.4434 | 0.9966 | 0.3632 | 135479 |
+| 2 | Sparse Built-Up | 0.6616 | 0.7233 | 0.7233 | 0.9884 | 0.6911 | 1216210 |
+| 3 | Specialized Built-Up | 0.4792 | 0.8456 | 0.8456 | 0.9808 | 0.6117 | 818189 |
+| 4 | Specialized but Vegetative | 0.0932 | 0.2865 | 0.2865 | 0.9844 | 0.1407 | 222108 |
+| 5 | Large Scale Networks | 0.2614 | 0.7631 | 0.7631 | 0.9769 | 0.3894 | 423239 |
+| 6 | Non-urban / other | 0.9948 | 0.9394 | 0.9394 | 0.9355 | 0.9663 | 37161735 |
+| **W-Avg** | | 0.9590 | 0.9237 | 0.9237 | 0.9389 | **0.9379** | |
+
+Acc 0.9237 | Kappa 0.5804 | Mean F1 0.5271
+
 ### 2.3 Per-class F1 side-by-side (paper + ours)
 
-| Class | Name | Paper | A4 last | Concat P4 | Concat P5 | MA P4 | MA P5 | S2 P4 | S1 P4 | S1 P5 |
-|------:|------|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | Dense Built-Up | 0.3639 | 0.4888 | 0.2565 | 0.4083 | 0.3522 | 0.3870 | 0.4119 | 0.2189 | 0.2203 |
-| 2 | Sparse Built-Up | 0.6364 | 0.6649 | 0.4770 | 0.6896 | 0.6108 | 0.7179 | 0.6077 | 0.4329 | 0.4900 |
-| 3 | Specialized Built-Up | 0.5894 | 0.4558 | 0.2137 | 0.6505 | 0.3679 | 0.6209 | 0.3607 | 0.1272 | 0.1436 |
-| 4 | Specialized but Vegetative | 0.0584 | 0.0877 | 0.0919 | 0.1582 | 0.1794 | 0.1298 | 0.1301 | 0.0086 | 0.0074 |
-| 5 | Large Scale Networks | 0.4064 | 0.3640 | 0.2472 | 0.4518 | 0.2806 | 0.4129 | 0.3068 | 0.1115 | 0.0956 |
-| 6 | Non-urban / other | 0.9301 | 0.9339 | 0.9448 | 0.9653 | 0.9527 | 0.9621 | 0.9530 | 0.9610 | 0.9438 |
+| Class | Name | Paper | A4 last | Concat P4 | Concat P5 | CMU P5 | MA P4 | MA P5 | S2 P4 | S1 P4 | S1 P5 |
+|------:|------|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | Dense Built-Up | 0.3639 | 0.4888 | 0.2565 | 0.4083 | 0.3632 | 0.3522 | 0.3870 | 0.4119 | 0.2189 | 0.2203 |
+| 2 | Sparse Built-Up | 0.6364 | 0.6649 | 0.4770 | 0.6896 | 0.6911 | 0.6108 | 0.7179 | 0.6077 | 0.4329 | 0.4900 |
+| 3 | Specialized Built-Up | 0.5894 | 0.4558 | 0.2137 | 0.6505 | 0.6117 | 0.3679 | 0.6209 | 0.3607 | 0.1272 | 0.1436 |
+| 4 | Specialized but Vegetative | 0.0584 | 0.0877 | 0.0919 | 0.1582 | 0.1407 | 0.1794 | 0.1298 | 0.1301 | 0.0086 | 0.0074 |
+| 5 | Large Scale Networks | 0.4064 | 0.3640 | 0.2472 | 0.4518 | 0.3894 | 0.2806 | 0.4129 | 0.3068 | 0.1115 | 0.0956 |
+| 6 | Non-urban / other | 0.9301 | 0.9339 | 0.9448 | 0.9653 | 0.9663 | 0.9527 | 0.9621 | 0.9530 | 0.9610 | 0.9438 |
 
 ### 2.4 Per-class Precision side-by-side
 
-| Class | Name | Paper | A4 last | Concat P4 | Concat P5 | MA P4 | MA P5 |
-|------:|------|---:|---:|---:|---:|---:|---:|
-| 1 | Dense Built-Up | 0.2308 | 0.4118 | 0.1688 | 0.5111 | 0.2732 | 0.4912 |
-| 2 | Sparse Built-Up | 0.6260 | 0.5851 | 0.3552 | 0.5865 | 0.5155 | 0.6731 |
-| 3 | Specialized Built-Up | 0.4794 | 0.3264 | 0.2013 | 0.6882 | 0.3742 | 0.5823 |
-| 4 | Specialized but Vegetative | 0.0312 | 0.0484 | 0.0863 | 0.0925 | 0.1162 | 0.0750 |
-| 5 | Large Scale Networks | 0.2736 | 0.2359 | 0.1524 | 0.3177 | 0.1698 | 0.2771 |
-| 6 | Non-urban / other | 0.9965 | 0.9976 | 0.9877 | 0.9943 | 0.9909 | 0.9933 |
+| Class | Name | Paper | A4 last | Concat P4 | Concat P5 | CMU P5 | MA P4 | MA P5 |
+|------:|------|---:|---:|---:|---:|---:|---:|---:|
+| 1 | Dense Built-Up | 0.2308 | 0.4118 | 0.1688 | 0.5111 | 0.3076 | 0.2732 | 0.4912 |
+| 2 | Sparse Built-Up | 0.6260 | 0.5851 | 0.3552 | 0.5865 | 0.6616 | 0.5155 | 0.6731 |
+| 3 | Specialized Built-Up | 0.4794 | 0.3264 | 0.2013 | 0.6882 | 0.4792 | 0.3742 | 0.5823 |
+| 4 | Specialized but Vegetative | 0.0312 | 0.0484 | 0.0863 | 0.0925 | 0.0932 | 0.1162 | 0.0750 |
+| 5 | Large Scale Networks | 0.2736 | 0.2359 | 0.1524 | 0.3177 | 0.2614 | 0.1698 | 0.2771 |
+| 6 | Non-urban / other | 0.9965 | 0.9976 | 0.9877 | 0.9943 | 0.9948 | 0.9909 | 0.9933 |
 
 ### 2.5 Per-class Recall side-by-side
 
-| Class | Name | Paper | A4 last | Concat P4 | Concat P5 | MA P4 | MA P5 |
-|------:|------|---:|---:|---:|---:|---:|---:|
-| 1 | Dense Built-Up | 0.8599 | 0.6012 | 0.5336 | 0.3400 | 0.4956 | 0.3193 |
-| 2 | Sparse Built-Up | 0.6472 | 0.7698 | 0.7260 | 0.8367 | 0.7493 | 0.7691 |
-| 3 | Specialized Built-Up | 0.7647 | 0.7555 | 0.2277 | 0.6167 | 0.3618 | 0.6651 |
-| 4 | Specialized but Vegetative | 0.4461 | 0.4680 | 0.0982 | 0.5477 | 0.3931 | 0.4812 |
-| 5 | Large Scale Networks | 0.7898 | 0.7973 | 0.6532 | 0.7816 | 0.8079 | 0.8096 |
-| 6 | Non-urban / other | 0.8719 | 0.8779 | 0.9055 | 0.9381 | 0.9174 | 0.9329 |
+| Class | Name | Paper | A4 last | Concat P4 | Concat P5 | CMU P5 | MA P4 | MA P5 |
+|------:|------|---:|---:|---:|---:|---:|---:|---:|
+| 1 | Dense Built-Up | 0.8599 | 0.6012 | 0.5336 | 0.3400 | 0.4434 | 0.4956 | 0.3193 |
+| 2 | Sparse Built-Up | 0.6472 | 0.7698 | 0.7260 | 0.8367 | 0.7233 | 0.7493 | 0.7691 |
+| 3 | Specialized Built-Up | 0.7647 | 0.7555 | 0.2277 | 0.6167 | 0.8456 | 0.3618 | 0.6651 |
+| 4 | Specialized but Vegetative | 0.4461 | 0.4680 | 0.0982 | 0.5477 | 0.2865 | 0.3931 | 0.4812 |
+| 5 | Large Scale Networks | 0.7898 | 0.7973 | 0.6532 | 0.7816 | 0.7631 | 0.8079 | 0.8096 |
+| 6 | Non-urban / other | 0.8719 | 0.8779 | 0.9055 | 0.9381 | 0.9394 | 0.9174 | 0.9329 |
 
 ---
 
@@ -395,6 +423,8 @@ Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 | **S2-only P5 full** (PARAM **104890**) | 0.8819 | 0.9005 | 0.8819 | 0.8819 | 0.9716 | **0.8865** | 0.6230 | - | - | **0.7945** |
 | **MA gated P5 full** (PARAM 104381) | 0.8789 | 0.8994 | 0.8789 | 0.8789 | 0.9728 | **0.8834** | - | - | - | **0.7895** |
 | Concat U-TAE P5 full | 0.8740 | 0.8997 | 0.8740 | 0.8740 | 0.9659 | **0.8811** | 0.6043 | 0.6909 | 0.9840 | **0.7795** |
+| **CMU-ViT U-TAE P5 test** (job **107270**) | 0.8774 | 0.9027 | 0.8774 | 0.8774 | 0.9679 | **0.8844** | 0.6249 | 0.7308 | 0.9845 | **0.7861** |
+| **CMU-ViT U-TAE P4 test** (job **107115**) | 0.8649 | 0.8989 | 0.8649 | 0.8649 | 0.9643 | **0.8743** | 0.5932 | 0.7101 | 0.9829 | **0.7644** |
 | A4 ConvLSTM | 0.8604 | 0.8947 | 0.8604 | 0.8604 | - | **0.8711** | 0.5853 | - | - | **0.7588** |
 | **Paper** ConvLSTM-S2 | - | 0.9000 | 0.8517 | 0.8517 | - | **0.8696** | - | - | - | **0.7445** |
 | **Paper** ConvLSTM-S1S2 | - | 0.8825 | 0.8482 | 0.8482 | - | **0.8600** | - | - | - | **0.7482** |
@@ -407,6 +437,44 @@ Acc 0.8910 | Kappa 0.4672 | Mean F1 0.4667
 | S1-only P4 head | 0.7146 | 0.7792 | 0.7146 | 0.7146 | 0.9316 | **0.7342** | 0.3418 | 0.4168 | 0.9646 | **0.5396** |
 
 ### 3.2 Per-class Precision / Recall / Sens / Spec / F1
+
+#### CMU-ViT U-TAE P5 test (31UEQ, job 107270)
+
+| Class | Name | Precision | Recall | F1 | Support |
+|------:|------|----------:|-------:|---:|--------:|
+| 1 | Dense Built-Up | 0.4411 | 0.6247 | 0.5171 | 135479 |
+| 2 | Sparse Built-Up | 0.7013 | 0.7807 | 0.7389 | 1216210 |
+| 3 | Specialized Built-Up Areas | 0.5732 | 0.7051 | 0.6323 | 818189 |
+| 4 | Specialized but Vegetative Areas | 0.1784 | 0.5361 | 0.2677 | 222108 |
+| 5 | Large Scale Networks | 0.3509 | 0.7998 | 0.4878 | 423239 |
+| 6 | Arable Lands | 0.9752 | 0.9526 | 0.9638 | 25350769 |
+| 7 | Vineyards and Orchards | 0.8110 | 0.8308 | 0.8208 | 2332261 |
+| 8 | Grasslands | 0.7360 | 0.4235 | 0.5377 | 2463353 |
+| 9 | Forests and semi-natural areas | 0.8983 | 0.8385 | 0.8674 | 6678255 |
+| 10 | Water Surfaces | 0.2792 | 0.8164 | 0.4161 | 337097 |
+| **W-Avg** | | 0.9027 | 0.8774 | **0.8844** | |
+
+Acc 0.8774 | Kappa **0.7861** | Mean F1 0.6249 | Mean Sens 0.7308 | Mean Spec 0.9845
+
+#### CMU-ViT U-TAE P4 test (31UEQ, job 107115)
+
+| Class | Name | Precision | Recall | F1 | Support |
+|------:|------|----------:|-------:|---:|--------:|
+| 1 | Dense Built-Up | 0.3598 | 0.6658 | 0.4671 | 135479 |
+| 2 | Sparse Built-Up | 0.6580 | 0.7533 | 0.7024 | 1216210 |
+| 3 | Specialized Built-Up Areas | 0.4879 | 0.7890 | 0.6030 | 818189 |
+| 4 | Specialized but Vegetative Areas | 0.1429 | 0.4455 | 0.2164 | 222108 |
+| 5 | Large Scale Networks | 0.2677 | 0.7853 | 0.3993 | 423239 |
+| 6 | Arable Lands | 0.9719 | 0.9514 | 0.9615 | 25350769 |
+| 7 | Vineyards and Orchards | 0.8402 | 0.6892 | 0.7573 | 2332261 |
+| 8 | Grasslands | 0.7524 | 0.4101 | 0.5309 | 2463353 |
+| 9 | Forests and semi-natural areas | 0.8969 | 0.8222 | 0.8579 | 6678255 |
+| 10 | Water Surfaces | 0.3014 | 0.7895 | 0.4363 | 337097 |
+| **W-Avg** | | 0.8989 | 0.8649 | **0.8743** | |
+
+Acc 0.8649 | Kappa **0.7644** | Mean F1 0.5932 | Mean Sens 0.7101 | Mean Spec 0.9829
+
+
 
 #### Paper Table 7 / 8 (RS 2023) - full transcription in [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md)
 
@@ -602,8 +670,9 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - **6c S2 vs paper ConvLSTM-S2 (Table 6 κ=0.4223):** P4 +0.021 / +0.0435; P5 +0.024 / +0.059.
 - **10c S1 vs paper ConvLSTM-S1 (0.8055 / 0.6422):** P4 test **below** (−0.071 / −0.103). **P5 test** (**104835**) **above** - W-F1 **0.8365** / κ **0.6939** → **+0.031 / +0.052**.
 - **10c S2 vs paper ConvLSTM-S2 (0.8696 / 0.7445):** P4 test below (−0.026 / −0.029). **P5 test** (**104890**) **above** - W-F1 **0.8865** / κ **0.7945** → **+0.017 / +0.050**. (κ matches paper Inc by coincidence - do not claim S2 beats fusion.)
-- **6c both:** Concat U-TAE **P5** still leads. MA gated P5 is close. MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower.
+- **6c both:** Concat U-TAE **P5** leads on W-F1 (**0.9387**). **CMU-ViT U-TAE P5** (job **107070**) is **0.9379 / 0.5804**, so kappa is higher and W-F1 is 0.0008 lower. Mean F1 is **0.5271** (Concat P5 **0.5540**): classes 1, 3, and 5 are lower; class 6 F1 is **0.9663**. MA gated P5 is **0.9353 / 0.5520**. MA concat-fuse peaks at **P4** (0.9218); P5 (0.9143) is lower.
 - **10c Task M:** **MA concat P5** W-F1 **0.8885** / κ **0.7950** **beats paper Inc** (0.8851 / 0.7945) and gated P5 (0.8834 / 0.7895). On 10c, concat fuse > gated (opposite of 6c, where gated led among MA).
+- **Why some 10c runs sit under the author:** Six classes keep most of the map in one "other" bag, so temporal attention wins easily (CONCAT P5 **0.9387 / 0.5757** vs paper Inc **0.9018 / 0.4186**). Ten classes split that bag into arable, vineyards, grassland, forest, and water. Weighted F1 barely moves because arable land is most of the pixels. Kappa drops when dense and sparse built-up, class 4, and water get confused. Their Inception block is a multi-scale spectral extractor on the early dates, which is what those fine classes need. Our A4 reimplementation of their ConvLSTM is already **0.8711 / 0.7588**, under the number they printed (**0.8851 / 0.7945**), so part of the gap is that the exact 10-class training recipe was not reproduced. CMU 10c P5 test (job **107270**) is **0.8844 / 0.7861**, 0.0007 under paper Inc on weighted F1 and 0.0084 under on kappa. It is above CONCAT U-TAE P5 (**0.8811 / 0.7795**) and above its own P4 test (**0.8743 / 0.7644**).
 - **Task H:** **deferred** (future work). Not required for Task M write-up.
 - Always quote **per-class F1 (esp. 1, 2, 4)** beside W-F1; W-F1 is majority-dominated (class 6 / arable).
 - A4 6c **report** = `last.pt` ep25 (W-F1 0.9037), not `best.pt` (0.9098) - see `TABLE5_TEST_FOR_SIR.md`.
@@ -624,6 +693,10 @@ Acc 0.8740 | Kappa 0.7795 | Mean F1 0.6043
 - [x] S1 / S2 **10c P5** train+test (**104546**/**104658** train; **104835**/**104890** test)
 - [x] Paste **paper Table 7/8** into section 3 + [`PAPER_MODALITY_6CLASS.md`](PAPER_MODALITY_6CLASS.md)
 - [ ] Task H on best backbone → **deferred / future work** (not needed for Task M write-up)
+- [x] CMU-ViT 6c **P5 test** (job **107070**; W-F1 **0.9379** / κ **0.5804**). JSON still on PARAM.
+- [x] CMU-ViT 6c **P4 test** (job **107071**; W-F1 **0.9264** / κ **0.5312**). Per-class md still on PARAM.
+- [x] CMU-ViT 10c **P4 test** (job **107115**; W-F1 **0.8743** / κ **0.7644**). JSON still on PARAM.
+- [x] CMU-ViT 10c **P5 train** (job **107114**; best epoch 47, val **0.8608 / 0.7903**) and **P5 test** (job **107270**; W-F1 **0.8844** / κ **0.7861**). Per-class md still on PARAM.
 - [ ] Re-run board fill from JSONs after sync
 
 ---

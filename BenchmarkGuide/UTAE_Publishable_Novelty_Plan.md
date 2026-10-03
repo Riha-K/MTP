@@ -37,6 +37,8 @@ Class 1 (Dense Built-Up) still below A4 after P5. Classes 2/3/5/6 above A4.
 - 6c: stock U-TAE + P5 already beats paper on W-F1/kappa → room for a paper is **mechanism + UF minority classes**, not “first time U-TAE wins.”
 - 10c: P5 beats **your** A4 but does **not** clearly beat the **published** paper → stronger motivation for a **named** fix (fusion / hierarchy / confusion), not more epochs.
 
+**10c gap, noted 2026-10-02.** MA CONCAT P5 later did cross the published row (**0.8885 / 0.7950** vs **0.8851 / 0.7945**). Where a 10c run is still under: six classes keep most of the map in one "other" bag, so temporal attention wins easily. Ten classes split that bag into arable, vineyards, grassland, forest, and water. Weighted F1 barely moves because arable land is most of the pixels. Kappa drops when dense and sparse built-up, class 4, and water get confused. Their Inception block is a multi-scale spectral extractor on the early dates, which is what those fine classes need. A4, our reimplementation of their ConvLSTM, is already **0.8711 / 0.7588**, under the number they printed. Part of "below the author" is that the exact 10-class training recipe was not reproduced. CMU 10-class so far is the head-only test (**0.8743 / 0.7644**). Job **107114**, the full finetune, is the run that can move it.
+
 ---
 
 

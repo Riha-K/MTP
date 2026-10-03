@@ -10,6 +10,12 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-10-03 - 10c P5 test on tile 31UEQ
+
+Job **107270** loaded `cmu_vit_c10_full_v0/best.pt` and finished in 4m29s. Test weighted F1 **0.8844**, kappa **0.7861**, accuracy **0.8774**, mean F1 **0.6249**. Just under paper ConvLSTM+Inception (**0.8851 / 0.7945**). Above CONCAT U-TAE P5 (**0.8811 / 0.7795**) and above the CMU P4 test (**0.8743 / 0.7644**). Under MA CONCAT P5 (**0.8885 / 0.7950**). Class F1: 0.5171, 0.7389, 0.6323, 0.2677, 0.4878, 0.9638, 0.8208, 0.5377, 0.8674, 0.4161. Water precision is 0.2792.
+
+---
+
 ### 2026-10-03 - 10c P5 training finished
 
 Job **107114** completed (exit 0, 14h44m). EarlyStopping after epoch 67. Best epoch **47**: val weighted F1 **0.8608**, kappa **0.7903**. Above the 10c P4 val (**0.8523 / 0.7776**). Level with MA CONCAT 10c P5 val (**0.8606 / 0.7913**). `checkpoints/cmu_vit_c10_full_v0/best.pt`. The 31UEQ test is still to run.
