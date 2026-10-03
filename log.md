@@ -10,6 +10,74 @@ Running record of code, data-pipeline, and config changes for this thesis worksp
 
 ## Entries
 
+### 2026-10-03 - 10c P5 training finished
+
+Job **107114** completed (exit 0, 14h44m). EarlyStopping after epoch 67. Best epoch **47**: val weighted F1 **0.8608**, kappa **0.7903**. Above the 10c P4 val (**0.8523 / 0.7776**). Level with MA CONCAT 10c P5 val (**0.8606 / 0.7913**). `checkpoints/cmu_vit_c10_full_v0/best.pt`. The 31UEQ test is still to run.
+
+---
+
+### 2026-10-02 - 10c P5 test script
+
+`multisenge_utae/eval_cmu_vit_c10_full.sbatch` tests `cmu_vit_c10_full_v0/best.pt` on tile 31UEQ. Submit with `--dependency=afterok:107114` so it starts after that training exits cleanly.
+
+---
+
+### 2026-10-02 - Saved newer MultiSenGE-related papers
+
+PDFs in `BenchmarkGuide/`: Bergamasco VAE (ISPRS 2026), Dumeur U-BARN, EarthNets survey, Marzi Sentinel-1 land cover. U-TAE still comes from Garnot and Landrieu (PASTIS, 2021), not from the 2026 VAE paper.
+
+---
+
+### 2026-10-02 - Why some 10c scores sit under the author
+
+Noted on `RESULTS_BOARD.md` and in `BenchmarkGuide/UTAE_Publishable_Novelty_Plan.md`. Six classes leave most pixels in one "other" bag, so temporal attention wins. Ten classes split that bag, weighted F1 stays high because of arable land, and kappa falls on dense/sparse, class 4, and water. The authors' Inception block is the multi-scale spectral piece those classes need. A4 is already **0.8711 / 0.7588**, under their printed **0.8851 / 0.7945**. CMU 10c is still P4; **107114** is the full finetune.
+
+---
+
+### 2026-10-02 - 6c P4 test and the full 10c P4 table
+
+Job **107071** loaded `cmu_vit_c6_head_v0/best.pt`. Test weighted F1 **0.9264**, kappa **0.5312**, accuracy **0.9044**. Best 6-class P4 so far (previous best MA CONCAT P4 **0.9218 / 0.4961**). Under CMU 6c P5 **0.9379 / 0.5804**.
+
+Job **107115** per-class table: weighted precision **0.8989**, mean F1 **0.5932**. Class F1: 0.4671, 0.7024, 0.6030, 0.2164, 0.3993, 0.9615, 0.7573, 0.5309, 0.8579, 0.4363. The S1 ViT is still the 2-band student aligned to the 10-class S2 encoder. A 6-class teacher is not part of these runs.
+
+---
+
+### 2026-10-02 - 10c P4 test on tile 31UEQ
+
+Job **107115** loaded `cmu_vit_c10_head_v0/best.pt`. Test weighted F1 **0.8743**, kappa **0.7644**, accuracy **0.8649**. That is above every previous 10-class P4 (best of those was MA concat P4 **0.8547 / 0.7273**) and under the finished 10-class P5 models (CONCAT P5 **0.8811 / 0.7795**). **107114** (10c P5 train) is on `racn116` and loaded that same P4 file. The 6c P4 test grep did not run.
+
+---
+
+### 2026-10-02 - 10c P5 training is running
+
+**107114** (`cmuvit_c10f`) is on `racn116`. **107071** (6c P4 test) and **107115** (10c P4 test) are no longer in the queue. Check those two logs for `test wF1` or a traceback.
+
+---
+
+### 2026-10-02 - CMU plan tracker brought up to date
+
+`BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md` now records the finished Stage 1 student (epoch 70, val acc **0.416**), the 6c P4/P5 runs, the 6c P5 test **0.9379 / 0.5804**, and the 10c jobs still pending. Stage 1 InfoNCE is the spatial version. P4 trains the new S1 L-TAE.
+
+---
+
+### 2026-10-02 - CMU 6c P5 test added to the results board
+
+`results/RESULTS_BOARD.md` now includes job **107070**: test weighted F1 **0.9379**, kappa **0.5804**. Rank 2 in the 6-class table, 0.0008 under CONCAT U-TAE P5 on weighted F1 and 0.0047 above it on kappa.
+
+---
+
+### 2026-10-02 - 6c P5 test on tile 31UEQ
+
+**107070** finished. Test weighted F1 **0.9379**, kappa **0.5804**, accuracy **0.9237**. Per-class precision, recall, and F1 are in `results/cmu_vit/cmu_vit_c6_full_v0/test_metrics.md`. Old CONCAT U-TAE 6c P5 test was **0.9387 / 0.5757**.
+
+---
+
+### 2026-10-02 - 10c P5 and 10c P4 test submitted
+
+**107114** is the 10-class P5 train (`cmuvit_c10f`), pending on Priority. **107115** is the 10-class P4 test (`cmuvit_c10e`), pending on Priority. **107071** (6c P4 test) is still pending and has more waiting time, so it is ahead of both. **107070** (6c P5 test) left the queue after a few minutes on `ragpu006`.
+
+---
+
 ### 2026-10-02 - 10c P5 train job and 10c P4 test job
 
 `train_cmu_vit_c10_full.sbatch` fine-tunes all weights from `checkpoints/cmu_vit_c10_head_v0/best.pt` (epoch 33, val **0.8523 / 0.7776**) into `checkpoints/cmu_vit_c10_full_v0`. `eval_cmu_vit_c10_head.sbatch` scores that same P4 file on tile **31UEQ** and writes `results/cmu_vit/cmu_vit_c10_head_v0`. Neither job retrains the P4 head.
