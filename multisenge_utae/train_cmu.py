@@ -47,10 +47,15 @@ def load_frozen_s2_teacher(ckpt_path: Path, device: torch.device) -> tuple[UTAE,
   ckpt = _load_ckpt(ckpt_path, device)
   num_classes = int(ckpt.get("num_classes", 10))
   input_dim = int(ckpt.get("input_dim", 10))
-  teacher = UTAE(input_dim=input_dim, num_classes=num_classes).to(device)
+  meta = ckpt.get("args") or {}
+  activation = str(meta.get("activation", "relu"))
+  teacher = UTAE(input_dim=input_dim, num_classes=num_classes, activation=activation).to(device)
   state = ckpt["model"] if isinstance(ckpt, dict) and "model" in ckpt else ckpt
   missing, unexpected = teacher.load_state_dict(state, strict=False)
-  print(f"teacher ckpt={ckpt_path} input_dim={input_dim} missing={len(missing)} unexpected={len(unexpected)}")
+  print(
+      f"teacher ckpt={ckpt_path} input_dim={input_dim} activation={activation} "
+      f"missing={len(missing)} unexpected={len(unexpected)}"
+  )
   teacher.eval()
   for p in teacher.parameters():
     p.requires_grad = False
