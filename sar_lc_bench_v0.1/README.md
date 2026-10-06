@@ -1,5 +1,7 @@
 # SAR-LC-Bench v0.1
 
+Paths in this note are relative to `sar_lc_bench_v0.1/`.
+
 **Sentinel-1 VH · OCSGE 14-class · multi-label classify + 2-turn dialogue**
 
 SAR-LC-Bench evaluates patch-level land-cover vision–language models on the official **14-class OCSGE** taxonomy used by AI4LCC MultiSenGE (Grand Est, France). It is **not** a new satellite archive: the contribution is a frozen eval protocol, instruction templates, metrics, and a public leaderboard.

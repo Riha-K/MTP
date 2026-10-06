@@ -1,5 +1,17 @@
 # --- Local-only (not pushed) ---
+# Unpublished reports, plans, and scores. Keep on disk. Do not push.
 writeup/
+BenchmarkGuide/
+log.md
+multisenge_utae/CMU_PROGRESS.md
+multisenge_utae/RESULTS_UTAE_6CLASS_FULL.md
+multisenge_utae/RESULTS_UTAE_6CLASS_HEAD.md
+multisenge_utae/results/
+multisenge_utae/checkpoints/
+multisenge_seg/RESULTS_RS2023_6CLASS.md
+multisenge_seg/RESULTS_RS2023_10CLASS.md
+multisenge_seg/TABLE5_TEST_FOR_SIR.md
+multisenge_seg/results/
 
 # --- Large raw / generated data (do not push) ---
 LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge/s1/
@@ -46,4 +58,4 @@ Thumbs.db
 _mtp_remote_check/
 
 # --- Local-only planning (do not push) ---
-BenchmarkGuide/MultiSenGE_CMU_ViT_S1_Plan.md
+BenchmarkGuide/plan/CMU_ViT_S1.md

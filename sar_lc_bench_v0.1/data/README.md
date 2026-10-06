@@ -1,5 +1,7 @@
 # Data layout (not shipped as large rasters in Git)
 
+Paths in this note are relative to `sar_lc_bench_v0.1/data/`.
+
 SAR-LC-Bench **does not** redistribute the full AI4LCC MultiSenGE / MultiSenNA TIFF archives.
 Obtain rasters and labels from the official AI4LCC sources, then place files as below.
 

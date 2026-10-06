@@ -1,5 +1,7 @@
 # multisenge_seg - ConvLSTM+Inception-S1S2 replication
 
+Paths in this note are relative to `multisenge_seg/`.
+
 Replicate **Wenger et al. Remote Sensing 2023** on MultiSenGE, then advance under the same protocol.
 
 | Doc | Purpose |

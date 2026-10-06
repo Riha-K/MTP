@@ -4,7 +4,7 @@ U-TAE temporal segmentation on MultiSenGE, following the breast-cancer transfer-
 
 ## Class count
 
-**Start with 6 classes** (`--num-classes 6`, Wenger RS 2023 Table 5). Run 10-class (`--num-classes 10`, Table 6) as a second pass after 6-class is stable.
+**Start with 6 classes** (`--num-classes 6`, Wenger RS 2023 Tables 5 and 6). **10-class** (`--num-classes 10`, Tables 7 and 8) is the second taxonomy. Both are finished.
 
 ## Data split (tile method)
 
@@ -42,29 +42,15 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 
 **Results folders:** stock concat U-TAE → `results/concat_utae/`; MA-UTAE → `results/ma_utae/` (see `results/README.md`).
 
-### Stage 1 CMU (S1 ViT ↔ frozen S2 U-TAE) - next model
+### Stage 1 CMU (finished)
 
 Teacher = MultiSenGE **S2-only U-TAE P5** (`run_c10_s2_full_v0/best.pt`), spatial encoder only. Student = **ViT-B/16 `in_chans=2`**. InfoNCE same patch / same date; no L-TAE in Stage 1.
 
-```bash
-# smoke
-sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu_smoke.sbatch
-# full CMU
-sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu.sbatch
-# outputs: checkpoints/cmu_s1_vit_v0/{best.pt,student_best.pt,history.json}
-```
+Use `checkpoints/cmu_s1_vit_v1/student_best.pt` (job **106245**, epoch 70, val retrieval acc **0.416**). Do not use `cmu_s1_vit_v0`.
 
-### Stage 2 CMU-ViT U-TAE (after Stage 1 student_best.pt)
+### Stage 2 CMU-ViT U-TAE (finished)
 
-CONCAT bottleneck, **S2 skips only**, 6c first then 10c:
-
-```bash
-# after CMU full has student_best.pt
-STUDENT=multisenge_utae/checkpoints/cmu_s1_vit_v0/student_best.pt \
-  sbatch multisenge_utae/train_cmu_vit_c6_head.sbatch
-# after P4 best.pt:
-sbatch multisenge_utae/train_cmu_vit_c6_full.sbatch
-```
+CONCAT is the main fusion. Gated was an ablation. Bottleneck fusion, **S2 skips only**. 6c CONCAT P5 test **0.9379 / 0.5804**. 10c CONCAT P5 test **0.8844 / 0.7861**. Details are in `CMU_PROGRESS.md` and `results/RESULTS_BOARD.md`.
 
 ### Modality ablations (paper-style S1-only / S2-only)
 
@@ -249,4 +235,4 @@ python -m multisenge_utae.export_notes \
 
 Or use `sbatch multisenge_utae/eval.sbatch` (test eval + auto `.md`).
 
-**Results:** P4 head - [`RESULTS_UTAE_6CLASS_HEAD.md`](RESULTS_UTAE_6CLASS_HEAD.md) · val [`results/concat_utae/run_c6_head_v0/best_metrics.json`](results/concat_utae/run_c6_head_v0/best_metrics.json) · test [`results/concat_utae/run_c6_head_v0/test_metrics.json`](results/concat_utae/run_c6_head_v0/test_metrics.json) · P3 [`results/concat_utae/probe_c6_v0/probe_summary_linear.md`](results/concat_utae/probe_c6_v0/probe_summary_linear.md).
+**Results:** 6-class P4 and P5 - [`RESULTS_UTAE_6CLASS.md`](RESULTS_UTAE_6CLASS.md) · 10-class P4 and P5 - [`RESULTS_UTAE_10CLASS.md`](RESULTS_UTAE_10CLASS.md) · 6-class val [`results/concat_utae/run_c6_head_v0/best_metrics.json`](results/concat_utae/run_c6_head_v0/best_metrics.json) · 6-class test [`results/concat_utae/run_c6_head_v0/test_metrics.json`](results/concat_utae/run_c6_head_v0/test_metrics.json) · P3 [`results/concat_utae/probe_c6_v0/probe_summary_linear.md`](results/concat_utae/probe_c6_v0/probe_summary_linear.md).

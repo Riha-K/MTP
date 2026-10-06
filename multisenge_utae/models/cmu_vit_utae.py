@@ -15,18 +15,19 @@ from multisenge_utae.models.fusion import build_fusion
 from multisenge_utae.models.ltae import LTAE2d
 from multisenge_utae.models.ma_utae import _ModalityEncoder
 from multisenge_utae.models.s1_vit import S1ViTB16
+from multisenge_utae.models.ltae import nonlinearity
 from multisenge_utae.models.utae import ConvBlock, TemporalAggregator, UpConvBlock
 
 
 class BottleneckAdapter(nn.Module):
   """ViT token map → S2 bottleneck channels (+ optional spatial resize in forward)."""
 
-  def __init__(self, in_ch: int, out_ch: int):
+  def __init__(self, in_ch: int, out_ch: int, activation: str = "relu"):
     super().__init__()
     self.proj = nn.Sequential(
         nn.Conv2d(in_ch, out_ch, kernel_size=1, bias=False),
         nn.GroupNorm(num_groups=min(32, out_ch), num_channels=out_ch),
-        nn.ReLU(inplace=True),
+        nonlinearity(activation, inplace=True),
     )
 
   def forward(self, x: torch.Tensor, size_hw: tuple[int, int] | None = None) -> torch.Tensor:
@@ -58,6 +59,7 @@ class CMUViTUTAE(nn.Module):
       pad_value: float = 0.0,
       padding_mode: str = "reflect",
       vit_image_size: int = 256,
+      activation: str = "relu",
   ):
     super().__init__()
     if encoder_widths is None:
@@ -84,10 +86,11 @@ class CMUViTUTAE(nn.Module):
         pad_value=pad_value,
         encoder_norm=encoder_norm,
         padding_mode=padding_mode,
+        activation=activation,
     )
     # Stage 2 loads the CMU student checkpoint; skip the ImageNet download here.
     self.s1_vit = S1ViTB16(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
-    self.s1_adapter = BottleneckAdapter(self.s1_vit.embed_dim, encoder_widths[-1])
+    self.s1_adapter = BottleneckAdapter(self.s1_vit.embed_dim, encoder_widths[-1], activation=activation)
 
     self.temporal_s2 = LTAE2d(
         in_channels=encoder_widths[-1],
@@ -96,6 +99,7 @@ class CMUViTUTAE(nn.Module):
         mlp=[d_model, encoder_widths[-1]],
         return_att=True,
         d_k=d_k,
+        activation=activation,
     )
     self.temporal_s1 = LTAE2d(
         in_channels=encoder_widths[-1],
@@ -104,8 +108,9 @@ class CMUViTUTAE(nn.Module):
         mlp=[d_model, encoder_widths[-1]],
         return_att=True,
         d_k=d_k,
+        activation=activation,
     )
-    self.fuse_bottleneck = build_fusion(fusion, encoder_widths[-1])
+    self.fuse_bottleneck = build_fusion(fusion, encoder_widths[-1], activation=activation)
     self.temporal_aggregator = TemporalAggregator(mode=agg_mode)
     self.up_blocks = nn.ModuleList(
         UpConvBlock(
@@ -116,10 +121,15 @@ class CMUViTUTAE(nn.Module):
             s=str_conv_s,
             p=str_conv_p,
             padding_mode=padding_mode,
+            activation=activation,
         )
         for i in range(self.n_stages - 1, 0, -1)
     )
-    self.out_conv = ConvBlock(nkernels=[decoder_widths[0], 32, num_classes], padding_mode=padding_mode)
+    self.out_conv = ConvBlock(
+        nkernels=[decoder_widths[0], 32, num_classes],
+        padding_mode=padding_mode,
+        activation=activation,
+    )
     self._frozen_eval: list[nn.Module] = []
 
   def _split(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:

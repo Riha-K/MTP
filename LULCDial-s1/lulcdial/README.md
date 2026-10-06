@@ -1,6 +1,6 @@
 # LULCDial-S1 - AI4LCC data prep
 
-> **Status:** v0.1 bench (70/30, 2497 test) + ZS + FT + MultiSenNA **done**. Commands: [`../RUNBOOK.md`](../RUNBOOK.md) · project plan: [`../../ROADMAP.md`](../../ROADMAP.md).
+> **Status:** v0.1 bench (70/30, 2497 test) + ZS + FT + MultiSenNA **done**. Commands: [`../RUNBOOK.md`](../RUNBOOK.md) · project plan: [`../../BenchmarkGuide/plan/Project_Roadmap.md`](../../BenchmarkGuide/plan/Project_Roadmap.md). Paths below are relative to `LULCDial-s1/lulcdial/`.
 
 ## What you download (official AI4LCC - **not** the HF tile clips)
 

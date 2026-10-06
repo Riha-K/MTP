@@ -102,8 +102,15 @@ def train_one_epoch(
     return total / max(n, 1)
 
 
-def build_model(input_dim: int, num_classes: int, mode: str, init_ckpt: Path | None, device: torch.device) -> UTAE:
-    model = UTAE(input_dim=input_dim, num_classes=num_classes).to(device)
+def build_model(
+    input_dim: int,
+    num_classes: int,
+    mode: str,
+    init_ckpt: Path | None,
+    device: torch.device,
+    activation: str = "relu",
+) -> UTAE:
+    model = UTAE(input_dim=input_dim, num_classes=num_classes, activation=activation).to(device)
     if init_ckpt is not None:
         if not init_ckpt.is_file():
             raise FileNotFoundError(f"init checkpoint not found: {init_ckpt}")
@@ -140,6 +147,7 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
     meta = ckpt.get("args") or {}
     modality = str(meta.get("modality", args.modality))
     input_dim = int(ckpt.get("input_dim", modality_input_dim(modality)))
+    activation = str(meta.get("activation", "relu"))
     ds = MultiSenGETemporalDataset(
         records,
         args.eval_split,
@@ -159,7 +167,7 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
         num_workers=args.workers,
         collate_fn=collate_utae,
     )
-    model = UTAE(input_dim=input_dim, num_classes=n_cls).to(device)
+    model = UTAE(input_dim=input_dim, num_classes=n_cls, activation=activation).to(device)
     model.load_state_dict(ckpt["model"])
     print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls} modality={modality}")
     scores = evaluate(model, loader, device, n_cls, modality=modality)
@@ -212,6 +220,7 @@ def main() -> int:
         choices=["both", "s2", "s1"],
         help="both=S2+S1 (12ch); s2=optical-only (10ch); s1=SAR-only (2ch) - paper-style ablation",
     )
+    p.add_argument("--activation", type=str, default="relu", choices=["relu", "gelu"])
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/checkpoints/run_c6_head_v0"))
     p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     p.add_argument("--eval-ckpt", type=Path, default=None)
@@ -280,10 +289,11 @@ def main() -> int:
     print(
         "modality", args.modality, "input_dim", input_dim,
         "train/val", len(train_ds), len(val_ds), "mode", args.mode,
+        "activation", args.activation,
     )
 
     device = torch.device(args.device)
-    model = build_model(input_dim, n_cls, args.mode, args.init_ckpt, device)
+    model = build_model(input_dim, n_cls, args.mode, args.init_ckpt, device, activation=args.activation)
 
     if args.full_class_weights:
         print("estimating class weights (all train GR masks)…")

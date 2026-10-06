@@ -5,7 +5,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from multisenge_utae.models.ltae import LTAE2d
+from multisenge_utae.models.ltae import LTAE2d, nonlinearity
 
 
 class UTAE(nn.Module):
@@ -25,6 +25,7 @@ class UTAE(nn.Module):
       d_k: int = 4,
       pad_value: float = 0.0,
       padding_mode: str = "reflect",
+      activation: str = "relu",
   ):
     super().__init__()
     if encoder_widths is None:
@@ -35,6 +36,7 @@ class UTAE(nn.Module):
     self.encoder_widths = encoder_widths
     self.decoder_widths = decoder_widths
     self.pad_value = pad_value
+    self.activation = activation
 
     assert len(encoder_widths) == len(decoder_widths)
     assert encoder_widths[-1] == decoder_widths[-1]
@@ -44,6 +46,7 @@ class UTAE(nn.Module):
         pad_value=pad_value,
         norm=encoder_norm,
         padding_mode=padding_mode,
+        activation=activation,
     )
     self.down_blocks = nn.ModuleList(
         DownConvBlock(
@@ -55,6 +58,7 @@ class UTAE(nn.Module):
             pad_value=pad_value,
             norm=encoder_norm,
             padding_mode=padding_mode,
+            activation=activation,
         )
         for i in range(self.n_stages - 1)
     )
@@ -67,6 +71,7 @@ class UTAE(nn.Module):
             s=str_conv_s,
             p=str_conv_p,
             padding_mode=padding_mode,
+            activation=activation,
         )
         for i in range(self.n_stages - 1, 0, -1)
     )
@@ -77,9 +82,14 @@ class UTAE(nn.Module):
         mlp=[d_model, encoder_widths[-1]],
         return_att=True,
         d_k=d_k,
+        activation=activation,
     )
     self.temporal_aggregator = TemporalAggregator(mode=agg_mode)
-    self.out_conv = ConvBlock(nkernels=[decoder_widths[0], 32, num_classes], padding_mode=padding_mode)
+    self.out_conv = ConvBlock(
+        nkernels=[decoder_widths[0], 32, num_classes],
+        padding_mode=padding_mode,
+        activation=activation,
+    )
 
   def _pad_mask(self, input: torch.Tensor) -> torch.Tensor:
     return (input == self.pad_value).all(dim=-1).all(dim=-1).all(dim=-1)
@@ -166,7 +176,18 @@ class TemporallySharedBlock(nn.Module):
 
 
 class ConvLayer(nn.Module):
-  def __init__(self, nkernels, norm="batch", k=3, s=1, p=1, n_groups=4, last_relu=True, padding_mode="reflect"):
+  def __init__(
+      self,
+      nkernels,
+      norm="batch",
+      k=3,
+      s=1,
+      p=1,
+      n_groups=4,
+      last_relu=True,
+      padding_mode="reflect",
+      activation: str = "relu",
+  ):
     super().__init__()
     layers: list[nn.Module] = []
     if norm == "batch":
@@ -191,7 +212,7 @@ class ConvLayer(nn.Module):
       if nl is not None:
         layers.append(nl(nkernels[i + 1]))
       if last_relu or i < len(nkernels) - 2:
-        layers.append(nn.ReLU())
+        layers.append(nonlinearity(activation))
     self.conv = nn.Sequential(*layers)
 
   def forward(self, input: torch.Tensor) -> torch.Tensor:
@@ -199,20 +220,47 @@ class ConvLayer(nn.Module):
 
 
 class ConvBlock(TemporallySharedBlock):
-  def __init__(self, nkernels, pad_value=None, norm="batch", last_relu=True, padding_mode="reflect"):
+  def __init__(
+      self,
+      nkernels,
+      pad_value=None,
+      norm="batch",
+      last_relu=True,
+      padding_mode="reflect",
+      activation: str = "relu",
+  ):
     super().__init__(pad_value=pad_value)
-    self.conv = ConvLayer(nkernels=nkernels, norm=norm, last_relu=last_relu, padding_mode=padding_mode)
+    self.conv = ConvLayer(
+        nkernels=nkernels,
+        norm=norm,
+        last_relu=last_relu,
+        padding_mode=padding_mode,
+        activation=activation,
+    )
 
   def forward(self, input: torch.Tensor) -> torch.Tensor:
     return self.conv(input)
 
 
 class DownConvBlock(TemporallySharedBlock):
-  def __init__(self, d_in, d_out, k, s, p, pad_value=None, norm="batch", padding_mode="reflect"):
+  def __init__(
+      self,
+      d_in,
+      d_out,
+      k,
+      s,
+      p,
+      pad_value=None,
+      norm="batch",
+      padding_mode="reflect",
+      activation: str = "relu",
+  ):
     super().__init__(pad_value=pad_value)
-    self.down = ConvLayer(nkernels=[d_in, d_in], norm=norm, k=k, s=s, p=p, padding_mode=padding_mode)
-    self.conv1 = ConvLayer(nkernels=[d_in, d_out], norm=norm, padding_mode=padding_mode)
-    self.conv2 = ConvLayer(nkernels=[d_out, d_out], norm=norm, padding_mode=padding_mode)
+    self.down = ConvLayer(
+        nkernels=[d_in, d_in], norm=norm, k=k, s=s, p=p, padding_mode=padding_mode, activation=activation
+    )
+    self.conv1 = ConvLayer(nkernels=[d_in, d_out], norm=norm, padding_mode=padding_mode, activation=activation)
+    self.conv2 = ConvLayer(nkernels=[d_out, d_out], norm=norm, padding_mode=padding_mode, activation=activation)
 
   def forward(self, input: torch.Tensor) -> torch.Tensor:
     out = self.down(input)
@@ -221,17 +269,28 @@ class DownConvBlock(TemporallySharedBlock):
 
 
 class UpConvBlock(nn.Module):
-  def __init__(self, d_in, d_out, k, s, p, norm="batch", d_skip=None, padding_mode="reflect"):
+  def __init__(
+      self,
+      d_in,
+      d_out,
+      k,
+      s,
+      p,
+      norm="batch",
+      d_skip=None,
+      padding_mode="reflect",
+      activation: str = "relu",
+  ):
     super().__init__()
     d = d_out if d_skip is None else d_skip
-    self.skip_conv = nn.Sequential(nn.Conv2d(d, d, 1), nn.BatchNorm2d(d), nn.ReLU())
+    self.skip_conv = nn.Sequential(nn.Conv2d(d, d, 1), nn.BatchNorm2d(d), nonlinearity(activation))
     self.up = nn.Sequential(
         nn.ConvTranspose2d(d_in, d_out, kernel_size=k, stride=s, padding=p),
         nn.BatchNorm2d(d_out),
-        nn.ReLU(),
+        nonlinearity(activation),
     )
-    self.conv1 = ConvLayer(nkernels=[d_out + d, d_out], norm=norm, padding_mode=padding_mode)
-    self.conv2 = ConvLayer(nkernels=[d_out, d_out], norm=norm, padding_mode=padding_mode)
+    self.conv1 = ConvLayer(nkernels=[d_out + d, d_out], norm=norm, padding_mode=padding_mode, activation=activation)
+    self.conv2 = ConvLayer(nkernels=[d_out, d_out], norm=norm, padding_mode=padding_mode, activation=activation)
 
   def forward(self, input: torch.Tensor, skip: torch.Tensor) -> torch.Tensor:
     out = self.up(input)

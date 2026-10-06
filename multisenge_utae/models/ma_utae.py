@@ -34,6 +34,7 @@ class _ModalityEncoder(nn.Module):
       pad_value: float,
       encoder_norm: str,
       padding_mode: str,
+      activation: str = "relu",
   ):
     super().__init__()
     self.n_stages = len(encoder_widths)
@@ -42,6 +43,7 @@ class _ModalityEncoder(nn.Module):
         pad_value=pad_value,
         norm=encoder_norm,
         padding_mode=padding_mode,
+        activation=activation,
     )
     self.down_blocks = nn.ModuleList(
         DownConvBlock(
@@ -53,6 +55,7 @@ class _ModalityEncoder(nn.Module):
             pad_value=pad_value,
             norm=encoder_norm,
             padding_mode=padding_mode,
+            activation=activation,
         )
         for i in range(self.n_stages - 1)
     )
@@ -90,6 +93,7 @@ class MAUTAE(nn.Module):
       fuse_skips: bool = True,
       use_a1: bool = False,
       use_a2: bool = False,
+      activation: str = "relu",
   ):
     super().__init__()
     if encoder_widths is None:
@@ -118,6 +122,7 @@ class MAUTAE(nn.Module):
         pad_value=pad_value,
         encoder_norm=encoder_norm,
         padding_mode=padding_mode,
+        activation=activation,
     )
     self.encoder_s2 = _ModalityEncoder(input_dim=s2_dim, **enc_kwargs)
     self.encoder_s1 = _ModalityEncoder(input_dim=s1_dim, **enc_kwargs)
@@ -129,6 +134,7 @@ class MAUTAE(nn.Module):
         mlp=[d_model, encoder_widths[-1]],
         return_att=True,
         d_k=d_k,
+        activation=activation,
     )
     self.temporal_s1 = LTAE2d(
         in_channels=encoder_widths[-1],
@@ -137,10 +143,11 @@ class MAUTAE(nn.Module):
         mlp=[d_model, encoder_widths[-1]],
         return_att=True,
         d_k=d_k,
+        activation=activation,
     )
-    self.fuse_bottleneck = build_fusion(fusion, encoder_widths[-1])
+    self.fuse_bottleneck = build_fusion(fusion, encoder_widths[-1], activation=activation)
     self.skip_fusions = nn.ModuleList(
-        build_fusion(fusion, encoder_widths[i]) for i in range(self.n_stages - 1)
+        build_fusion(fusion, encoder_widths[i], activation=activation) for i in range(self.n_stages - 1)
     ) if fuse_skips else None
 
     self.temporal_aggregator = TemporalAggregator(mode=agg_mode)
@@ -153,10 +160,15 @@ class MAUTAE(nn.Module):
             s=str_conv_s,
             p=str_conv_p,
             padding_mode=padding_mode,
+            activation=activation,
         )
         for i in range(self.n_stages - 1, 0, -1)
     )
-    self.out_conv = ConvBlock(nkernels=[decoder_widths[0], 32, num_classes], padding_mode=padding_mode)
+    self.out_conv = ConvBlock(
+        nkernels=[decoder_widths[0], 32, num_classes],
+        padding_mode=padding_mode,
+        activation=activation,
+    )
     self.aux_heads = None
     if use_a1 or use_a2:
       self.aux_heads = HierarchicalHeads(decoder_widths[0], use_a1=use_a1, use_a2=use_a2)

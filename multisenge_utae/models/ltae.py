@@ -11,6 +11,15 @@ import torch.nn as nn
 from multisenge_utae.models.positional_encoding import PositionalEncoder
 
 
+def nonlinearity(name: str, inplace: bool = False) -> nn.Module:
+    key = (name or "relu").lower().strip()
+    if key == "relu":
+        return nn.ReLU(inplace=inplace)
+    if key == "gelu":
+        return nn.GELU()
+    raise ValueError(f"activation must be relu or gelu, got {name!r}")
+
+
 class LTAE2d(nn.Module):
     def __init__(
         self,
@@ -23,6 +32,7 @@ class LTAE2d(nn.Module):
         T=1000,
         return_att=False,
         positional_encoding=True,
+        activation: str = "relu",
     ):
         super().__init__()
         if mlp is None:
@@ -51,7 +61,7 @@ class LTAE2d(nn.Module):
                 [
                     nn.Linear(self.mlp_dims[i], self.mlp_dims[i + 1]),
                     nn.BatchNorm1d(self.mlp_dims[i + 1]),
-                    nn.ReLU(),
+                    nonlinearity(activation),
                 ]
             )
         self.mlp = nn.Sequential(*layers)
