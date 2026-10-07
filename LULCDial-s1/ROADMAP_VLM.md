@@ -1,1 +1,1 @@
-The VLM roadmap is [../BenchmarkGuide/plan/VLM_Roadmap.md](../BenchmarkGuide/plan/VLM_Roadmap.md).
+The VLM note is [../BenchmarkGuide/plan/VLM_Progress.md](../BenchmarkGuide/plan/VLM_Progress.md).

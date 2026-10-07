@@ -30,7 +30,7 @@ Per date: concat **10 S2 + 2 S1 (VV, VH)** channels -> `B x 4 x 12 x 256 x 256`.
 | P4 | `train.py --mode head` | Freeze encoder + L-TAE; train decoder/head |
 | P5 | `train.py --mode full` | Fine-tune all weights (`--init-ckpt` from best head run) |
 
-**Transfer learning:** We use the breast **schedule** only, not breast-style **pretrained weights**. U-TAE is trained **from scratch on MultiSenGE** (no PASTIS/ImageNet init) so comparisons stay fair vs A4 and the RS 2023 paper. P4→P5 `--init-ckpt` is same-dataset continuation, not cross-dataset TL. Full rationale: [`TRAINING_AND_TRANSFER.md`](TRAINING_AND_TRANSFER.md).
+**Transfer learning:** We use the breast schedule only. U-TAE is trained from scratch on MultiSenGE. P5 loads our own P4 file. The reason is in [`../BenchmarkGuide/plan/Phase1_UTAE.md`](../BenchmarkGuide/plan/Phase1_UTAE.md).
 
 ## Novelty tracks (not P1/P2 - those clash with U-TAE phases)
 
@@ -50,7 +50,7 @@ Use `checkpoints/cmu_s1_vit_v1/student_best.pt` (job **106245**, epoch 70, val r
 
 ### Stage 2 CMU-ViT U-TAE (finished)
 
-CONCAT is the main fusion. Gated was an ablation. Bottleneck fusion, **S2 skips only**. 6c CONCAT P5 test **0.9379 / 0.5804**. 10c CONCAT P5 test **0.8844 / 0.7861**. Details are in `CMU_PROGRESS.md` and `results/RESULTS_BOARD.md`.
+CONCAT is the main fusion. Gated was an ablation. Bottleneck fusion, **S2 skips only**. 6c CONCAT P5 test **0.9379 / 0.5804**. 10c CONCAT P5 test **0.8844 / 0.7861**. Details are in [`../BenchmarkGuide/plan/Phase3_CMU.md`](../BenchmarkGuide/plan/Phase3_CMU.md) and `results/RESULTS_BOARD.md`. Phase 4 is [`../BenchmarkGuide/plan/Phase4_GELU.md`](../BenchmarkGuide/plan/Phase4_GELU.md).
 
 ### Modality ablations (paper-style S1-only / S2-only)
 
