@@ -1,7 +1,8 @@
 #!/bin/bash
-# Phase 4 step 3: Stage 1 against the GELU S2-only full teacher.
-# Submit only after the 31UEQ test is at least 0.8865 / 0.7945.
+# Phase 4 Stage 1: ViT-B/16 S1 student, frozen GELU S2-only full teacher.
+# Teacher is the spatial encoder only (no L-TAE). Writes cmu_s1_vit_gelu_v0.
 # Does not touch checkpoints/cmu_s1_vit_v1/student_best.pt.
+# best.pt is already the epoch-37 file. No dependency on 108194.
 #   sbatch --exclude=ragpu004,ragpu005,ragpu007 multisenge_utae/train_cmu_gelu.sbatch
 #SBATCH -J cmu_s1_vit_gelu
 #SBATCH -N 1
@@ -32,7 +33,7 @@ python -m multisenge_utae.train_cmu \
   --index multisenge_seg/artifacts/patch_index.json \
   --data-root LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge \
   --teacher-ckpt "$TEACHER" \
-  --epochs 80 \
+  --epochs 160 \
   --batch-size 2 \
   --lr 3e-4 \
   --temperature 0.07 \
