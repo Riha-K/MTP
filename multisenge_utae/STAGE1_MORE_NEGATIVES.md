@@ -8,7 +8,7 @@ These runs do not overwrite `checkpoints/cmu_s1_vit_v1` or `checkpoints/cmu_s1_v
 
 The current Stage 1 batch is 2 patches and 4 dates, so each InfoNCE step has 8 samples. Chance accuracy is 1/8 = 0.125. Chance loss is ln(8) = 2.079. Seven negatives is a small set for the SAR student to learn against.
 
-Each new job keeps those 8 current samples and adds a bank of 56 earlier teacher maps, detached, used only as negatives. Every step then has 64 keys. Chance accuracy is 1/64 = 0.0156. Chance loss is ln(64) = 4.159. The training loss will sit higher than the old runs because the chance loss itself is higher. That is the new scale, not a failed alignment.
+Each new job keeps those 8 current samples and adds a bank of 56 earlier S2 encoder maps, detached, used only as negatives. The teacher projector is applied to that bank on every step, so the extra keys stay in the same space as the current batch. Storing the projector outputs instead makes those keys stale after the first update, the softmax goes flat, and retrieval locks at 0.125. Every step then has 64 keys. Chance accuracy is 1/64 = 0.0156. Chance loss is ln(64) = 4.159. The training loss will sit higher than the old runs because the chance loss itself is higher. That is the new scale, not a failed alignment.
 
 ## How to read the log
 

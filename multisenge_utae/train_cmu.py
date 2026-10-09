@@ -77,7 +77,7 @@ def flatten_dates(x: torch.Tensor) -> torch.Tensor:
 
 
 class TeacherNegBank:
-  """FIFO of detached teacher maps used only as InfoNCE negatives."""
+  """FIFO of detached S2 encoder maps. Project them with the live teacher head."""
 
   def __init__(self, capacity: int):
     self.capacity = int(capacity)
@@ -92,17 +92,17 @@ class TeacherNegBank:
       return self.slots[: self.filled]
     return self.slots
 
-  def add(self, z_t: torch.Tensor) -> None:
-    z = z_t.detach()
-    n, length, dim = z.shape
+  def add(self, feat_t: torch.Tensor) -> None:
+    feat = feat_t.detach()
+    n = feat.shape[0]
     if self.capacity <= 0 or n == 0:
       return
     if self.slots is None:
-      self.slots = torch.empty(self.capacity, length, dim, device=z.device, dtype=z.dtype)
-    elif self.slots.shape[1:] != (length, dim):
-      raise RuntimeError(f"neg bank {tuple(self.slots.shape)} cannot store {tuple(z.shape)}")
+      self.slots = torch.empty(self.capacity, *feat.shape[1:], device=feat.device, dtype=feat.dtype)
+    elif self.slots.shape[1:] != feat.shape[1:]:
+      raise RuntimeError(f"neg bank {tuple(self.slots.shape)} cannot store {tuple(feat.shape)}")
     for i in range(n):
-      self.slots[self.ptr].copy_(z[i])
+      self.slots[self.ptr].copy_(feat[i])
       self.ptr = (self.ptr + 1) % self.capacity
       self.filled = min(self.capacity, self.filled + 1)
 
@@ -119,7 +119,7 @@ def _pair_maps(teacher, student, proj_t, proj_s, s2, s1):
     feat_t = F.interpolate(feat_t, size=tok_s.shape[-2:], mode="bilinear", align_corners=False)
   z_t = project_map(proj_t, feat_t)
   z_s = project_map(proj_s, tok_s)
-  return z_t, z_s
+  return z_t, z_s, feat_t
 
 
 def run_epoch(
@@ -144,10 +144,11 @@ def run_epoch(
   for batch in loader:
     s2 = batch["s2"].to(device)  # B,T,10,H,W
     s1 = batch["s1"].to(device)  # B,T,2,H,W
-    neg = None if bank is None else bank.get()
+    feat_bank = None if bank is None else bank.get()
 
     with torch.set_grad_enabled(train):
-      z_t, z_s = _pair_maps(teacher, student, proj_t, proj_s, s2, s1)
+      z_t, z_s, feat_t = _pair_maps(teacher, student, proj_t, proj_s, s2, s1)
+      neg = None if feat_bank is None else project_map(proj_t, feat_bank)
       loss = spatial_info_nce(z_s, z_t, temperature=temperature, neg_bank=neg)
 
       if train:
@@ -156,7 +157,7 @@ def run_epoch(
         loss.backward()
         opt.step()
         if bank is not None:
-          bank.add(z_t)
+          bank.add(feat_t)
 
     acc = spatial_retrieval_acc(z_s.detach(), z_t.detach())
     acc_k = spatial_retrieval_acc(z_s.detach(), z_t.detach(), neg_bank=neg)
@@ -297,9 +298,9 @@ def main() -> int:
       s2 = batch["s2"].to(device)
       s1 = batch["s1"].to(device)
       with torch.no_grad():
-        z_t, _z_s = _pair_maps(teacher, student, proj_t, proj_s, s2, s1)
-      bank.add(z_t)
-      seen += int(z_t.shape[0])
+        _z_t, _z_s, feat_t = _pair_maps(teacher, student, proj_t, proj_s, s2, s1)
+      bank.add(feat_t)
+      seen += int(feat_t.shape[0])
     n_cur = args.batch_size * 4
     keys = n_cur + bank.filled
     print(
