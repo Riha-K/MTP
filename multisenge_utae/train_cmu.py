@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import time
 from pathlib import Path
 
@@ -75,6 +76,52 @@ def flatten_dates(x: torch.Tensor) -> torch.Tensor:
   return x.reshape(b * t, c, h, w)
 
 
+class TeacherNegBank:
+  """FIFO of detached teacher maps used only as InfoNCE negatives."""
+
+  def __init__(self, capacity: int):
+    self.capacity = int(capacity)
+    self.slots: torch.Tensor | None = None
+    self.filled = 0
+    self.ptr = 0
+
+  def get(self) -> torch.Tensor | None:
+    if self.slots is None or self.filled == 0:
+      return None
+    if self.filled < self.capacity:
+      return self.slots[: self.filled]
+    return self.slots
+
+  def add(self, z_t: torch.Tensor) -> None:
+    z = z_t.detach()
+    n, length, dim = z.shape
+    if self.capacity <= 0 or n == 0:
+      return
+    if self.slots is None:
+      self.slots = torch.empty(self.capacity, length, dim, device=z.device, dtype=z.dtype)
+    elif self.slots.shape[1:] != (length, dim):
+      raise RuntimeError(f"neg bank {tuple(self.slots.shape)} cannot store {tuple(z.shape)}")
+    for i in range(n):
+      self.slots[self.ptr].copy_(z[i])
+      self.ptr = (self.ptr + 1) % self.capacity
+      self.filled = min(self.capacity, self.filled + 1)
+
+
+def _pair_maps(teacher, student, proj_t, proj_s, s2, s1):
+  s2_f = flatten_dates(s2)
+  s1_f = flatten_dates(s1)
+  with torch.no_grad():
+    feat_t = teacher.encode_spatial_bottleneck(s2_f.unsqueeze(1))
+    if feat_t.dim() == 5:
+      feat_t = feat_t.squeeze(1)
+  tok_s = student.forward_tokens(s1_f)
+  if feat_t.shape[-2:] != tok_s.shape[-2:]:
+    feat_t = F.interpolate(feat_t, size=tok_s.shape[-2:], mode="bilinear", align_corners=False)
+  z_t = project_map(proj_t, feat_t)
+  z_s = project_map(proj_s, tok_s)
+  return z_t, z_s
+
+
 def run_epoch(
     teacher: UTAE,
     student: S1ViTB16,
@@ -85,44 +132,44 @@ def run_epoch(
     device: torch.device,
     temperature: float,
     train: bool,
+    bank: TeacherNegBank | None = None,
 ) -> dict:
   student.train(train)
   proj_s.train(train)
   proj_t.train(train)
   total_loss = 0.0
   total_acc = 0.0
+  total_acc_k = 0.0
   n = 0
   for batch in loader:
     s2 = batch["s2"].to(device)  # B,T,10,H,W
     s1 = batch["s1"].to(device)  # B,T,2,H,W
-    s2_f = flatten_dates(s2)
-    s1_f = flatten_dates(s1)
+    neg = None if bank is None else bank.get()
 
     with torch.set_grad_enabled(train):
-      with torch.no_grad():
-        # S2 encoder stays frozen. Projector is outside no_grad so it can train.
-        feat_t = teacher.encode_spatial_bottleneck(s2_f.unsqueeze(1))
-        if feat_t.dim() == 5:
-          feat_t = feat_t.squeeze(1)
-      tok_s = student.forward_tokens(s1_f)
-      if feat_t.shape[-2:] != tok_s.shape[-2:]:
-        feat_t = F.interpolate(feat_t, size=tok_s.shape[-2:], mode="bilinear", align_corners=False)
-      z_t = project_map(proj_t, feat_t)
-      z_s = project_map(proj_s, tok_s)
-      loss = spatial_info_nce(z_s, z_t, temperature=temperature)
+      z_t, z_s = _pair_maps(teacher, student, proj_t, proj_s, s2, s1)
+      loss = spatial_info_nce(z_s, z_t, temperature=temperature, neg_bank=neg)
 
       if train:
         assert opt is not None
         opt.zero_grad(set_to_none=True)
         loss.backward()
         opt.step()
+        if bank is not None:
+          bank.add(z_t)
 
     acc = spatial_retrieval_acc(z_s.detach(), z_t.detach())
+    acc_k = spatial_retrieval_acc(z_s.detach(), z_t.detach(), neg_bank=neg)
     total_loss += float(loss.item())
     total_acc += acc
+    total_acc_k += acc_k
     n += 1
 
-  return {"loss": total_loss / max(n, 1), "acc": total_acc / max(n, 1)}
+  return {
+      "loss": total_loss / max(n, 1),
+      "acc": total_acc / max(n, 1),
+      "acc_k": total_acc_k / max(n, 1),
+  }
 
 
 def main() -> int:
@@ -136,6 +183,12 @@ def main() -> int:
   )
   p.add_argument("--epochs", type=int, default=80)
   p.add_argument("--batch-size", type=int, default=2, help="patch batch; effective InfoNCE N = batch*T")
+  p.add_argument(
+      "--neg-bank",
+      type=int,
+      default=0,
+      help="extra detached teacher samples used only as InfoNCE negatives. 0 keeps N=batch*T.",
+  )
   p.add_argument("--lr", type=float, default=3e-4)
   p.add_argument("--workers", type=int, default=2)
   p.add_argument("--patience", type=int, default=20)
@@ -233,10 +286,32 @@ def main() -> int:
   sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(cosine_epochs, 1))
 
   n_train = sum(p.numel() for p in params)
+  bank = TeacherNegBank(args.neg_bank) if args.neg_bank > 0 else None
+  if bank is not None:
+    proj_t.eval()
+    student.eval()
+    seen = 0
+    for batch in train_loader:
+      if bank.filled >= bank.capacity:
+        break
+      s2 = batch["s2"].to(device)
+      s1 = batch["s1"].to(device)
+      with torch.no_grad():
+        z_t, _z_s = _pair_maps(teacher, student, proj_t, proj_s, s2, s1)
+      bank.add(z_t)
+      seen += int(z_t.shape[0])
+    n_cur = args.batch_size * 4
+    keys = n_cur + bank.filled
+    print(
+        f"neg bank filled {bank.filled}/{bank.capacity} from {seen} train samples. "
+        f"keys={keys} chance_acc={1.0 / keys:.4f} chance_loss={math.log(keys):.4f}"
+    )
+    print(f"best.pt follows val acc among the current {n_cur} samples (acc=). accK= includes the bank.")
   print(
       f"CMU student+proj params={n_train:,} train/val={len(train_ds)}/{len(val_ds)} "
       f"T=4 spatial InfoNCE over the batch at each ViT site "
-      f"tau={args.temperature} proj={args.proj_dim} projector=Linear-LayerNorm-GELU-Linear"
+      f"tau={args.temperature} proj={args.proj_dim} projector=Linear-LayerNorm-GELU-Linear "
+      f"neg_bank={args.neg_bank}"
   )
 
   args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -253,6 +328,8 @@ def main() -> int:
       "student": "ViT-B/16 in_chans=2 ImageNet stem=mean RGB",
       "resume": str(args.resume) if args.resume else None,
       "start_epoch": start_epoch,
+      "neg_bank": args.neg_bank,
+      "info_nce_keys": args.batch_size * 4 + args.neg_bank,
   }
   (args.out_dir / "cmu_hparams.json").write_text(json.dumps(hparams, indent=2), encoding="utf-8")
 
@@ -275,23 +352,28 @@ def main() -> int:
   for epoch in range(start_epoch, args.epochs + 1):
     t0 = time.time()
     print(f"epoch {epoch}/{args.epochs} train…", flush=True)
-    tr = run_epoch(teacher, student, proj_t, proj_s, train_loader, opt, device, args.temperature, train=True)
+    tr = run_epoch(teacher, student, proj_t, proj_s, train_loader, opt, device, args.temperature, train=True, bank=bank)
     print(f"epoch {epoch}/{args.epochs} val…", flush=True)
-    va = run_epoch(teacher, student, proj_t, proj_s, val_loader, None, device, args.temperature, train=False)
+    va = run_epoch(teacher, student, proj_t, proj_s, val_loader, None, device, args.temperature, train=False, bank=bank)
     sched.step()
     row = {
         "epoch": epoch,
         "train_loss": tr["loss"],
         "train_acc": tr["acc"],
+        "train_acc_k": tr["acc_k"],
         "val_loss": va["loss"],
         "val_acc": va["acc"],
+        "val_acc_k": va["acc_k"],
         "lr": opt.param_groups[0]["lr"],
         "sec": round(time.time() - t0, 1),
     }
     history.append(row)
+    acc_k = ""
+    if args.neg_bank > 0:
+      acc_k = f" accK={tr['acc_k']:.3f}/{va['acc_k']:.3f}"
     print(
         f"epoch {epoch:03d} loss={tr['loss']:.4f}/{va['loss']:.4f} "
-        f"acc={tr['acc']:.3f}/{va['acc']:.3f} lr={row['lr']:.1e} sec={row['sec']}"
+        f"acc={tr['acc']:.3f}/{va['acc']:.3f}{acc_k} lr={row['lr']:.1e} sec={row['sec']}"
     )
 
     ckpt = {
