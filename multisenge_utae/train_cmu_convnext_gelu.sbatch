@@ -18,6 +18,7 @@ mkdir -p multisenge_utae/artifacts multisenge_utae/checkpoints
 
 TEACHER="${TEACHER:-multisenge_utae/checkpoints/run_c10_s2_gelu_full_v0/best.pt}"
 OUT="${OUT:-multisenge_utae/checkpoints/cmu_s1_convnext_gelu_v0}"
+# Scored files for this student are written under multisenge_utae/results/cmu_ConvNext.
 if [[ ! -f "$TEACHER" ]]; then
   echo "missing teacher ckpt: $TEACHER"
   exit 1
