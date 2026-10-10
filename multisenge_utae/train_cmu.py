@@ -31,6 +31,7 @@ from multisenge_seg.dataset import MultiSenGETemporalDataset, build_patch_index
 from multisenge_seg.train import set_seed, _seed_worker
 from multisenge_utae.data import collate_utae
 from multisenge_utae.models.cmu import ProjHead, project_map, spatial_info_nce, spatial_retrieval_acc
+from multisenge_utae.models.s1_convnext import S1ConvNeXtTiny
 from multisenge_utae.models.s1_vit import S1ViTB16
 from multisenge_utae.models.utae import UTAE
 
@@ -196,6 +197,7 @@ def main() -> int:
   p.add_argument("--temperature", type=float, default=0.07)
   p.add_argument("--proj-dim", type=int, default=256)
   p.add_argument("--image-size", type=int, default=256)
+  p.add_argument("--student", type=str, default="vit", choices=["vit", "convnext"])
   p.add_argument("--no-augment", action="store_true")
   p.add_argument("--stats-patches", type=int, default=64)
   p.add_argument("--max-train", type=int, default=None)
@@ -268,7 +270,10 @@ def main() -> int:
   val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, collate_fn=collate_utae)
 
   resume_ckpt = _load_ckpt(args.resume, device) if args.resume else None
-  student = S1ViTB16(in_chans=2, image_size=args.image_size, pretrained=resume_ckpt is None).to(device)
+  if args.student == "convnext":
+    student = S1ConvNeXtTiny(in_chans=2, image_size=args.image_size, pretrained=resume_ckpt is None).to(device)
+  else:
+    student = S1ViTB16(in_chans=2, image_size=args.image_size, pretrained=resume_ckpt is None).to(device)
   bottleneck_dim = int(teacher.encoder_widths[-1])
   proj_t = ProjHead(bottleneck_dim, proj_dim=args.proj_dim).to(device)
   proj_s = ProjHead(student.embed_dim, proj_dim=args.proj_dim).to(device)
@@ -310,7 +315,7 @@ def main() -> int:
     print(f"best.pt follows val acc among the current {n_cur} samples (acc=). accK= includes the bank.")
   print(
       f"CMU student+proj params={n_train:,} train/val={len(train_ds)}/{len(val_ds)} "
-      f"T=4 spatial InfoNCE over the batch at each ViT site "
+      f"T=4 spatial InfoNCE over the batch at each spatial site "
       f"tau={args.temperature} proj={args.proj_dim} projector=Linear-LayerNorm-GELU-Linear "
       f"neg_bank={args.neg_bank}"
   )
@@ -326,7 +331,11 @@ def main() -> int:
       "teacher_ckpt": str(args.teacher_ckpt),
       "pairing": "same_patch_same_t_spatial",
       "projector": "Linear-LayerNorm-GELU-Linear",
-      "student": "ViT-B/16 in_chans=2 ImageNet stem=mean RGB",
+      "student": (
+          "ConvNeXt-Tiny in_chans=2 through 32x32 GELU kept"
+          if args.student == "convnext"
+          else "ViT-B/16 in_chans=2 ImageNet stem=mean RGB"
+      ),
       "resume": str(args.resume) if args.resume else None,
       "start_epoch": start_epoch,
       "neg_bank": args.neg_bank,
