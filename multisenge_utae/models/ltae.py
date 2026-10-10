@@ -11,13 +11,30 @@ import torch.nn as nn
 from multisenge_utae.models.positional_encoding import PositionalEncoder
 
 
+class StarReLU(nn.Module):
+    """MetaFormer StarReLU: scale * ReLU(x)^2 + bias. Scale and bias are learned."""
+
+    def __init__(self, scale: float = 1.0, bias: float = 0.0):
+        super().__init__()
+        self.relu = nn.ReLU(inplace=False)
+        self.scale = nn.Parameter(torch.tensor(float(scale)))
+        self.bias = nn.Parameter(torch.tensor(float(bias)))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.scale * self.relu(x).pow(2) + self.bias
+
+
 def nonlinearity(name: str, inplace: bool = False) -> nn.Module:
     key = (name or "relu").lower().strip()
     if key == "relu":
         return nn.ReLU(inplace=inplace)
     if key == "gelu":
         return nn.GELU()
-    raise ValueError(f"activation must be relu or gelu, got {name!r}")
+    if key == "silu":
+        return nn.SiLU(inplace=inplace)
+    if key == "starrelu":
+        return StarReLU()
+    raise ValueError(f"activation must be relu, gelu, silu, or starrelu, got {name!r}")
 
 
 class LTAE2d(nn.Module):

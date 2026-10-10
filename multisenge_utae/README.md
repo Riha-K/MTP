@@ -50,7 +50,7 @@ Use `checkpoints/cmu_s1_vit_v1/student_best.pt` (job **106245**, epoch 70, val r
 
 ### Stage 2 CMU-ViT U-TAE (finished)
 
-CONCAT is the main fusion. Gated was an ablation. Bottleneck fusion, **S2 skips only**. 6c CONCAT P5 test **0.9379 / 0.5804**. 10c CONCAT P5 test **0.8844 / 0.7861**. Details are in [`../BenchmarkGuide/plan/Phase3_CMU.md`](../BenchmarkGuide/plan/Phase3_CMU.md) and `results/RESULTS_BOARD.md`. Phase 4 is [`../BenchmarkGuide/plan/Phase4_GELU.md`](../BenchmarkGuide/plan/Phase4_GELU.md).
+CONCAT is the main fusion. Gated was an ablation. Bottleneck fusion, **S2 skips only**. 6c CONCAT P5 test **0.9379 / 0.5804**. 10c CONCAT P5 test **0.8844 / 0.7861**. Details are in [`../BenchmarkGuide/plan/Phase3_CMU.md`](../BenchmarkGuide/plan/Phase3_CMU.md) and `results/RESULTS_BOARD.md`. Phase 4 is [`../BenchmarkGuide/plan/Phase4_Activation_Model.md`](../BenchmarkGuide/plan/Phase4_Activation_Model.md).
 
 ### Modality ablations (paper-style S1-only / S2-only)
 
