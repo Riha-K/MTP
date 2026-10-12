@@ -121,6 +121,8 @@ def build_model(args, n_cls: int, device: torch.device) -> CMUViTUTAE:
       num_classes=n_cls,
       fusion=args.fusion,
       vit_image_size=args.vit_image_size,
+      activation=args.activation,
+      student=args.student,
   ).to(device)
   if args.student_ckpt is not None:
     model.load_student_vit(args.student_ckpt, map_location=device)
@@ -144,6 +146,7 @@ def build_model(args, n_cls: int, device: torch.device) -> CMUViTUTAE:
   total = sum(p.numel() for p in model.parameters())
   print(
       f"CMU-ViT-UTAE fusion={args.fusion} mode={args.mode} "
+      f"student={args.student} activation={args.activation} "
       f"trainable={trainable:,} / {total:,}"
   )
   return model
@@ -167,6 +170,8 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
   n_cls = int(ckpt.get("num_classes", n_cls))
   meta = ckpt.get("args") or {}
   fusion = meta.get("fusion", args.fusion)
+  student = meta.get("student", args.student)
+  activation = meta.get("activation", args.activation)
 
   ds = MultiSenGETemporalDataset(
       records,
@@ -181,7 +186,13 @@ def _run_eval(args, records: list[PatchRecord], n_cls: int) -> int:
   if len(ds) == 0:
     raise RuntimeError(f"no patches for split={args.eval_split}")
   loader = DataLoader(ds, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, collate_fn=collate_utae)
-  model = CMUViTUTAE(num_classes=n_cls, fusion=fusion, vit_image_size=args.vit_image_size).to(device)
+  model = CMUViTUTAE(
+      num_classes=n_cls,
+      fusion=fusion,
+      vit_image_size=args.vit_image_size,
+      activation=activation,
+      student=student,
+  ).to(device)
   model.load_state_dict(ckpt["model"])
   print(f"eval ckpt={ckpt_path} split={args.eval_split} n={len(ds)} classes={n_cls}")
   scores = evaluate(model, loader, device, n_cls)
@@ -204,7 +215,9 @@ def main() -> int:
   p.add_argument("--index", type=Path, default=None)
   p.add_argument("--num-classes", type=int, default=6, choices=[6, 10])
   p.add_argument("--mode", type=str, default="head", choices=["head", "full"])
-  p.add_argument("--student-ckpt", type=Path, default=None, help="Stage 1 student_best.pt (load ViT)")
+  p.add_argument("--student", type=str, default="vit", choices=["vit", "convnext"])
+  p.add_argument("--activation", type=str, default="relu", choices=["relu", "gelu", "silu", "starrelu"])
+  p.add_argument("--student-ckpt", type=Path, default=None, help="Stage 1 student_best.pt")
   p.add_argument(
       "--s2-ckpt",
       type=Path,
@@ -247,7 +260,7 @@ def main() -> int:
     return _run_eval(args, records, n_cls)
 
   if args.mode == "head" and args.student_ckpt is None:
-    raise SystemExit("--student-ckpt required for P4 head (Stage 1 ViT weights)")
+    raise SystemExit("--student-ckpt required for P4 head (Stage 1 student weights)")
   if args.mode == "full" and args.init_ckpt is None:
     print("WARNING: P5 without --init-ckpt (random decoder); prefer P4 best.pt")
 

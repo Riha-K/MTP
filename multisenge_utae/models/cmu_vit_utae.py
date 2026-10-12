@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from multisenge_utae.models.fusion import build_fusion
 from multisenge_utae.models.ltae import LTAE2d
 from multisenge_utae.models.ma_utae import _ModalityEncoder
+from multisenge_utae.models.s1_convnext import S1ConvNeXtTiny
 from multisenge_utae.models.s1_vit import S1ViTB16
 from multisenge_utae.models.ltae import nonlinearity
 from multisenge_utae.models.utae import ConvBlock, TemporalAggregator, UpConvBlock
@@ -60,6 +61,7 @@ class CMUViTUTAE(nn.Module):
       padding_mode: str = "reflect",
       vit_image_size: int = 256,
       activation: str = "relu",
+      student: str = "vit",
   ):
     super().__init__()
     if encoder_widths is None:
@@ -76,6 +78,8 @@ class CMUViTUTAE(nn.Module):
     self.decoder_widths = decoder_widths
     self.pad_value = pad_value
     self.fusion_kind = fusion
+    self.student_kind = student
+    self.activation = activation
 
     self.encoder_s2 = _ModalityEncoder(
         input_dim=s2_dim,
@@ -89,7 +93,12 @@ class CMUViTUTAE(nn.Module):
         activation=activation,
     )
     # Stage 2 loads the CMU student checkpoint; skip the ImageNet download here.
-    self.s1_vit = S1ViTB16(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
+    if student == "vit":
+      self.s1_vit = S1ViTB16(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
+    elif student == "convnext":
+      self.s1_vit = S1ConvNeXtTiny(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
+    else:
+      raise ValueError(f"student must be vit or convnext, got {student!r}")
     self.s1_adapter = BottleneckAdapter(self.s1_vit.embed_dim, encoder_widths[-1], activation=activation)
 
     self.temporal_s2 = LTAE2d(
@@ -203,9 +212,9 @@ class CMUViTUTAE(nn.Module):
     missing, unexpected = self.s1_vit.load_state_dict(state, strict=False)
     if missing or unexpected:
       raise RuntimeError(
-          f"S1 ViT load mismatch missing={missing} unexpected={unexpected}"
+          f"S1 {self.student_kind} load mismatch missing={missing} unexpected={unexpected}"
       )
-    print(f"loaded S1 ViT from {ckpt_path}")
+    print(f"loaded S1 {self.student_kind} from {ckpt_path}")
 
   def train(self, mode: bool = True):
     super().train(mode)
@@ -215,7 +224,7 @@ class CMUViTUTAE(nn.Module):
     return self
 
   def set_train_mode(self, mode: str) -> None:
-    """P4 head: freeze loaded S2 encoder, S2 L-TAE, and CMU ViT.
+    """P4 head: freeze loaded S2 encoder, S2 L-TAE, and the CMU student.
     S1 L-TAE has no checkpoint, so it trains with the adapter, fusion, and decoder.
     P5 full: train all.
     """
