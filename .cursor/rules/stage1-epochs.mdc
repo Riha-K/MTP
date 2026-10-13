@@ -1,0 +1,14 @@
+---
+description: Stage 1 CMU alignment always uses 160 epochs, not 80.
+alwaysApply: true
+---
+
+# Stage 1 max epochs
+
+Every new Stage 1 job (`train_cmu.py`, any SAR student: ViT, ConvNeXt, U-TAE) uses `--epochs 160`. Do not submit Stage 1 with 80 epochs.
+
+Patience stays 20. Monitor is validation retrieval `acc`.
+
+Stage 2 land-cover head and full stay `--epochs 80` with patience 20. Do not change those to 160.
+
+Do not change a Stage 1 job that is already running. Do not resubmit into a folder that already has `last.pt`.

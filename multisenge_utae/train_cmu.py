@@ -184,7 +184,7 @@ def main() -> int:
       type=Path,
       default=Path("multisenge_utae/checkpoints/run_c10_s2_full_v0/best.pt"),
   )
-  p.add_argument("--epochs", type=int, default=80)
+  p.add_argument("--epochs", type=int, default=160)
   p.add_argument("--batch-size", type=int, default=2, help="patch batch; effective InfoNCE N = batch*T")
   p.add_argument(
       "--neg-bank",

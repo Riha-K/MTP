@@ -36,7 +36,7 @@ python -m multisenge_utae.train_cmu \
   --data-root LULCDial-s1/data/lulcdial_s1/ai4lcc/multisenge \
   --teacher-ckpt "$TEACHER" \
   --student utae \
-  --epochs 80 \
+  --epochs 160 \
   --batch-size 2 \
   --lr 3e-4 \
   --temperature 0.07 \
