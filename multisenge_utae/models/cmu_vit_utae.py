@@ -15,6 +15,7 @@ from multisenge_utae.models.fusion import build_fusion
 from multisenge_utae.models.ltae import LTAE2d
 from multisenge_utae.models.ma_utae import _ModalityEncoder
 from multisenge_utae.models.s1_convnext import S1ConvNeXtTiny
+from multisenge_utae.models.s1_utae import S1UTAE
 from multisenge_utae.models.s1_vit import S1ViTB16
 from multisenge_utae.models.ltae import nonlinearity
 from multisenge_utae.models.utae import ConvBlock, TemporalAggregator, UpConvBlock
@@ -97,8 +98,10 @@ class CMUViTUTAE(nn.Module):
       self.s1_vit = S1ViTB16(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
     elif student == "convnext":
       self.s1_vit = S1ConvNeXtTiny(in_chans=s1_dim, image_size=vit_image_size, pretrained=False)
+    elif student == "utae":
+      self.s1_vit = S1UTAE(in_chans=s1_dim, activation="relu")
     else:
-      raise ValueError(f"student must be vit or convnext, got {student!r}")
+      raise ValueError(f"student must be vit, convnext, or utae, got {student!r}")
     self.s1_adapter = BottleneckAdapter(self.s1_vit.embed_dim, encoder_widths[-1], activation=activation)
 
     self.temporal_s2 = LTAE2d(

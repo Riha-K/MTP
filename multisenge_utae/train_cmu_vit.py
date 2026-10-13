@@ -215,7 +215,7 @@ def main() -> int:
   p.add_argument("--index", type=Path, default=None)
   p.add_argument("--num-classes", type=int, default=6, choices=[6, 10])
   p.add_argument("--mode", type=str, default="head", choices=["head", "full"])
-  p.add_argument("--student", type=str, default="vit", choices=["vit", "convnext"])
+  p.add_argument("--student", type=str, default="vit", choices=["vit", "convnext", "utae"])
   p.add_argument("--activation", type=str, default="relu", choices=["relu", "gelu", "silu", "starrelu"])
   p.add_argument("--student-ckpt", type=Path, default=None, help="Stage 1 student_best.pt")
   p.add_argument(
