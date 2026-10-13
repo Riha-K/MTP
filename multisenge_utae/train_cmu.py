@@ -32,6 +32,7 @@ from multisenge_seg.train import set_seed, _seed_worker
 from multisenge_utae.data import collate_utae
 from multisenge_utae.models.cmu import ProjHead, project_map, spatial_info_nce, spatial_retrieval_acc
 from multisenge_utae.models.s1_convnext import S1ConvNeXtTiny
+from multisenge_utae.models.s1_utae import S1UTAE
 from multisenge_utae.models.s1_vit import S1ViTB16
 from multisenge_utae.models.utae import UTAE
 
@@ -197,7 +198,7 @@ def main() -> int:
   p.add_argument("--temperature", type=float, default=0.07)
   p.add_argument("--proj-dim", type=int, default=256)
   p.add_argument("--image-size", type=int, default=256)
-  p.add_argument("--student", type=str, default="vit", choices=["vit", "convnext"])
+  p.add_argument("--student", type=str, default="vit", choices=["vit", "convnext", "utae"])
   p.add_argument("--no-augment", action="store_true")
   p.add_argument("--stats-patches", type=int, default=64)
   p.add_argument("--max-train", type=int, default=None)
@@ -272,6 +273,8 @@ def main() -> int:
   resume_ckpt = _load_ckpt(args.resume, device) if args.resume else None
   if args.student == "convnext":
     student = S1ConvNeXtTiny(in_chans=2, image_size=args.image_size, pretrained=resume_ckpt is None).to(device)
+  elif args.student == "utae":
+    student = S1UTAE(in_chans=2, activation="relu").to(device)
   else:
     student = S1ViTB16(in_chans=2, image_size=args.image_size, pretrained=resume_ckpt is None).to(device)
   bottleneck_dim = int(teacher.encoder_widths[-1])
@@ -286,7 +289,8 @@ def main() -> int:
     if start_epoch > args.epochs:
       raise SystemExit(f"resume epoch {start_epoch - 1} is already past --epochs {args.epochs}")
 
-  params = list(student.parameters()) + list(proj_s.parameters()) + list(proj_t.parameters())
+  params = [p for p in student.parameters() if p.requires_grad]
+  params += list(proj_s.parameters()) + list(proj_t.parameters())
   opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=0.05)
   cosine_epochs = args.epochs if resume_ckpt is None else (args.epochs - start_epoch + 1)
   sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(cosine_epochs, 1))
@@ -334,6 +338,8 @@ def main() -> int:
       "student": (
           "ConvNeXt-Tiny in_chans=2 through 32x32 GELU kept"
           if args.student == "convnext"
+          else "U-TAE in_chans=2 ReLU spatial encoder"
+          if args.student == "utae"
           else "ViT-B/16 in_chans=2 ImageNet stem=mean RGB"
       ),
       "resume": str(args.resume) if args.resume else None,
