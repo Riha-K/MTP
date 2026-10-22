@@ -47,6 +47,7 @@ from multisenge_seg.train import (
     _seed_worker,
 )
 from multisenge_utae.data import batch_positions, collate_utae, modality_input_dim, select_modality
+from multisenge_utae.losses import SegCompositeLoss
 from multisenge_utae.models import UTAE
 
 
@@ -221,6 +222,14 @@ def main() -> int:
         help="both=S2+S1 (12ch); s2=optical-only (10ch); s1=SAR-only (2ch) - paper-style ablation",
     )
     p.add_argument("--activation", type=str, default="relu", choices=["relu", "gelu", "silu", "starrelu"])
+    p.add_argument(
+        "--loss",
+        type=str,
+        default="ce",
+        choices=["ce", "ce_dice", "ce_gdl"],
+        help="ce=weighted CE (quoted phases). ce_dice=Composite A. ce_gdl=Composite B",
+    )
+    p.add_argument("--dice-lambda", type=float, default=1.0, help="lambda on the Dice / GDL term")
     p.add_argument("--out-dir", type=Path, default=Path("multisenge_utae/checkpoints/run_c6_head_v0"))
     p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     p.add_argument("--eval-ckpt", type=Path, default=None)
@@ -290,6 +299,7 @@ def main() -> int:
         "modality", args.modality, "input_dim", input_dim,
         "train/val", len(train_ds), len(val_ds), "mode", args.mode,
         "activation", args.activation,
+        "loss", args.loss, "dice_lambda", args.dice_lambda,
     )
 
     device = torch.device(args.device)
@@ -306,9 +316,11 @@ def main() -> int:
     boost = parse_class_boost(args.class_boost, n_cls)
     if np.any(boost != 1.0):
         weights = apply_class_boost(weights, boost)
-    criterion = nn.CrossEntropyLoss(
+    criterion = SegCompositeLoss(
         weight=torch.tensor(weights, dtype=torch.float32, device=device),
         ignore_index=255,
+        mode=args.loss,
+        dice_lambda=args.dice_lambda,
     )
     opt = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
