@@ -1,13 +1,13 @@
 #!/bin/bash
 # Phase 5 Stage 1: ReLU U-TAE SAR student vs frozen CE+GDL S2 teacher.
-# Partition allows 24h. 160 epochs may still need a resume slice.
+# Request 48h for 160 epochs. If Slurm rejects MaxTime, resubmit with -t 24:00:00.
 #   sbatch --dependency=afterok:111854 --exclude=ragpu004,ragpu005,ragpu007  multisenge_utae/train_cmu_utae_cegdl.sbatch
 #SBATCH -J s1u_cegdl
 #SBATCH -N 1
 #SBATCH -n 4
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
-#SBATCH -t 24:00:00
+#SBATCH -t 48:00:00
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-cmu-utae-cegdl-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-cmu-utae-cegdl-%j.err
 
