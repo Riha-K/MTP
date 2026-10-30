@@ -1,5 +1,5 @@
 #!/bin/bash
-# Continue Phase 5 Stage 1 CE+GDL student after a 10h SIGKILL.
+# Continue Phase 5 Stage 1 CE+GDL student if the first 24h slice is killed.
 # If history.json exists the first job finished cleanly and this exits 0.
 #   sbatch --dependency=afterok:FIRST_S1 --exclude=ragpu004,ragpu005,ragpu007   multisenge_utae/train_cmu_utae_cegdl_resume.sbatch
 #SBATCH -J s1u_cegdlR
@@ -7,7 +7,7 @@
 #SBATCH -n 4
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
-#SBATCH -t 10:00:00
+#SBATCH -t 24:00:00
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-cmu-utae-cegdl-resume-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-cmu-utae-cegdl-resume-%j.err
 

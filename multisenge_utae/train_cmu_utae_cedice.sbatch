@@ -1,13 +1,13 @@
 #!/bin/bash
 # Phase 5 Stage 1: ReLU U-TAE SAR student vs frozen CE+Dice S2 teacher.
-# GPU QOS wall is ~10h. This job asks for 10h. Resume jobs continue if last.pt exists and history.json does not.
+# Partition allows 24h (see 111844). 160 epochs may still need a resume slice.
 #   sbatch --dependency=afterok:113571 --exclude=ragpu004,ragpu005,ragpu007  multisenge_utae/train_cmu_utae_cedice.sbatch
 #SBATCH -J s1u_cedice
 #SBATCH -N 1
 #SBATCH -n 4
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
-#SBATCH -t 10:00:00
+#SBATCH -t 24:00:00
 #SBATCH -o /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-cmu-utae-cedice-%j.out
 #SBATCH -e /home/rihak_iitp/MTP/earth2/multisenge_utae/artifacts/slurm-cmu-utae-cedice-%j.err
 
