@@ -46,6 +46,7 @@ from multisenge_seg.train import (
     _seed_worker,
 )
 from multisenge_utae.data import batch_positions, collate_utae
+from multisenge_utae.losses import SegCompositeLoss
 from multisenge_utae.models.cmu_vit_utae import CMUViTUTAE
 
 
@@ -246,6 +247,14 @@ def main() -> int:
   p.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
   p.add_argument("--eval-ckpt", type=Path, default=None)
   p.add_argument("--eval-split", type=str, default="test", choices=["train", "val", "test"])
+  p.add_argument(
+      "--loss",
+      type=str,
+      default="ce",
+      choices=["ce", "ce_dice", "ce_gdl"],
+      help="ce=weighted CE (quoted phases). ce_dice=Composite A. ce_gdl=Composite B",
+  )
+  p.add_argument("--dice-lambda", type=float, default=1.0, help="lambda on the Dice / GDL term")
   args = p.parse_args()
 
   n_cls = num_output_classes(args.num_classes)
@@ -312,10 +321,13 @@ def main() -> int:
   boost = parse_class_boost(args.class_boost, n_cls)
   if np.any(boost != 1.0):
     weights = apply_class_boost(weights, boost)
-  criterion = nn.CrossEntropyLoss(
+  criterion = SegCompositeLoss(
       weight=torch.tensor(weights, dtype=torch.float32, device=device),
       ignore_index=255,
+      mode=args.loss,
+      dice_lambda=args.dice_lambda,
   )
+  print(f"loss={args.loss} dice_lambda={args.dice_lambda}", flush=True)
   opt = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
   scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
       opt, mode="max", factor=0.1, patience=args.plateau_patience
